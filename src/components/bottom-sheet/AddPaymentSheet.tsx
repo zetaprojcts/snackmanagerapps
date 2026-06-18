@@ -194,50 +194,44 @@ export default function AddPaymentSheet({ visible, onClose }: Props) {
 
       return;
     }
-    console.log(selectedDevice);
-    console.log(selectedDevice?.ewallet);
-    const allowedWallets = [
-      "Dana",
-      "OVO",
-      "GoPay",
-      "ShopeePay",
-      "DANA",
-      "GOPAY",
-      "SHOPEEPAY",
-    ];
+    
+    const walletValue = String(
+  selectedDevice?.ewallet ?? "",
+).trim();
 
-    if (
-      !selectedDevice ||
-      !allowedWallets.includes(String(selectedDevice.ewallet))
-    ) {
-      Alert.alert(
-        "Perangkat Belum Siap",
-        "Device ini belum bisa melakukan penarikan. Silahkan lengkapi data perangkat terlebih dahulu.",
-        [
-          {
-            text: "Kembali",
-            style: "cancel",
-          },
-          {
-            text: "Edit Data Perangkat",
-            onPress: () => {
-              onClose();
+if (
+  walletValue === "" ||
+  walletValue === "-" ||
+  walletValue.toLowerCase() === "null"
+) {
+  Alert.alert(
+    "Perangkat Belum Siap",
+    "Device ini belum bisa melakukan penarikan. Silahkan lengkapi data perangkat terlebih dahulu.",
+    [
+      {
+        text: "Kembali",
+        style: "cancel",
+      },
+      {
+        text: "Edit Data Perangkat",
+        onPress: () => {
+          onClose();
 
-              setTimeout(() => {
-                router.push({
-                  pathname: "/edit-device",
-                  params: {
-                    id: selectedDevice?.id,
-                  },
-                });
-              }, 300);
-            },
-          },
-        ],
-      );
+          setTimeout(() => {
+            router.push({
+              pathname: "/edit-device",
+              params: {
+                id: selectedDevice?.id,
+              },
+            });
+          }, 300);
+        },
+      },
+    ],
+  );
 
-      return;
-    }
+  return;
+}
 
     if (!form.amount.trim()) {
       Alert.alert("Perhatian", "Nominal penarikan wajib diisi");
