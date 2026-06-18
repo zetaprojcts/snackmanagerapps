@@ -1,18 +1,31 @@
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, useFonts } from '@expo-google-fonts/inter';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useState } from 'react';
-import { Dimensions, Image, StyleSheet, View } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { COLORS } from '../theme';
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  useFonts,
+} from "@expo-google-fonts/inter";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect, useState } from "react";
+import { Dimensions, Image, StyleSheet, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Animated, {
+  Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { COLORS } from "../theme";
 
 // Tahan splash screen bawaan OS agar tidak langsung hilang
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function RootLayout() {
   const [appReady, setAppReady] = useState(false);
@@ -36,17 +49,21 @@ export default function RootLayout() {
       setAppReady(true);
 
       // 2. Jalankan animasi Loading Bar (berjalan selama 1.5 detik)
-      progressWidth.value = withTiming(width * 0.6, { 
-        duration: 1500, 
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1) // Efek melambat di akhir
-      }, (isFinished) => {
-        if (isFinished) {
-          // 3. Setelah loading penuh, pudarkan layar Custom Splash
-          splashOpacity.value = withTiming(0, { duration: 600 }, () => {
-             runOnJS(setAnimationDone)(true);
-          });
-        }
-      });
+      progressWidth.value = withTiming(
+        width * 0.6,
+        {
+          duration: 2000,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1), // Efek melambat di akhir
+        },
+        (isFinished) => {
+          if (isFinished) {
+            // 3. Setelah loading penuh, pudarkan layar Custom Splash
+            splashOpacity.value = withTiming(0, { duration: 600 }, () => {
+              runOnJS(setAnimationDone)(true);
+            });
+          }
+        },
+      );
     }
   }, [fontsLoaded, error]);
 
@@ -62,67 +79,77 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryClientProvider client={queryClient}>
-        <View style={{ flex: 1 }}>
-          
-          {/* Aplikasi Utama */}
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="action-sheet-modal" options={{ presentation: 'transparentModal', animation: 'fade' }} />
-          </Stack>
-
-          {/* Custom Splash Screen Overlay */}
-          {!animationDone && appReady && (
-            <Animated.View style={[styles.splashContainer, animatedSplashStyle]}>
-              {/* Pastikan logo splash.png Anda ada di folder assets */}
-              <Image 
-                source={require('../../assets/splash.png')} 
-                style={styles.splashImage}
-                resizeMode="contain"
+      <BottomSheetModalProvider>
+        <QueryClientProvider client={queryClient}>
+          <View style={{ flex: 1 }}>
+            {/* Aplikasi Utama */}
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen
+                name="action-sheet-modal"
+                options={{
+                  presentation: "transparentModal",
+                  animation: "fade",
+                }}
               />
-              
-              {/* Komponen Bar Loading */}
-              <View style={styles.loadingTrack}>
-                <Animated.View style={[styles.loadingFill, animatedProgressStyle]} />
-              </View>
-            </Animated.View>
-          )}
+            </Stack>
 
-        </View>
-      </QueryClientProvider>
+            {/* Custom Splash Screen Overlay */}
+            {!animationDone && appReady && (
+              <Animated.View
+                style={[styles.splashContainer, animatedSplashStyle]}
+              >
+                {/* Pastikan logo splash.png Anda ada di folder assets */}
+                <Image
+                  source={require("../../assets/splash.png")}
+                  style={styles.splashImage}
+                  resizeMode="contain"
+                />
+
+                {/* Komponen Bar Loading */}
+                <View style={styles.loadingTrack}>
+                  <Animated.View
+                    style={[styles.loadingFill, animatedProgressStyle]}
+                  />
+                </View>
+              </Animated.View>
+            )}
+          </View>
+        </QueryClientProvider>
+      </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   splashContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     backgroundColor: COLORS.primary, // Latar belakang harus persis sama dengan di app.json
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 999, // Pastikan menutupi seluruh aplikasi
   },
   splashImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
+    width: "100%",
+    height: "100%",
+    position: "absolute",
   },
   loadingTrack: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 120, // Jarak dari bawah layar
     width: width * 0.6, // Lebar trek maksimal 60% dari layar
     height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)', // Warna trek redup
+    backgroundColor: "rgba(255, 255, 255, 0.3)", // Warna trek redup
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   loadingFill: {
-    height: '100%',
-    backgroundColor: '#FFFFFF', // Warna garis loading (Putih)
+    height: "100%",
+    backgroundColor: "#FFFFFF", // Warna garis loading (Putih)
     borderRadius: 10,
-  }
+  },
 });

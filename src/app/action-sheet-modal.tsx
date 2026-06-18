@@ -1,64 +1,212 @@
-import { useRouter } from 'expo-router';
-import { ArrowDownToLine, Smartphone, Wallet, X } from 'lucide-react-native';
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { COLORS } from '../theme';
+import React, { useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+import { ArrowDownToLine, Smartphone, Wallet, X } from "lucide-react-native";
+
+import { useRouter } from "expo-router";
+
+import AddDeviceSheet from "../components/bottom-sheet/AddDeviceSheet";
+import { COLORS } from "../theme";
 
 export default function ActionSheetModal() {
   const router = useRouter();
 
-  const navigateTo = (path: string) => {
-    router.back(); // Tutup modal terlebih dahulu
-    setTimeout(() => router.push(path as any), 100); // Baru pindah halaman
+  const [showAddDevice, setShowAddDevice] = useState(false);
+
+  const handleClose = () => {
+    router.back();
   };
 
   return (
-    <View style={styles.container}>
-      {/* Latar Belakang Gelap (Klik untuk menutup) */}
-      <Pressable style={styles.backdrop} onPress={() => router.back()} />
+    <>
+      <View style={styles.container}>
+        <Pressable style={styles.backdrop} onPress={handleClose} />
 
-      {/* Menu dari Bawah */}
-      <View style={styles.sheet}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Pilih Tindakan</Text>
-          <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-            <X color={COLORS.textMuted} size={20} />
+        <View style={styles.sheet}>
+          <View style={styles.handle} />
+
+          <View style={styles.header}>
+            <Text style={styles.title}>Pilih Tindakan</Text>
+
+            <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
+              <X color={COLORS.textMuted} size={20} />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => setShowAddDevice(true)}
+          >
+            <View
+              style={[
+                styles.iconBox,
+                {
+                  backgroundColor: "#EEF2FF",
+                },
+              ]}
+            >
+              <Smartphone color={COLORS.primary} size={24} />
+            </View>
+
+            <View>
+              <Text style={styles.menuTitle}>Tambah Perangkat</Text>
+
+              <Text style={styles.menuSubtitle}>Tambah perangkat baru</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              router.back();
+
+              setTimeout(() => {
+                router.push("/add-income");
+              }, 200);
+            }}
+          >
+            <View
+              style={[
+                styles.iconBox,
+                {
+                  backgroundColor: "#D1FAE5",
+                },
+              ]}
+            >
+              <ArrowDownToLine color={COLORS.success} size={24} />
+            </View>
+
+            <View>
+              <Text style={styles.menuTitle}>Catat Pendapatan</Text>
+
+              <Text style={styles.menuSubtitle}>Input pemasukan harian</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              router.back();
+
+              setTimeout(() => {
+                router.push("/add-payment");
+              }, 200);
+            }}
+          >
+            <View
+              style={[
+                styles.iconBox,
+                {
+                  backgroundColor: "#FEF3C7",
+                },
+              ]}
+            >
+              <Wallet color={COLORS.warning} size={24} />
+            </View>
+
+            <View>
+              <Text style={styles.menuTitle}>Catat Penarikan</Text>
+
+              <Text style={styles.menuSubtitle}>Input pencairan saldo</Text>
+            </View>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigateTo('/add-device')}>
-          <View style={[styles.iconBox, { backgroundColor: '#EEF2FF' }]}><Smartphone color={COLORS.primary} size={24} /></View>
-          <Text style={styles.menuText}>Tambah Perangkat Baru</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigateTo('/add-income')}>
-          <View style={[styles.iconBox, { backgroundColor: '#D1FAE5' }]}><ArrowDownToLine color={COLORS.success} size={24} /></View>
-          <Text style={styles.menuText}>Catat Pemasukan Harian</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigateTo('/add-payment')}>
-          <View style={[styles.iconBox, { backgroundColor: '#FEF3C7' }]}><Wallet color={COLORS.warning} size={24} /></View>
-          <Text style={styles.menuText}>Catat Penarikan Saldo</Text>
-        </TouchableOpacity>
       </View>
-    </View>
+
+      <AddDeviceSheet
+        visible={showAddDevice}
+        onClose={() => setShowAddDevice(false)}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'flex-end' },
+  container: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+
   backdrop: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.4)'
+    backgroundColor: "rgba(0,0,0,0.45)",
   },
-  sheet: { backgroundColor: COLORS.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 40 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  title: { fontSize: 18, fontWeight: '700', color: COLORS.text },
-  closeBtn: { padding: 5, backgroundColor: COLORS.background, borderRadius: 12 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  iconBox: { padding: 12, borderRadius: 12, marginRight: 15 },
-  menuText: { fontSize: 16, fontWeight: '600', color: COLORS.text }
+
+  sheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 20,
+    paddingBottom: 40,
+  },
+
+  handle: {
+    width: 48,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: "#CBD5E1",
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+
+  title: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
+
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.background,
+  },
+
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+
+  iconBox: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
+
+  menuTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginBottom: 2,
+  },
+
+  menuSubtitle: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+  },
 });

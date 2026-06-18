@@ -1,140 +1,247 @@
-import { supabase } from '../../lib/supabase';
+import { supabase } from "../../lib/supabase";
 
-// Mengambil semua daftar perangkat
-export const fetchDevices = async () => {
-  const { data, error } = await supabase
-    .from('devices')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) throw new Error(error.message);
-  return data;
+export type Device = {
+  id: string;
+  code?: string;
+  brand: string | null;
+  device_name: string;
+  phone_number: string | null;
+  email: string | null;
+  ewallet: string | null;
+  is_active: boolean;
+  created_at: string;
 };
 
-// Menambah perangkat baru
-export const createDevice = async (deviceData: { code: string; device_name: string; phone_number: string; email: string; ewallet: string }) => {
-  const { data, error } = await supabase
-    .from('devices')
-    .insert([deviceData])
-    .select();
+export const BRANDS = [
+  "Samsung",
+  "Oppo",
+  "Vivo",
+  "Xiaomi",
+  "Realme",
+  "Infinix",
+];
 
-  if (error) throw new Error(error.message);
-  return data;
-};
-
-// Mengubah status Aktif / Tidak Aktif
-export const toggleDeviceStatus = async (id: string, currentStatus: boolean) => {
-  const { data, error } = await supabase
-    .from('devices')
-    .update({ is_active: !currentStatus })
-    .eq('id', id);
-
-  if (error) throw new Error(error.message);
-  return data;
-};
-
-// Mengambil detail 1 perangkat beserta datanya
-export const getDeviceById = async (id: string) => {
-  const { data, error } = await supabase
-    .from('devices')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) throw new Error(error.message);
-  return data;
-};
-
-// Mengambil transaksi (pemasukan & penarikan) khusus untuk 1 HP
-export const getDeviceTransactions = async (deviceId: string) => {
-  const { data: incomes, error: errIncome } = await supabase
-    .from('income')
-    .select('*')
-    .eq('device_id', deviceId)
-    .order('trx_date', { ascending: true }); // Urutkan dari terlama ke terbaru untuk grafik
-
-  const { data: payments, error: errPayment } = await supabase
-    .from('payment')
-    .select('*')
-    .eq('device_id', deviceId)
-    .order('trx_date', { ascending: true });
-
-  if (errIncome) throw new Error(errIncome.message);
-  if (errPayment) throw new Error(errPayment.message);
-
-  return { incomes: incomes || [], payments: payments || [] };
-};
-
-// Memperbarui profil perangkat
-export const updateDevice = async (
-  id: string, 
-  deviceData: { code: string; device_name: string; phone_number: string; email: string; ewallet: string }
-) => {
-  const { data, error } = await supabase
-    .from('devices')
-    .update(deviceData)
-    .eq('id', id)
-    .select();
-
-  if (error) throw new Error(error.message);
-  return data;
-};
-
-// Mengambil semua data perangkat
 export const getDevices = async () => {
   const { data, error } = await supabase
-    .from('devices')
-    .select('*')
-    .order('created_at', { ascending: false });
+    .from("devices")
+    .select("*")
+    .order("device_name", {
+      ascending: true,
+    });
 
-  if (error) throw new Error(error.message);
-  return data;
-};
-
-// Mengambil kode perangkat terakhir dan membuat urutan baru
-export const generateNextDeviceCode = async () => {
-  // Ambil 1 data terakhir berdasarkan tanggal pembuatan
-  const { data, error } = await supabase
-    .from('devices')
-    .select('code')
-    .order('created_at', { ascending: false })
-    .limit(1);
-
-  if (error) throw new Error(error.message);
-
-  // Jika database masih kosong sama sekali
-  if (!data || data.length === 0 || !data[0].code) {
-    return 'HP001';
+  if (error) {
+    throw new Error(error.message);
   }
 
-  const lastCode = data[0].code; // Contoh mendapat: "HP005"
-  
-  // Pisahkan huruf dan angka, lalu tambah 1
-  // Angka akan diekstrak, jika "HP005" -> 5 + 1 = 6
-  const numericPart = parseInt(lastCode.replace(/\D/g, ''), 10);
-  
-  if (isNaN(numericPart)) return 'HP001'; // Jaga-jaga jika format kode sebelumnya berantakan
-
-  const nextNumber = numericPart + 1;
-  
-  // Gabungkan kembali dengan format 3 digit (006)
-  return `HP${nextNumber.toString().padStart(3, '0')}`;
+  return data || [];
 };
 
-// Fungsi untuk menambahkan perangkat baru ke Supabase
-export const addDevice = async (deviceData: { 
-  code: string; 
-  device_name: string; 
-  phone_number: string; 
-  email: string; 
-  ewallet: string; 
-  status: string; // <-- Tambahan status agar tidak error
-}) => {
-  const { data, error } = await supabase
-    .from('devices')
-    .insert([deviceData])
-    .select();
+export const getDevicesWithBalance = async () => {
+  const { data: devices, error } = await supabase
+    .from("devices")
+    .select("*")
+    .order("device_name", {
+      ascending: true,
+    });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!devices?.length) {
+    return [];
+  }
+
+  const deviceIds = devices.map((device) => device.id);
+
+  const { data: incomes, error: incomeError } = await supabase
+    .from("income")
+    .select("device_id, amount")
+    .in("device_id", deviceIds);
+
+  if (incomeError) {
+    throw new Error(incomeError.message);
+  }
+
+  const { data: payments, error: paymentError } = await supabase
+    .from("payment")
+    .select("device_id, gross_amount")
+    .in("device_id", deviceIds);
+
+  if (paymentError) {
+    throw new Error(paymentError.message);
+  }
+
+  return devices.map((device) => {
+    const totalIncome = (incomes || [])
+      .filter((income) => income.device_id === device.id)
+      .reduce((total, current) => total + Number(current.amount), 0);
+
+    const totalPayment = (payments || [])
+      .filter((payment) => payment.device_id === device.id)
+      .reduce((total, current) => total + Number(current.gross_amount), 0);
+
+    return {
+      ...device,
+      balance: totalIncome - totalPayment,
+    };
+  });
+};
+
+export const getDeviceById = async (id: string) => {
+  const { data, error } = await supabase
+    .from("devices")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
   return data;
+};
+
+export const getDeviceDetail = async (id: string) => {
+  const device = await getDeviceById(id);
+
+  const { data: incomes, error: incomeError } = await supabase
+    .from("income")
+    .select("*")
+    .eq("device_id", id)
+    .order("trx_date", {
+      ascending: false,
+    });
+
+  if (incomeError) {
+    throw new Error(incomeError.message);
+  }
+
+  const { data: payments, error: paymentError } = await supabase
+    .from("payment")
+    .select("*")
+    .eq("device_id", id)
+    .order("trx_date", {
+      ascending: false,
+    });
+
+  if (paymentError) {
+    throw new Error(paymentError.message);
+  }
+
+  const totalIncome = (incomes || []).reduce(
+    (total, current) => total + Number(current.amount),
+    0,
+  );
+
+  const totalPayment = (payments || []).reduce(
+    (total, current) => total + Number(current.gross_amount),
+    0,
+  );
+
+  return {
+    device,
+    incomes: incomes || [],
+    payments: payments || [],
+    totalIncome,
+    totalPayment,
+    balance: totalIncome - totalPayment,
+  };
+};
+
+export const addDevice = async (deviceData: {
+  brand: string;
+  device_name: string;
+  phone_number?: string;
+  email?: string;
+  ewallet?: string | null;
+  is_active: boolean;
+}) => {
+  const code = await generateNextDeviceCode();
+
+  const { data, error } = await supabase
+    .from("devices")
+    .insert([
+      {
+        code,
+        brand: deviceData.brand,
+        device_name: deviceData.device_name,
+        phone_number: deviceData.phone_number || null,
+        email: deviceData.email || null,
+        ewallet: deviceData.ewallet || null,
+        is_active: deviceData.is_active,
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
+export const updateDevice = async (
+  id: string,
+  deviceData: {
+    brand: string;
+    device_name: string;
+    phone_number?: string;
+    email?: string;
+    ewallet?: string | null;
+    is_active: boolean;
+  },
+) => {
+  const { data, error } = await supabase
+    .from("devices")
+    .update({
+      brand: deviceData.brand,
+      device_name: deviceData.device_name,
+      phone_number: deviceData.phone_number || null,
+      email: deviceData.email || null,
+      ewallet: deviceData.ewallet || null,
+      is_active: deviceData.is_active,
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
+export const generateNextDeviceCode = async () => {
+  const { data, error } = await supabase
+    .from("devices")
+    .select("code")
+    .order("created_at", {
+      ascending: false,
+    })
+    .limit(1);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data || data.length === 0) {
+    return "HP001";
+  }
+
+  const lastCode = data[0]?.code;
+
+  if (!lastCode) {
+    return "HP001";
+  }
+
+  const lastNumber = parseInt(lastCode.replace(/\D/g, ""), 10);
+
+  if (Number.isNaN(lastNumber)) {
+    return "HP001";
+  }
+
+  return `HP${String(lastNumber + 1).padStart(3, "0")}`;
 };
