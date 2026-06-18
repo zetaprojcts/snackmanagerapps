@@ -1,19 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
-import { FilterPills } from "../../components/layout/FilterPills";
-import { TransactionCard } from "../../components/ui/TransactionCard";
+
 import { fetchPayments } from "../../features/payment/api";
 import { COLORS } from "../../theme";
 
+const BRAND_IMAGES: Record<string, any> = {
+  Samsung: require("../../../assets/devices/samsung.png"),
+  Oppo: require("../../../assets/devices/oppo.png"),
+  Vivo: require("../../../assets/devices/vivo.png"),
+  Xiaomi: require("../../../assets/devices/xiaomi.png"),
+  Realme: require("../../../assets/devices/realme.png"),
+  Infinix: require("../../../assets/devices/infinix.png"),
+};
+
+const DEFAULT_IMAGE = require("../../../assets/devices/default.png");
+
 export default function PaymentScreen() {
-  const [filter, setFilter] = useState("Bulan Ini");
+  const [filter, setFilter] = useState<"today" | "month" | "all">("today");
 
   const {
     data: payments,
@@ -25,79 +37,295 @@ export default function PaymentScreen() {
     queryFn: fetchPayments,
   });
 
-  // Logika Filter Waktu
-  const getFilteredData = () => {
+  const filteredPayments = useMemo(() => {
     if (!payments) return [];
+
     const now = new Date();
 
-    return payments.filter((item) => {
-      const itemDate = new Date(item.trx_date);
-      if (filter === "7 Hari Terakhir") {
-        const diff = now.getTime() - itemDate.getTime();
-        return diff <= 7 * 24 * 60 * 60 * 1000;
-      } else if (filter === "Bulan Ini") {
+    return payments.filter((item: any) => {
+      const trxDate = new Date(item.trx_date);
+
+      if (filter === "today") {
         return (
-          itemDate.getMonth() === now.getMonth() &&
-          itemDate.getFullYear() === now.getFullYear()
+          trxDate.getDate() === now.getDate() &&
+          trxDate.getMonth() === now.getMonth() &&
+          trxDate.getFullYear() === now.getFullYear()
         );
-      } else if (filter === "3 Bulan Terakhir") {
-        const diff = now.getTime() - itemDate.getTime();
-        return diff <= 90 * 24 * 60 * 60 * 1000;
       }
+
+      if (filter === "month") {
+        return (
+          trxDate.getMonth() === now.getMonth() &&
+          trxDate.getFullYear() === now.getFullYear()
+        );
+      }
+
       return true;
+    });
+  }, [payments, filter]);
+
+  const totalPayment = filteredPayments.reduce(
+    (total: number, item: any) => total + Number(item.gross_amount),
+    0,
+  );
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
   };
 
-  const filteredPayments = getFilteredData();
+  const renderItem = ({ item }: any) => {
+    const imageSource =
+      BRAND_IMAGES[item.devices?.brand || ""] || DEFAULT_IMAGE;
+
+    return (
+      <TouchableOpacity activeOpacity={0.85} style={styles.card}>
+        <Image
+          source={imageSource}
+          resizeMode="contain"
+          style={styles.deviceImage}
+        />
+
+        <View style={styles.cardContent}>
+          <Text style={styles.deviceName}>
+            {item.devices?.device_name || "Perangkat"}
+          </Text>
+
+          <Text style={styles.dateText}>{formatDate(item.trx_date)}</Text>
+        </View>
+
+        <Text style={styles.amountText}>
+          Rp {Number(item.gross_amount).toLocaleString("id-ID")}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.danger} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Riwayat Penarikan</Text>
-
-      <View style={{ paddingHorizontal: 20 }}>
-        <FilterPills activeFilter={filter} setFilter={setFilter} />
+      <View style={styles.header}>
+        <Text style={styles.title}>Riwayat Penarikan</Text>
       </View>
 
-      {isLoading ? (
-        <ActivityIndicator
-          size="large"
-          color={COLORS.primary}
-          style={{ marginTop: 50 }}
-        />
-      ) : (
-        <FlatList
-          data={filteredPayments}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          refreshing={isRefetching}
-          onRefresh={refetch}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>
-              Belum ada riwayat penarikan untuk periode ini.
+      <View style={styles.summaryCard}>
+        <Text style={styles.summaryLabel}>Total Penarikan</Text>
+
+        <Text style={styles.summaryValue}>
+          Rp {totalPayment.toLocaleString("id-ID")}
+        </Text>
+      </View>
+
+      <View style={styles.filterTabs}>
+        <TouchableOpacity
+          style={[styles.filterTab, filter === "today" && styles.activeTab]}
+          onPress={() => setFilter("today")}
+        >
+          <Text
+            style={[styles.filterText, filter === "today" && styles.activeText]}
+          >
+            Hari Ini
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.filterTab, filter === "month" && styles.activeTab]}
+          onPress={() => setFilter("month")}
+        >
+          <Text
+            style={[styles.filterText, filter === "month" && styles.activeText]}
+          >
+            Bulan Ini
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.filterTab, filter === "all" && styles.activeTab]}
+          onPress={() => setFilter("all")}
+        >
+          <Text
+            style={[styles.filterText, filter === "all" && styles.activeText]}
+          >
+            Semua
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={filteredPayments}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        refreshing={isRefetching}
+        onRefresh={refetch}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>Belum Ada Penarikan</Text>
+
+            <Text style={styles.emptySubtitle}>
+              Data penarikan akan muncul di sini
             </Text>
-          }
-          renderItem={({ item }) => (
-            <TransactionCard
-              type="payment"
-              deviceName={item.devices?.device_name || "Perangkat Dihapus"}
-              date={item.trx_date}
-              amount={item.gross_amount}
-            />
-          )}
-        />
-      )}
+          </View>
+        }
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background, paddingTop: 60 },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    marginHorizontal: 20,
-    marginBottom: 20,
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    paddingTop: 60,
   },
-  list: { paddingHorizontal: 20, paddingBottom: 20 },
-  emptyText: { textAlign: "center", marginTop: 50, color: COLORS.textMuted },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  header: {
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+
+  title: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: COLORS.text,
+  },
+
+  summaryCard: {
+    marginHorizontal: 20,
+    backgroundColor: COLORS.primary,
+    borderRadius: 20,
+    padding: 20,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+
+  summaryLabel: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 13,
+  },
+
+  summaryValue: {
+    color: "#FFFFFF",
+    fontSize: 32,
+    fontWeight: "800",
+    marginTop: 4,
+  },
+
+  filterTabs: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 18,
+    marginBottom: 16,
+    paddingHorizontal: 20,
+  },
+
+  filterTab: {
+    paddingBottom: 10,
+  },
+
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.primary,
+  },
+
+  filterText: {
+    color: COLORS.textMuted,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  activeText: {
+    color: COLORS.primary,
+    fontWeight: "700",
+  },
+
+  list: {
+    paddingHorizontal: 20,
+    paddingBottom: 120,
+  },
+
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 12,
+
+    flexDirection: "row",
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+
+  deviceImage: {
+    width: 42,
+    height: 42,
+    marginRight: 12,
+  },
+
+  cardContent: {
+    flex: 1,
+  },
+
+  deviceName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
+
+  dateText: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 3,
+  },
+
+  amountText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: COLORS.danger,
+  },
+
+  emptyContainer: {
+    alignItems: "center",
+    marginTop: 80,
+  },
+
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  emptySubtitle: {
+    color: COLORS.textMuted,
+    fontSize: 13,
+  },
 });

@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-
-import { Search, SlidersHorizontal } from "lucide-react-native";
-
+import { Filter, Search } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 
 import {
@@ -151,7 +149,7 @@ export default function DevicesScreen() {
             style={styles.filterBtn}
             onPress={() => setShowFilter(true)}
           >
-            <SlidersHorizontal size={20} color={COLORS.text} />
+            <Filter size={20} color={"#FFF"} />
           </TouchableOpacity>
         </View>
 
@@ -199,7 +197,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: "800",
     color: COLORS.text,
     marginBottom: 16,
@@ -247,7 +245,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 54,
     backgroundColor: "#e8e8e8",
-    borderRadius: 16,
+    borderRadius: 30,
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -272,8 +270,8 @@ const styles = StyleSheet.create({
   filterBtn: {
     width: 54,
     height: 54,
-    borderRadius: 16,
-    backgroundColor: "#e8e8e8",
+    borderRadius: 30,
+    backgroundColor: COLORS.primary,
     borderColor: "#e8e8e8",
     shadowColor: "#000",
     shadowOffset: {

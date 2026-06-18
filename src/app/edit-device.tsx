@@ -1,10 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronLeft, Save } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
+
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Switch,
@@ -13,175 +13,320 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Chip } from "../components/ui/Chip";
+
+import { useLocalSearchParams, useRouter } from "expo-router";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { ChevronLeft, Save } from "lucide-react-native";
+
+import { Dropdown } from "react-native-element-dropdown";
+
 import { getDeviceById, updateDevice } from "../features/devices/api";
+
 import { COLORS } from "../theme";
 
-const WALLETS = ["Dana", "OVO", "GoPay", "ShopeePay"];
+const BRAND_OPTIONS = [
+  {
+    label: "SAMSUNG",
+    value: "Samsung",
+  },
+  {
+    label: "OPPO",
+    value: "Oppo",
+  },
+  {
+    label: "VIVO",
+    value: "Vivo",
+  },
+  {
+    label: "XIAOMI",
+    value: "Xiaomi",
+  },
+  {
+    label: "REALME",
+    value: "Realme",
+  },
+  {
+    label: "INFINIX",
+    value: "Infinix",
+  },
+];
+
+const EWALLET_OPTIONS = [
+  {
+    label: "-",
+    value: "-",
+  },
+  {
+    label: "DANA",
+    value: "Dana",
+  },
+  {
+    label: "OVO",
+    value: "OVO",
+  },
+  {
+    label: "GOPAY",
+    value: "GoPay",
+  },
+  {
+    label: "SHOPEEPAY",
+    value: "ShopeePay",
+  },
+];
 
 export default function EditDevice() {
   const { id } = useLocalSearchParams();
+
   const router = useRouter();
+
   const queryClient = useQueryClient();
 
-  // State form ditambahkan properti status
   const [form, setForm] = useState({
-    code: "",
+    brand: "Samsung",
     device_name: "",
     phone_number: "",
     email: "",
-    ewallet: "Dana",
-    status: "active", // Default awal
+    ewallet: "-",
+    is_active: true,
   });
 
-  // Ambil data profil HP saat ini dari Supabase
-  const { data: currentDevice, isLoading: loadingFetch } = useQuery({
+  const { data: currentDevice, isLoading } = useQuery({
     queryKey: ["device", id],
     queryFn: () => getDeviceById(id as string),
   });
 
-  // Isi form otomatis saat data selesai dimuat dari database
   useEffect(() => {
-    if (currentDevice) {
-      setForm({
-        code: currentDevice.code || "",
-        device_name: currentDevice.device_name || "",
-        phone_number: currentDevice.phone_number || "",
-        email: currentDevice.email || "",
-        ewallet: currentDevice.ewallet || "Dana",
-        status: currentDevice.status || "active", // Muat status dari database
-      });
+    if (!currentDevice) {
+      return;
     }
+
+    setForm({
+      brand: currentDevice.brand || "Samsung",
+
+      device_name: currentDevice.device_name || "",
+
+      phone_number: currentDevice.phone_number || "",
+
+      email: currentDevice.email || "",
+
+      ewallet: currentDevice.ewallet || "-",
+
+      is_active: currentDevice.is_active ?? true,
+    });
   }, [currentDevice]);
 
-  // Fungsi menyimpan perubahan
   const mutation = useMutation({
-    mutationFn: (updatedData: any) => updateDevice(id as string, updatedData),
+    mutationFn: (data: any) => updateDevice(id as string, data),
+
     onSuccess: () => {
-      // Segarkan data di halaman detail dan daftar perangkat agar UI otomatis update
-      queryClient.invalidateQueries({ queryKey: ["device", id] });
-      queryClient.invalidateQueries({ queryKey: ["devices"] });
-      Alert.alert("Sukses", "Data perangkat berhasil diperbarui!");
+      queryClient.invalidateQueries({
+        queryKey: ["devices"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["device", id],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["device-detail", id],
+      });
+
+      Alert.alert("Sukses", "Perangkat berhasil diperbarui");
+
       router.back();
     },
+
     onError: (error: any) => {
       Alert.alert("Gagal", error.message);
     },
   });
 
   const handleSave = () => {
-    if (!form.code || !form.device_name) {
-      Alert.alert("Error", "Kode dan Nama Perangkat wajib diisi!");
+    if (!form.device_name.trim()) {
+      Alert.alert("Perhatian", "Nama perangkat wajib diisi");
+
       return;
     }
-    mutation.mutate(form);
+
+    mutation.mutate({
+      brand: form.brand,
+
+      device_name: form.device_name,
+
+      phone_number: form.phone_number,
+
+      email: form.email,
+
+      ewallet: form.ewallet === "-" ? null : form.ewallet,
+
+      is_active: form.is_active,
+    });
   };
 
-  if (loadingFetch) {
+  if (isLoading) {
     return (
       <View
         style={[
           styles.container,
-          { justifyContent: "center", alignItems: "center" },
+          {
+            justifyContent: "center",
+            alignItems: "center",
+          },
         ]}
       >
         <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
-
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ChevronLeft size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Edit Perangkat</Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.content}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <ChevronLeft size={24} color="#1A1A1A" />
+          </TouchableOpacity>
 
-      <View style={styles.content}>
-        {/* === BAGIAN TOGGLE STATUS === */}
-        <View style={styles.switchContainer}>
-          <View style={styles.switchTextContainer}>
-            <Text style={styles.switchTitle}>Status Operasional</Text>
-            <Text
-              style={[
-                styles.switchSubtitle,
-                { color: form.status === "active" ? "#4CAF50" : "#F44336" },
-              ]}
-            >
-              {form.status === "active"
-                ? "● Perangkat Aktif"
-                : "● Perangkat Tidak Aktif"}
-            </Text>
-          </View>
-          <Switch
-            value={form.status === "active"}
-            onValueChange={(val) =>
-              setForm({ ...form, status: val ? "active" : "inactive" })
-            }
-            trackColor={{ false: "#FFEBEE", true: "#E8F5E9" }}
-            thumbColor={form.status === "active" ? "#4CAF50" : "#F44336"}
+          <Text style={styles.title}>Edit Perangkat</Text>
+
+          <View
+            style={{
+              width: 24,
+            }}
           />
         </View>
-        {/* ============================ */}
 
-        <Text style={styles.label}>Kode Perangkat</Text>
-        <TextInput
-          style={styles.input}
-          value={form.code}
-          onChangeText={(t) => setForm({ ...form, code: t })}
-        />
+        <View style={styles.statusCard}>
+          <View>
+            <Text style={styles.statusTitle}>Status Perangkat</Text>
 
-        <Text style={styles.label}>Nama Perangkat</Text>
-        <TextInput
-          style={styles.input}
-          value={form.device_name}
-          onChangeText={(t) => setForm({ ...form, device_name: t })}
-        />
+            <Text
+              style={[
+                styles.statusText,
+                {
+                  color: form.is_active ? COLORS.success : COLORS.danger,
+                },
+              ]}
+            >
+              {form.is_active ? "Aktif" : "Nonaktif"}
+            </Text>
+          </View>
 
-        <Text style={styles.label}>Ubah E-Wallet Utama</Text>
-        <View style={styles.chipContainer}>
-          {WALLETS.map((wallet) => (
-            <Chip
-              key={wallet}
-              label={wallet}
-              isActive={form.ewallet === wallet}
-              onPress={() => setForm({ ...form, ewallet: wallet })}
-            />
-          ))}
+          <Switch
+            value={form.is_active}
+            onValueChange={(value) =>
+              setForm({
+                ...form,
+                is_active: value,
+              })
+            }
+          />
         </View>
 
-        <Text style={styles.label}>Nomor Telepon (Opsional)</Text>
+        <Text style={styles.label}>Nama Brand</Text>
+
+        <Dropdown
+          style={styles.dropdown}
+          containerStyle={styles.dropdownMenu}
+          placeholderStyle={styles.dropdownText}
+          selectedTextStyle={styles.dropdownText}
+          data={BRAND_OPTIONS}
+          labelField="label"
+          valueField="value"
+          value={form.brand}
+          mode="modal"
+          maxHeight={250}
+          inverted={false}
+          onChange={(item) =>
+            setForm({
+              ...form,
+              brand: item.value,
+            })
+          }
+        />
+
+        <Text style={styles.label}>Tipe Perangkat</Text>
+
+        <TextInput
+          placeholder="Masukkan nama perangkat"
+          style={styles.input}
+          value={form.device_name}
+          onChangeText={(text) =>
+            setForm({
+              ...form,
+              device_name: text,
+            })
+          }
+        />
+
+        <Text style={styles.label}>Nomor Telepon</Text>
+
         <TextInput
           style={styles.input}
           keyboardType="phone-pad"
           value={form.phone_number}
-          onChangeText={(t) => setForm({ ...form, phone_number: t })}
+          onChangeText={(text) =>
+            setForm({
+              ...form,
+              phone_number: text,
+            })
+          }
         />
 
-        <Text style={styles.label}>Email (Opsional)</Text>
+        <Text style={styles.label}>Email</Text>
+
         <TextInput
           style={styles.input}
           keyboardType="email-address"
-          value={form.email}
           autoCapitalize="none"
-          onChangeText={(t) => setForm({ ...form, email: t })}
+          value={form.email}
+          onChangeText={(text) =>
+            setForm({
+              ...form,
+              email: text,
+            })
+          }
+        />
+
+        <Text style={styles.label}>E-Wallet</Text>
+
+        <Dropdown
+          style={styles.dropdown}
+          containerStyle={styles.dropdownMenu}
+          placeholderStyle={styles.dropdownText}
+          selectedTextStyle={styles.dropdownText}
+          data={EWALLET_OPTIONS}
+          labelField="label"
+          valueField="value"
+          value={form.ewallet}
+          onChange={(item) =>
+            setForm({
+              ...form,
+              ewallet: item.value,
+            })
+          }
         />
 
         <TouchableOpacity
-          style={[styles.btnSave, mutation.isPending && { opacity: 0.7 }]}
+          style={styles.saveBtn}
           onPress={handleSave}
           disabled={mutation.isPending}
         >
-          <Save color="#FFF" size={20} style={{ marginRight: 8 }} />
-          <Text style={styles.btnText}>
+          <Save size={18} color="#FFF" />
+
+          <Text style={styles.saveText}>
             {mutation.isPending ? "Menyimpan..." : "Simpan Perubahan"}
           </Text>
         </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -191,84 +336,137 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     paddingTop: 50,
   },
+
+  content: {
+    padding: 20,
+    paddingBottom: 60,
+  },
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1A1A1A",
-  },
-  content: {
-    padding: 20,
-  },
-
-  // Style khusus untuk Switch Container
-  switchContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
     marginBottom: 20,
   },
-  switchTextContainer: {
-    flex: 1,
-  },
-  switchTitle: {
-    fontSize: 15,
+
+  title: {
+    fontSize: 20,
     fontWeight: "700",
-    color: "#1A1A1A",
-    marginBottom: 4,
+    color: COLORS.text,
   },
-  switchSubtitle: {
-    fontSize: 13,
+
+  statusCard: {
+    backgroundColor: "#FFFFFF",
+
+    borderWidth: 1,
+
+    borderColor: COLORS.border,
+
+    borderRadius: 16,
+
+    padding: 16,
+
+    flexDirection: "row",
+
+    justifyContent: "space-between",
+
+    alignItems: "center",
+
+    marginBottom: 20,
+  },
+
+  statusTitle: {
+    fontWeight: "700",
+    fontSize: 15,
+    color: COLORS.text,
+  },
+
+  statusText: {
+    marginTop: 4,
     fontWeight: "600",
   },
 
   label: {
     fontSize: 13,
+
     fontWeight: "600",
+
     color: COLORS.textMuted,
+
     marginBottom: 8,
-    marginTop: 10,
+
+    marginTop: 12,
   },
+
   input: {
-    backgroundColor: "#FFFFFF",
+    height: 56,
+
+    borderRadius: 16,
+
     borderWidth: 1,
+
     borderColor: COLORS.border,
-    borderRadius: 12,
-    padding: 15,
+
+    backgroundColor: "#FFFFFF",
+
+    paddingHorizontal: 16,
+
+    color: COLORS.text,
+  },
+
+  dropdown: {
+    height: 56,
+
+    borderWidth: 1,
+
+    borderColor: COLORS.border,
+
+    borderRadius: 16,
+
+    backgroundColor: "#FFFFFF",
+
+    paddingHorizontal: 16,
+  },
+
+  dropdownMenu: {
+    borderRadius: 16,
+
+    overflow: "hidden",
+
+    borderWidth: 1,
+
+    borderColor: COLORS.border,
+  },
+
+  dropdownText: {
     fontSize: 15,
-    color: "#1A1A1A",
+
+    color: COLORS.text,
   },
-  chipContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginTop: 5,
-    marginBottom: 10,
-  },
-  btnSave: {
+
+  saveBtn: {
+    marginTop: 30,
+
+    height: 56,
+
+    borderRadius: 16,
+
     backgroundColor: COLORS.primary,
+
     flexDirection: "row",
-    padding: 15,
-    borderRadius: 12,
+
     justifyContent: "center",
+
     alignItems: "center",
-    marginTop: 40,
-    marginBottom: 40,
+
+    gap: 10,
   },
-  btnText: {
+
+  saveText: {
     color: "#FFF",
+
     fontWeight: "700",
-    fontSize: 16,
+
+    fontSize: 15,
   },
 });

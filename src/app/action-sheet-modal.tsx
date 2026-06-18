@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+
 import {
   Pressable,
   StyleSheet,
@@ -12,12 +13,19 @@ import { ArrowDownToLine, Smartphone, Wallet, X } from "lucide-react-native";
 import { useRouter } from "expo-router";
 
 import AddDeviceSheet from "../components/bottom-sheet/AddDeviceSheet";
+import AddIncomeSheet from "../components/bottom-sheet/AddIncomeSheet";
+import AddPaymentSheet from "../components/bottom-sheet/AddPaymentSheet";
+
 import { COLORS } from "../theme";
 
 export default function ActionSheetModal() {
   const router = useRouter();
 
   const [showAddDevice, setShowAddDevice] = useState(false);
+
+  const [showAddIncome, setShowAddIncome] = useState(false);
+
+  const [showAddPayment, setShowAddPayment] = useState(false);
 
   const handleClose = () => {
     router.back();
@@ -63,13 +71,7 @@ export default function ActionSheetModal() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => {
-              router.back();
-
-              setTimeout(() => {
-                router.push("/add-income");
-              }, 200);
-            }}
+            onPress={() => setShowAddIncome(true)}
           >
             <View
               style={[
@@ -91,13 +93,7 @@ export default function ActionSheetModal() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => {
-              router.back();
-
-              setTimeout(() => {
-                router.push("/add-payment");
-              }, 200);
-            }}
+            onPress={() => setShowAddPayment(true)}
           >
             <View
               style={[
@@ -122,6 +118,16 @@ export default function ActionSheetModal() {
       <AddDeviceSheet
         visible={showAddDevice}
         onClose={() => setShowAddDevice(false)}
+      />
+
+      <AddIncomeSheet
+        visible={showAddIncome}
+        onClose={() => setShowAddIncome(false)}
+      />
+
+      <AddPaymentSheet
+        visible={showAddPayment}
+        onClose={() => setShowAddPayment(false)}
       />
     </>
   );

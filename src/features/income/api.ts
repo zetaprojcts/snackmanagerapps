@@ -36,7 +36,15 @@ export const updateIncome = async (data: {
 export const fetchIncomes = async () => {
   const { data, error } = await supabase
     .from("income")
-    .select(`*, devices (device_name)`)
+    .select(
+      `
+    *,
+    devices (
+      device_name,
+      brand
+      )
+    `,
+    )
     .order("trx_date", { ascending: false });
 
   if (error) throw new Error(error.message);
