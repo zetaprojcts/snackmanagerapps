@@ -32,6 +32,7 @@ SNACK Device Manager V2
 - Filter Today
 - Filter Month
 - Filter All
+- Income Skeleton Loading
 
 #### Payment
 
@@ -62,8 +63,13 @@ SNACK Device Manager V2
 
 - FadeInDown Header
 - FadeInDown Search Section
-- FadeInUp Device Card Stagger Animation
-- Empty State Animation
+- FadeInUp Device Card Animation
+
+#### Income
+
+- FadeInView Header
+- FadeInView Summary Card
+- FadeInView List Item
 
 #### Chart
 
@@ -100,25 +106,16 @@ SELESAI
 - src/app/device-detail.tsx
 - src/app/edit-device.tsx
 - src/app/(tabs)/devices.tsx
+- src/app/(tabs)/income.tsx
 
 ### CHECKPOINT AKTIF
 
-DEVICE_LIST_ANIMATION_COMPLETE
+INCOME_SKELETON_COMPLETE
 
 ### BUILD STATUS
 
 - Device List: Stabil
 - Device Detail: Stabil
 - Edit Device: Stabil
+- Income: Stabil
 - Navigation: Stabil
-
-### CATATAN
-
-Checkpoint aktif untuk revisi berikutnya:
-
-DEVICE_LIST_ANIMATION_COMPLETE
-
-Source of Truth:
-
-- device-detail.tsx versi terakhir user
-- devices.tsx dengan animation integration
