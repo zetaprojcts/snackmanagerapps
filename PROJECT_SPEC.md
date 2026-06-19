@@ -1,6 +1,6 @@
 PROJECT SPECIFICATION
 
-Project Name:
+Project:
 SNACK Device Manager
 
 Version:
@@ -16,7 +16,7 @@ Frontend:
 - React Native
 - Expo Router
 - React Query
-- React Native Reanimated
+- Reanimated
 - React Native Element Dropdown
 - Gorhom Bottom Sheet
 
@@ -30,7 +30,7 @@ Database:
 
 ---
 
-DATABASE STRUCTURE
+DATABASE
 
 devices
 
@@ -68,6 +68,14 @@ Fields:
 - trx_date
 - created_at
 
+Relationships:
+
+income.device_id
+→ devices.id
+
+payment.device_id
+→ devices.id
+
 ---
 
 BUSINESS RULES
@@ -75,21 +83,21 @@ BUSINESS RULES
 Device
 
 - Device dapat aktif atau nonaktif.
-- Device nonaktif tidak dapat menerima pemasukan.
-- Device dapat memiliki atau tidak memiliki e-wallet.
-- Balance device dihitung dari:
-  Total Income - Total Gross Payment
+- Device nonaktif tidak boleh menerima pemasukan.
+- Device dapat memiliki e-wallet atau kosong.
+- Saldo device dihitung dari:
+  Total Income - Total Gross Payment.
 
 Income
 
-- 1 device hanya boleh memiliki 1 pemasukan per tanggal.
+- 1 Device hanya boleh memiliki 1 pemasukan per tanggal.
 - Jika data sudah ada:
   - tampilkan konfirmasi.
   - user dapat menimpa data lama.
 
 Payment
 
-- 1 device hanya boleh memiliki 1 penarikan per tanggal.
+- 1 Device hanya boleh memiliki 1 penarikan per tanggal.
 - Jika data sudah ada:
   - tampilkan konfirmasi.
   - user dapat menimpa data lama.
@@ -97,8 +105,11 @@ Payment
 Admin Fee:
 
 Dana = 2500
+
 OVO = 2500
+
 GoPay = 2500
+
 ShopeePay = 750
 
 Jika e-wallet kosong:
@@ -108,7 +119,10 @@ Jika e-wallet kosong:
 
 ---
 
-UI STATUS
+DESIGN RULES
+
+Current Design:
+Original Design UI
 
 Completed:
 
@@ -127,23 +141,54 @@ Completed:
 
 Current Target:
 
-🔄 Dashboard V2
+🔄 UI_CONSISTENCY_V1
 
 ---
 
-PROJECT WORKFLOW RULES
+UI CONSISTENCY TARGET
 
-1. Semua source code adalah hasil generate ChatGPT.
+Theme
+
+Completed:
+
+- COLORS
+- SPACING
+- RADIUS
+- SHADOW
+
+Global Components
+
+Planned:
+
+- EmptyState.tsx
+- Skeleton.tsx Refinement
+
+Standard Components
+
+Target:
+
+- Unified Radius
+- Unified Shadow
+- Unified Typography
+- Unified Spacing
+- Unified Empty State
+- Unified Loading State
+
+---
+
+PROJECT RULES
+
+1. Semua source code berasal dari ChatGPT.
 
 2. Source code terbaru menjadi checkpoint terbaru.
 
 3. History chat adalah source of truth.
 
-4. Jangan meminta file yang sudah pernah diberikan dan belum berubah.
+4. Jangan meminta file yang sudah ada pada checkpoint history.
 
 5. Jika file tidak berubah maka dianggap fixed.
 
-6. Setiap perubahan file wajib mengirim FULL SOURCE CODE.
+6. Setiap perubahan wajib mengirim FULL SOURCE CODE.
 
 7. Jangan mengirim potongan code kecuali diminta user.
 
@@ -151,7 +196,7 @@ PROJECT WORKFLOW RULES
 
 9. Kerjakan sesuai instruksi user.
 
-10. Setiap revisi harus kompatibel dengan:
+10. Selalu menjaga kompatibilitas:
 
 - Expo SDK 54
 - Expo Router
@@ -160,12 +205,14 @@ PROJECT WORKFLOW RULES
 - Reanimated
 - Gorhom Bottom Sheet
 
-11. Setiap file yang direvisi harus bisa langsung replace file lama.
+11. Setiap revisi harus dapat langsung replace file lama.
 
-12. Seluruh progress wajib mengikuti checkpoint terbaru.
+12. Design UI adalah acuan utama project.
 
-13. Current Active Checkpoint:
+13. Dashboard bukan bagian dari design UI saat ini.
+
+14. Current Active Checkpoint:
     BALANCE_V2_FINAL
 
-14. Next Development Target:
-    DASHBOARD_V2
+15. Current Development:
+    UI_CONSISTENCY_V1
