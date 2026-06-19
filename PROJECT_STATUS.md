@@ -1,12 +1,12 @@
-PROJECT_STATUS.md
+# PROJECT_STATUS.md
 
-PROJECT
+## PROJECT
 
 SNACK Device Manager
 
-STACK
+## STACK
 
-Frontend
+### Frontend
 
 - Expo SDK 54
 - React Native
@@ -14,31 +14,22 @@ Frontend
 - React Query
 - React Native Reanimated
 
-Backend
+### Backend
 
 - Supabase
 
-Database
+### Database
 
 - PostgreSQL
 
-STATUS FITUR
+## STATUS FITUR
 
-AUTH
+### AUTH
 
 Status:
 Belum Dimulai
 
-DASHBOARD
-
-Status:
-Belum Final
-
-Keterangan:
-
-Masih menggunakan Balance V2 sebagai dashboard sementara.
-
-DEVICE
+### DEVICE
 
 Status:
 100%
@@ -46,21 +37,20 @@ Status:
 Selesai:
 
 - List Device
-- Detail Device
-- Add Device
-- Edit Device
-- Device Balance
-- Device Status
 - Device Search
 - Device Brand Filter
-- Auto Device Code
+- Device List Animation
+- Detail Device
+- Edit Device
+- Add Device
+- Device Balance
+- Device Status
 
 Belum:
 
-- Device List Animation
-- Device Empty Animation
+- Tidak ada blocker
 
-INCOME
+### INCOME
 
 Status:
 90%
@@ -70,9 +60,7 @@ Selesai:
 - Add Income
 - Edit Income
 - History
-- Filter Today
-- Filter Month
-- Filter All
+- Filter
 - Duplicate Validation
 
 Belum:
@@ -80,7 +68,7 @@ Belum:
 - Skeleton Loading
 - Detail Income
 
-PAYMENT
+### PAYMENT
 
 Status:
 90%
@@ -90,9 +78,7 @@ Selesai:
 - Add Payment
 - Edit Payment
 - History
-- Filter Today
-- Filter Month
-- Filter All
+- Filter
 - Duplicate Validation
 
 Belum:
@@ -100,10 +86,10 @@ Belum:
 - Skeleton Loading
 - Detail Payment
 
-BALANCE
+### BALANCE
 
 Status:
-92%
+95%
 
 Selesai:
 
@@ -114,17 +100,16 @@ Selesai:
 Belum:
 
 - Animation Enhancement
-- Dashboard Merge
 
-SHARED UI
+### SHARED UI
 
 Status:
-85%
+90%
 
 Selesai:
 
-- Empty State
 - Skeleton
+- Empty State
 - BalanceCardSkeleton
 - TransactionCardSkeleton
 - DeviceCardSkeleton
@@ -135,17 +120,15 @@ Belum:
 - Reusable Header
 - Reusable Section Title
 
-CURRENT PRIORITY
+## CURRENT PRIORITY
 
-1. Device List Animation
-2. Device Empty Animation
-3. Income Skeleton Integration
-4. Payment Skeleton Integration
-5. Balance Animation Enhancement
-6. Shared Component Refactor
-7. Dashboard Finalization
+1. Income Skeleton Integration
+2. Payment Skeleton Integration
+3. Balance Animation Enhancement
+4. Shared Component Refactor
+5. Shared Component Standardization
 
-PROJECT HEALTH
+## PROJECT HEALTH
 
 Database:
 Stabil
@@ -159,23 +142,17 @@ Stabil
 Build:
 Stabil
 
-Device Detail:
+Animation:
 Stabil
 
-Edit Device:
-Stabil
+## OVERALL PROGRESS
 
-Device List:
-Stabil
+92%
 
-Overall Progress
-
-88%
-
-LAST UPDATED
+## LAST UPDATED
 
 2026-06-20
 
-ACTIVE CHECKPOINT
+## ACTIVE CHECKPOINT
 
-DEVICE_DETAIL_V2_FINAL
+DEVICE_LIST_ANIMATION_COMPLETE
