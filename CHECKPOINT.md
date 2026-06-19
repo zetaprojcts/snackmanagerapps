@@ -13,9 +13,6 @@ SNACK Device Manager V2
 #### Device
 
 - Device List
-- Device List Animation
-- Device Search
-- Device Brand Filter
 - Add Device
 - Edit Device
 - Device Detail V2
@@ -33,6 +30,7 @@ SNACK Device Manager V2
 - Filter Month
 - Filter All
 - Income Skeleton Loading
+- Income Animation
 
 #### Payment
 
@@ -43,6 +41,17 @@ SNACK Device Manager V2
 - Filter Today
 - Filter Month
 - Filter All
+- Payment Skeleton Loading
+- Payment Animation
+
+#### Balance
+
+- Balance V2
+- Hero Balance Card
+- Financial Summary
+- Recent Activities
+- Balance Skeleton Loading
+- Balance Animation Enhancement
 
 #### Shared Components
 
@@ -51,6 +60,7 @@ SNACK Device Manager V2
 - BalanceCardSkeleton
 - TransactionCardSkeleton
 - DeviceCardSkeleton
+- FadeInView
 
 ### ANIMASI YANG SUDAH ADA
 
@@ -59,17 +69,22 @@ SNACK Device Manager V2
 - FadeInDown
 - FadeInUp
 
-#### Device List
-
-- FadeInDown Header
-- FadeInDown Search Section
-- FadeInUp Device Card Animation
-
 #### Income
 
-- FadeInView Header
-- FadeInView Summary Card
-- FadeInView List Item
+- FadeInView
+- Animated List
+
+#### Payment
+
+- FadeInView
+- Animated List
+
+#### Balance
+
+- FadeInDown Header
+- FadeInUp Hero Card
+- FadeInUp Summary Card
+- Animated Activity List
 
 #### Chart
 
@@ -80,42 +95,62 @@ SNACK Device Manager V2
 #### Device Detail
 
 FIX:
+
 Rendered more hooks than during the previous render
 
 Status:
+
 SELESAI
 
 #### Edit Device
 
 FIX:
+
 Load data device berdasarkan ID
 
 Status:
+
 SELESAI
 
-#### Device Detail
+#### Balance
 
-FIX:
-Filter Chart berjalan normal
+ENHANCEMENT:
+
+- Skeleton Loading
+- Header Animation
+- Hero Card Animation
+- Summary Card Animation
+- Activity Animation
 
 Status:
+
 SELESAI
 
 ### FILE TERAKHIR DIUBAH
 
 - src/app/device-detail.tsx
 - src/app/edit-device.tsx
-- src/app/(tabs)/devices.tsx
 - src/app/(tabs)/income.tsx
+- src/app/(tabs)/payment.tsx
+- src/app/(tabs)/balance.tsx
 
 ### CHECKPOINT AKTIF
 
-INCOME_SKELETON_COMPLETE
+BALANCE_ANIMATION_COMPLETE
 
 ### BUILD STATUS
 
 - Device List: Stabil
 - Device Detail: Stabil
+- Add Device: Stabil
 - Edit Device: Stabil
 - Income: Stabil
+- Payment: Stabil
+- Balance: Stabil
 - Navigation: Stabil
+
+### CATATAN
+
+Checkpoint aktif untuk revisi berikutnya:
+
+BALANCE_ANIMATION_COMPLETE
