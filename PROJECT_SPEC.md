@@ -1,22 +1,14 @@
-## CURRENT CHECKPOINT
+### DEVICE
 
-INCOME_SKELETON_COMPLETE
+Status:
+100%
 
-## CURRENT COMPLETED
+### INCOME
 
-### Device
+Status:
+95%
 
-- Device List
-- Device List Animation
-- Device Search
-- Device Brand Filter
-- Add Device
-- Edit Device
-- Device Detail V2
-- Device Balance
-- Device Status
-
-### Income
+Selesai:
 
 - Add Income
 - Edit Income
@@ -25,7 +17,16 @@ INCOME_SKELETON_COMPLETE
 - Duplicate Validation
 - Skeleton Loading
 
-### Payment
+Belum:
+
+- Detail Income
+
+### PAYMENT
+
+Status:
+90%
+
+Selesai:
 
 - Add Payment
 - Edit Payment
@@ -33,18 +34,57 @@ INCOME_SKELETON_COMPLETE
 - Filter
 - Duplicate Validation
 
-### Shared UI
+Belum:
 
-- Empty State
+- Skeleton Loading
+- Detail Payment
+
+### BALANCE
+
+Status:
+95%
+
+Selesai:
+
+- Hero Card
+- Summary Card
+- Recent Activity
+
+Belum:
+
+- Animation Enhancement
+
+### SHARED UI
+
+Status:
+90%
+
+Selesai:
+
 - Skeleton
-- Balance Skeleton
-- Transaction Skeleton
-- Device Skeleton
+- Empty State
+- BalanceCardSkeleton
+- TransactionCardSkeleton
+- DeviceCardSkeleton
 
-## NEXT TARGET
+Belum:
+
+- Reusable Card
+- Reusable Header
+- Reusable Section Title
+
+## CURRENT PRIORITY
 
 1. Payment Skeleton Integration
 2. Balance Animation Enhancement
 3. Reusable Component Refactor
 4. Detail Income
 5. Detail Payment
+
+## OVERALL PROGRESS
+
+93%
+
+## ACTIVE CHECKPOINT
+
+INCOME_SKELETON_COMPLETE
