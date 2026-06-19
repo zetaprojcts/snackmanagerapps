@@ -15,7 +15,13 @@ import {
   View,
 } from "react-native";
 
+import Animated, {
+  FadeInDown,
+  FadeInUp,
+} from "react-native-reanimated";
+
 import BrandFilterSheet from "../../components/bottom-sheet/BrandFilterSheet";
+import EmptyState from "../../components/ui/EmptyState";
 
 import { getDevicesWithBalance } from "../../features/devices/api";
 
@@ -30,138 +36,306 @@ const BRAND_IMAGES: Record<string, any> = {
   Infinix: require("../../../assets/devices/infinix.png"),
 };
 
-const DEFAULT_IMAGE = require("../../../assets/devices/default.png");
+const DEFAULT_IMAGE =
+  require("../../../assets/devices/default.png");
 
 export default function DevicesScreen() {
   const router = useRouter();
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] =
+    useState("");
 
-  const [selectedBrand, setSelectedBrand] = useState("Semua");
+  const [
+    selectedBrand,
+    setSelectedBrand,
+  ] = useState("Semua");
 
-  const [showFilter, setShowFilter] = useState(false);
+  const [
+    showFilter,
+    setShowFilter,
+  ] = useState(false);
 
-  const { data, isLoading, refetch, isRefetching } = useQuery({
+  const {
+    data,
+    isLoading,
+    refetch,
+    isRefetching,
+  } = useQuery({
     queryKey: ["devices"],
-    queryFn: getDevicesWithBalance,
+    queryFn:
+      getDevicesWithBalance,
   });
 
-  const devices = data || [];
+  const devices =
+    data || [];
 
-  const activeCount = devices.filter((item) => item.is_active).length;
+  const filteredDevices =
+    useMemo(() => {
+      let result =
+        devices;
 
-  const inactiveCount = devices.filter((item) => !item.is_active).length;
+      if (
+        selectedBrand !==
+        "Semua"
+      ) {
+        result =
+          result.filter(
+            (item) =>
+              item.brand ===
+              selectedBrand,
+          );
+      }
 
-  const filteredDevices = useMemo(() => {
-    let result = devices;
+      if (search) {
+        result =
+          result.filter(
+            (item) =>
+              item.device_name
+                ?.toLowerCase()
+                .includes(
+                  search.toLowerCase(),
+                ),
+          );
+      }
 
-    if (selectedBrand !== "Semua") {
-      result = result.filter((item) => item.brand === selectedBrand);
-    }
+      return result;
+    }, [
+      devices,
+      search,
+      selectedBrand,
+    ]);
 
-    if (search) {
-      result = result.filter((item) =>
-        item.device_name?.toLowerCase().includes(search.toLowerCase()),
-      );
-    }
-
-    return result;
-  }, [devices, search, selectedBrand]);
-
-  const renderItem = ({ item }: any) => {
-    const imageSource = BRAND_IMAGES[item.brand] || DEFAULT_IMAGE;
+  const renderItem = ({
+    item,
+    index,
+  }: any) => {
+    const imageSource =
+      BRAND_IMAGES[
+        item.brand
+      ] || DEFAULT_IMAGE;
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.85}
-        style={styles.card}
-        onPress={() =>
-          router.push({
-            pathname: "/device-detail",
-            params: {
-              id: item.id,
-            },
-          })
-        }
+      <Animated.View
+        entering={FadeInUp.delay(
+          index * 50,
+        )}
       >
-        <Image
-          source={imageSource}
-          resizeMode="contain"
-          style={styles.deviceImage}
-        />
+        <TouchableOpacity
+          activeOpacity={
+            0.85
+          }
+          style={
+            styles.card
+          }
+          onPress={() =>
+            router.push({
+              pathname:
+                "/device-detail",
+              params: {
+                id: item.id,
+              },
+            })
+          }
+        >
+          <Image
+            source={
+              imageSource
+            }
+            resizeMode="contain"
+            style={
+              styles.deviceImage
+            }
+          />
 
-        <View style={styles.content}>
-          <View style={styles.topRow}>
-            <Text numberOfLines={1} style={styles.deviceName}>
-              {item.device_name}
+          <View
+            style={
+              styles.content
+            }
+          >
+            <View
+              style={
+                styles.topRow
+              }
+            >
+              <Text
+                numberOfLines={
+                  1
+                }
+                style={
+                  styles.deviceName
+                }
+              >
+                {
+                  item.device_name
+                }
+              </Text>
+
+              <View
+                style={[
+                  styles.statusDot,
+                  {
+                    backgroundColor:
+                      item.is_active
+                        ? COLORS.success
+                        : COLORS.danger,
+                  },
+                ]}
+              />
+            </View>
+
+            <Text
+              style={
+                styles.wallet
+              }
+            >
+              {item.ewallet ||
+                "-"}
             </Text>
 
-            <View
-              style={[
-                styles.statusDot,
-                {
-                  backgroundColor: item.is_active
-                    ? COLORS.success
-                    : COLORS.danger,
-                },
-              ]}
-            />
+            <Text
+              style={
+                styles.balance
+              }
+            >
+              Rp{" "}
+              {Number(
+                item.balance ||
+                  0,
+              ).toLocaleString(
+                "id-ID",
+              )}
+            </Text>
           </View>
-
-          <Text style={styles.wallet}>{item.ewallet || "-"}</Text>
-
-          <Text style={styles.balance}>
-            Rp {Number(item.balance || 0).toLocaleString("id-ID")}
-          </Text>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </Animated.View>
     );
   };
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      <View
+        style={
+          styles.loadingContainer
+        }
+      >
+        <ActivityIndicator
+          size="large"
+          color={
+            COLORS.primary
+          }
+        />
       </View>
     );
   }
 
   return (
     <>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Daftar Perangkat</Text>
-        </View>
-        <View style={styles.searchRow}>
-          <View style={styles.searchBox}>
-            <Search size={18} color={COLORS.textMuted} />
+      <View
+        style={
+          styles.container
+        }
+      >
+        <Animated.View
+          entering={
+            FadeInDown
+          }
+          style={
+            styles.header
+          }
+        >
+          <Text
+            style={
+              styles.title
+            }
+          >
+            Daftar
+            Perangkat
+          </Text>
+        </Animated.View>
+
+        <Animated.View
+          entering={FadeInDown.delay(
+            100,
+          )}
+          style={
+            styles.searchRow
+          }
+        >
+          <View
+            style={
+              styles.searchBox
+            }
+          >
+            <Search
+              size={18}
+              color={
+                COLORS.textMuted
+              }
+            />
 
             <TextInput
-              value={search}
-              onChangeText={setSearch}
+              value={
+                search
+              }
+              onChangeText={
+                setSearch
+              }
               placeholder="Cari perangkat..."
-              placeholderTextColor={COLORS.textMuted}
-              style={styles.searchInput}
+              placeholderTextColor={
+                COLORS.textMuted
+              }
+              style={
+                styles.searchInput
+              }
             />
           </View>
 
           <TouchableOpacity
-            style={styles.filterBtn}
-            onPress={() => setShowFilter(true)}
+            style={
+              styles.filterBtn
+            }
+            onPress={() =>
+              setShowFilter(
+                true,
+              )
+            }
           >
-            <Filter size={20} color={"#FFF"} />
+            <Filter
+              size={20}
+              color="#FFF"
+            />
           </TouchableOpacity>
-        </View>
-
-        <FlatList
-          data={filteredDevices}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.list}
-          refreshControl={
-            <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
-          }
-        />
+        </Animated.View>
+        {filteredDevices.length === 0 ? (
+          <Animated.View
+            entering={FadeInUp.delay(150)}
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              paddingHorizontal: 20,
+              marginTop: 40,
+            }}
+          >
+            <EmptyState
+              title="Belum Ada Perangkat"
+              subtitle="Tambahkan perangkat pertama Anda"
+            />
+          </Animated.View>
+        ) : (
+          <FlatList
+            data={filteredDevices}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefetching}
+                onRefresh={refetch}
+              />
+            }
+          />
+        )}
       </View>
 
       <BrandFilterSheet
@@ -211,6 +385,7 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     backgroundColor: "#FFF",
+
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -219,6 +394,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 15,
     elevation: 3,
+
     borderRadius: 20,
     padding: 18,
   },
@@ -247,10 +423,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#e8e8e8",
     borderRadius: 30,
     paddingHorizontal: 14,
+
     flexDirection: "row",
     alignItems: "center",
+
     borderWidth: 1,
     borderColor: "#e8e8e8",
+
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -272,7 +451,9 @@ const styles = StyleSheet.create({
     height: 54,
     borderRadius: 30,
     backgroundColor: COLORS.primary,
+
     borderColor: "#e8e8e8",
+
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -281,6 +462,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 15,
     elevation: 3,
+
     justifyContent: "center",
     alignItems: "center",
   },
@@ -295,8 +477,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
     marginBottom: 14,
+
     flexDirection: "row",
     alignItems: "center",
+
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
