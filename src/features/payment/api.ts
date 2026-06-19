@@ -7,14 +7,20 @@ export const addPayment = async (data: {
   net_amount: number;
   trx_date: string;
 }) => {
-  const { error } = await supabase.from("payment").insert([data]);
+  const { error } = await supabase
+    .from("payment")
+    .insert([data]);
 
   if (error) {
     if (error.code === "23505") {
-      throw new Error("DUPLICATE_DATE");
+      throw new Error(
+        "DUPLICATE_DATE",
+      );
     }
 
-    throw new Error(error.message);
+    throw new Error(
+      error.message,
+    );
   }
 
   return true;
@@ -27,42 +33,100 @@ export const updatePayment = async (data: {
   net_amount: number;
   trx_date: string;
 }) => {
-  const { error } = await supabase
-    .from("payment")
-    .update({
-      gross_amount: data.gross_amount,
-      admin_fee: data.admin_fee,
-      net_amount: data.net_amount,
-    })
-    .eq("device_id", data.device_id)
-    .eq("trx_date", data.trx_date);
+  const { error } =
+    await supabase
+      .from("payment")
+      .update({
+        gross_amount:
+          data.gross_amount,
+        admin_fee:
+          data.admin_fee,
+        net_amount:
+          data.net_amount,
+      })
+      .eq(
+        "device_id",
+        data.device_id,
+      )
+      .eq(
+        "trx_date",
+        data.trx_date,
+      );
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(
+      error.message,
+    );
   }
 
   return true;
 };
 
-export const fetchPayments = async () => {
-  const { data, error } = await supabase
-    .from("payment")
-    .select(
-      `
-      *,
-      devices (
-        device_name,
-        brand
+export const fetchPayments =
+  async () => {
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("payment")
+      .select(
+        `
+        *,
+        devices (
+          device_name,
+          brand
+        )
+      `,
       )
-    `,
-    )
-    .order("trx_date", {
-      ascending: false,
-    });
+      .order(
+        "trx_date",
+        {
+          ascending:
+            false,
+        },
+      );
 
-  if (error) {
-    throw new Error(error.message);
-  }
+    if (error) {
+      throw new Error(
+        error.message,
+      );
+    }
 
-  return data;
-};
+    return data;
+  };
+
+export const getPaymentById =
+  async (
+    id: string,
+  ) => {
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("payment")
+      .select(
+        `
+        *,
+        devices (
+          id,
+          code,
+          brand,
+          device_name,
+          phone_number,
+          email,
+          ewallet,
+          is_active
+        )
+      `,
+      )
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      throw new Error(
+        error.message,
+      );
+    }
+
+    return data;
+  };
