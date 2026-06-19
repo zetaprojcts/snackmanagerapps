@@ -13,6 +13,8 @@ FITUR SELESAI
 Device
 
 - Device List
+- Device Search
+- Device Brand Filter
 - Add Device
 - Edit Device
 - Device Detail V2
@@ -87,25 +89,54 @@ Load data device berdasarkan ID.
 Status:
 SELESAI
 
+Device Detail
+
+FIX:
+Filter chart tidak konsisten.
+
+Status:
+SELESAI
+
 FILE TERAKHIR DIUBAH
 
 - src/app/device-detail.tsx
 - src/app/edit-device.tsx
+- src/app/(tabs)/devices.tsx
 
 CHECKPOINT AKTIF
 
-DEVICE_DETAIL_V2_FIXED
+DEVICE_DETAIL_V2_FINAL
 
 BUILD STATUS
 
 - Device Detail: Stabil
 - Edit Device: Stabil
+- Device List: Stabil
 - Navigation: Stabil
 
 CATATAN
 
-Checkpoint aktif untuk revisi berikutnya tetap menggunakan:
+Checkpoint aktif untuk revisi berikutnya menggunakan:
 
-DEVICE_DETAIL_V2_FIXED
+DEVICE_DETAIL_V2_FINAL
 
-dengan versi device-detail.tsx yang saat ini digunakan user (versi sebelum Bottom Sheet Filter).
+Source of truth:
+
+src/app/device-detail.tsx
+
+Versi aktif:
+
+- Filter Chart 7 Hari
+- Filter Chart Bulan Ini
+- Filter Chart 90 Hari
+- Activity Max 4 Data
+- Chart Height 160
+- Chart Spacing 10
+- Chart Animation 1300ms
+- Tanpa Bottom Sheet Filter
+- Tanpa Activity Filter Chip
+- Edit Device Navigation Aktif
+- Skeleton Aktif
+- Empty State Aktif
+- FadeInDown Aktif
+- FadeInUp Aktif
