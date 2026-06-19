@@ -1,16 +1,16 @@
-# CHECKPOINT.md
+CHECKPOINT.md
 
-## CHECKPOINT TERAKHIR
+CHECKPOINT TERAKHIR
 
-Tanggal: 2026-06-19
+Tanggal: 2026-06-20
 
-### STATUS PROJECT
+STATUS PROJECT
 
 SNACK Device Manager V2
 
-### FITUR SELESAI
+FITUR SELESAI
 
-#### Device
+Device
 
 - Device List
 - Add Device
@@ -20,7 +20,7 @@ SNACK Device Manager V2
 - Device Status Active/Inactive
 - Auto Device Code (HP001, HP002, dst)
 
-#### Income
+Income
 
 - Add Income
 - Update Income
@@ -30,7 +30,7 @@ SNACK Device Manager V2
 - Filter Month
 - Filter All
 
-#### Payment
+Payment
 
 - Add Payment
 - Update Payment
@@ -40,14 +40,14 @@ SNACK Device Manager V2
 - Filter Month
 - Filter All
 
-#### Balance
+Balance
 
 - Balance V2
 - Hero Balance Card
 - Financial Summary
 - Recent Activities
 
-#### Shared Components
+Shared Components
 
 - EmptyState
 - Skeleton
@@ -55,20 +55,20 @@ SNACK Device Manager V2
 - TransactionCardSkeleton
 - DeviceCardSkeleton
 
-### ANIMASI YANG SUDAH ADA
+ANIMASI YANG SUDAH ADA
 
-Device Detail:
+Device Detail
 
 - FadeInDown
 - FadeInUp
 
-Chart:
+Chart
 
 - BarChart Animation
 
-### BUG FIX TERAKHIR
+BUG FIX TERAKHIR
 
-Device Detail:
+Device Detail
 
 FIX:
 Rendered more hooks than during the previous render
@@ -79,10 +79,33 @@ useMemo() dieksekusi setelah conditional return.
 Status:
 SELESAI
 
-### FILE TERAKHIR DIUBAH
+Edit Device
 
-src/app/device-detail.tsx
+FIX:
+Load data device berdasarkan ID.
 
-### CHECKPOINT AKTIF
+Status:
+SELESAI
+
+FILE TERAKHIR DIUBAH
+
+- src/app/device-detail.tsx
+- src/app/edit-device.tsx
+
+CHECKPOINT AKTIF
 
 DEVICE_DETAIL_V2_FIXED
+
+BUILD STATUS
+
+- Device Detail: Stabil
+- Edit Device: Stabil
+- Navigation: Stabil
+
+CATATAN
+
+Checkpoint aktif untuk revisi berikutnya tetap menggunakan:
+
+DEVICE_DETAIL_V2_FIXED
+
+dengan versi device-detail.tsx yang saat ini digunakan user (versi sebelum Bottom Sheet Filter).
