@@ -2,174 +2,128 @@
 
 SNACK Device Manager
 
-## TUJUAN
+## STACK
 
-Aplikasi manajemen perangkat untuk mengelola:
-
-- Device
-- Income
-- Payment
-- Reporting
-
-Menggunakan:
+### Frontend
 
 - Expo SDK 54
-- Supabase
-- React Query
+- React Native
 - Expo Router
+- React Query
+- React Native Reanimated
 
-## DATABASE
+### Backend
 
-### devices
+- Supabase
 
-- id
-- code
-- brand
-- device_name
-- phone_number
-- email
-- ewallet
-- is_active
-- created_at
+### Database
 
-### income
+- PostgreSQL
 
-- id
-- device_id
-- amount
-- trx_date
+## STATUS FITUR
 
-Constraint:
+### AUTH
 
-1 Device = 1 Income per Hari
+Status:
+Belum Dimulai
 
-### payment
+### DEVICE
 
-- id
-- device_id
-- gross_amount
-- admin_fee
-- net_amount
-- trx_date
+Status:
+100%
 
-Constraint:
+Selesai:
 
-1 Device = 1 Payment per Hari
-
-## RULE PROJECT
-
-### RULE SOURCE CODE
-
-- Semua source code berasal dari ChatGPT
-- Setiap revisi menjadi checkpoint baru
-- Jangan mengubah file di luar scope task
-- Kirim source code full
-- Jika lebih dari 300 baris wajib dibagi beberapa bagian
-- Tidak boleh mengirim patch parsial
-- Tidak boleh mengirim potongan fungsi
-- Selalu gunakan checkpoint terakhir sebagai source of truth
-
-### RULE UI
-
-Wajib mengikuti Design UI V2
-
-Karakteristik:
-
-- Clean
-- Rounded
-- Soft Shadow
-- White Card
-- Blue Primary
-- Consistent Spacing
-
-### RULE EMPTY STATE
-
-Semua halaman data wajib memiliki:
-
-- Empty State
-- Empty Message
-- Empty Description
-
-### RULE SKELETON
-
-Semua halaman data wajib memiliki:
-
-- Loading Skeleton
-- Loading Placeholder
-
-### RULE ANIMATION
-
-Wajib menggunakan Reanimated
-
-Minimal:
-
-- FadeInUp
-- FadeInDown
-
-Untuk:
-
-- Card
-- List
-- Detail Page
-
-### RULE DATA
-
-Saldo Device:
-
-Balance =
-Total Income
--
-Total Gross Payment
-
-## CURRENT CHECKPOINT
-
-PAYMENT_DETAIL_V1
-
-## CURRENT COMPLETED
-
-### Device
-
-- Device List
+- List Device
+- Detail Device
 - Add Device
 - Edit Device
-- Device Detail V2
+- Device Balance
+- Device Status
 - Device Search
 - Device Brand Filter
-- Device Balance
 
-### Income
+### INCOME
+
+Status:
+100%
+
+Selesai:
 
 - Add Income
-- Edit Income
+- Edit Income API
 - History
 - Filter
-- Skeleton Integration
+- Duplicate Validation
+- Skeleton Loading
 - Income Detail
 - getIncomeById
 
-### Payment
+### PAYMENT
+
+Status:
+100%
+
+Selesai:
 
 - Add Payment
-- Edit Payment
+- Edit Payment API
 - History
 - Filter
-- Skeleton Integration
+- Duplicate Validation
+- Skeleton Loading
 - Payment Detail
 - getPaymentById
 
-### Shared UI
+### SHARED UI
 
-- Empty State
+Status:
+90%
+
+Selesai:
+
 - Skeleton
-- Balance Skeleton
-- Transaction Skeleton
-- Device Skeleton
+- Empty State
+- BalanceCardSkeleton
+- TransactionCardSkeleton
+- DeviceCardSkeleton
 - FadeInView
 
-## NEXT TARGET
+Belum:
+
+- Reusable Card
+- Reusable Header
+- Reusable Section Title
+
+## CURRENT PRIORITY
 
 1. Reusable Header Component
 2. Reusable Card Component
 3. Reusable Section Title
 4. Income Edit Screen
 5. Payment Edit Screen
+
+## PROJECT HEALTH
+
+Database:
+Stabil
+
+API:
+Stabil
+
+Navigation:
+Stabil
+
+Build:
+Stabil
+
+Overall Progress:
+95%
+
+## LAST UPDATED
+
+2026-06-20
+
+## ACTIVE CHECKPOINT
+
+PAYMENT_DETAIL_V1
