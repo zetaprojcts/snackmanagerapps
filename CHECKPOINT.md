@@ -1,141 +1,53 @@
-# CHECKPOINT
+# CHECKPOINT.md
 
-Last Update:
-2026-06-19
+## CHECKPOINT TERAKHIR
 
-Version:
-v2.2.0-beta
+Tanggal: 2026-06-19
 
-Current Checkpoint:
-UI_CONSISTENCY_V1
+### STATUS PROJECT
 
-Status:
-ACTIVE DEVELOPMENT
+SNACK Device Manager V2
 
----
+### FITUR SELESAI
 
-# COMPLETED MODULES
+#### Device
 
-## Device Module V2
-
-Status: DONE
-
-Files:
-
-- app/(tabs)/devices.tsx
-- app/device-detail.tsx
-- app/edit-device.tsx
-- src/features/devices/api.ts
-- src/components/bottom-sheet/AddDeviceSheet.tsx
-- src/components/bottom-sheet/BrandFilterSheet.tsx
-
-Features:
-
-- Device List V2
-- Search Device
-- Brand Filter
-- Device Detail
+- Device List
 - Add Device
 - Edit Device
-- Active / Inactive Status
+- Device Detail V2
 - Device Balance Calculation
-- Pull To Refresh
+- Device Status Active/Inactive
+- Auto Device Code (HP001, HP002, dst)
 
----
+#### Income
 
-## Income Module V2
-
-Status: DONE
-
-Files:
-
-- app/(tabs)/income.tsx
-- src/features/income/api.ts
-- src/components/bottom-sheet/AddIncomeSheet.tsx
-
-Features:
-
-- Income List
-- Total Income Summary
-- Filter Hari Ini
-- Filter Bulan Ini
-- Filter Semua
 - Add Income
-- Duplicate Validation
-- Override Existing Data
+- Update Income
+- Duplicate Date Validation
+- Income History
+- Filter Today
+- Filter Month
+- Filter All
 
----
+#### Payment
 
-## Payment Module V2
+- Add Payment
+- Update Payment
+- Duplicate Date Validation
+- Payment History
+- Filter Today
+- Filter Month
+- Filter All
 
-Status: DONE
+#### Balance
 
-Files:
-
-- app/(tabs)/payment.tsx
-- src/features/payment/api.ts
-- src/components/bottom-sheet/AddPaymentSheet.tsx
-
-Features:
-
-- Payment List
-- Total Payment Summary
-- Auto Admin Fee
-- Wallet Validation
-- Duplicate Validation
-- Override Existing Data
-
----
-
-## Balance Module V2 Final
-
-Status: DONE
-
-Files:
-
-- app/(tabs)/balance.tsx
-
-Features:
-
-- Hero Balance
+- Balance V2
+- Hero Balance Card
 - Financial Summary
-- Activity Feed
-- Recent Transactions
-- Pull To Refresh
-- Empty State
-- Loading State
+- Recent Activities
 
----
-
-## Theme System
-
-Status: DONE
-
-Files:
-
-- src/theme/index.ts
-
-Features:
-
-- COLORS
-- SPACING
-- RADIUS
-- SHADOW.card
-- SHADOW.hero
-- SHADOW.button
-
----
-
-## UI Foundation
-
-Status: DONE
-
-Files:
-
-- src/components/ui/EmptyState.tsx
-- src/components/ui/Skeleton.tsx
-
-Components:
+#### Shared Components
 
 - EmptyState
 - Skeleton
@@ -143,31 +55,34 @@ Components:
 - TransactionCardSkeleton
 - DeviceCardSkeleton
 
----
+### ANIMASI YANG SUDAH ADA
 
-# CURRENT DEVELOPMENT
+Device Detail:
 
-Checkpoint:
-UI_CONSISTENCY_V1
+- FadeInDown
+- FadeInUp
 
-Completed:
+Chart:
 
-- Theme Refactor ✅
-- EmptyState Component ✅
-- Skeleton System ✅
+- BarChart Animation
 
-Pending:
+### BUG FIX TERAKHIR
 
-- Income Screen Refactor
-- Payment Screen Refactor
-- Device Detail Refactor
-- Add Device Polish
-- Edit Device Polish
-- Add Income Polish
-- Add Payment Polish
+Device Detail:
 
----
+FIX:
+Rendered more hooks than during the previous render
 
-# NEXT CHECKPOINT
+Penyebab:
+useMemo() dieksekusi setelah conditional return.
 
-UI_CONSISTENCY_V1_COMPLETE
+Status:
+SELESAI
+
+### FILE TERAKHIR DIUBAH
+
+src/app/device-detail.tsx
+
+### CHECKPOINT AKTIF
+
+DEVICE_DETAIL_V2_FIXED

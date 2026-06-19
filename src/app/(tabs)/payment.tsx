@@ -1,17 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Image,
+  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
+import FadeInView from "../../components/animated/FadeInView";
+import EmptyState from "../../components/ui/EmptyState";
+import { TransactionCardSkeleton } from "../../components/ui/Skeleton";
+
 import { fetchPayments } from "../../features/payment/api";
-import { COLORS } from "../../theme";
+
+import { COLORS, SHADOW } from "../../theme";
 
 const BRAND_IMAGES: Record<string, any> = {
   Samsung: require("../../../assets/devices/samsung.png"),
@@ -82,49 +87,71 @@ export default function PaymentScreen() {
       BRAND_IMAGES[item.devices?.brand || ""] || DEFAULT_IMAGE;
 
     return (
-      <TouchableOpacity activeOpacity={0.85} style={styles.card}>
-        <Image
-          source={imageSource}
-          resizeMode="contain"
-          style={styles.deviceImage}
-        />
+      <FadeInView>
+        <TouchableOpacity activeOpacity={0.85} style={styles.card}>
+          <Image
+            source={imageSource}
+            resizeMode="contain"
+            style={styles.deviceImage}
+          />
 
-        <View style={styles.cardContent}>
-          <Text style={styles.deviceName}>
-            {item.devices?.device_name || "Perangkat"}
+          <View style={styles.cardContent}>
+            <Text style={styles.deviceName}>
+              {item.devices?.device_name || "Perangkat"}
+            </Text>
+
+            <Text style={styles.dateText}>{formatDate(item.trx_date)}</Text>
+          </View>
+
+          <Text style={styles.amountText}>
+            Rp {Number(item.gross_amount).toLocaleString("id-ID")}
           </Text>
-
-          <Text style={styles.dateText}>{formatDate(item.trx_date)}</Text>
-        </View>
-
-        <Text style={styles.amountText}>
-          Rp {Number(item.gross_amount).toLocaleString("id-ID")}
-        </Text>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </FadeInView>
     );
   };
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.danger} />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Riwayat Penarikan</Text>
+        </View>
+
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryLabel}>Total Penarikan</Text>
+
+          <Text style={styles.summaryValue}>Rp ...</Text>
+        </View>
+
+        <View style={styles.list}>
+          <TransactionCardSkeleton />
+          <TransactionCardSkeleton />
+          <TransactionCardSkeleton />
+          <TransactionCardSkeleton />
+          <TransactionCardSkeleton />
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Riwayat Penarikan</Text>
-      </View>
+      <FadeInView>
+        <View style={styles.header}>
+          <Text style={styles.title}>Riwayat Penarikan</Text>
+        </View>
+      </FadeInView>
 
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>Total Penarikan</Text>
+      <FadeInView>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryLabel}>Total Penarikan</Text>
 
-        <Text style={styles.summaryValue}>
-          Rp {totalPayment.toLocaleString("id-ID")}
-        </Text>
-      </View>
+          <Text style={styles.summaryValue}>
+            Rp {totalPayment.toLocaleString("id-ID")}
+          </Text>
+        </View>
+      </FadeInView>
 
       <View style={styles.filterTabs}>
         <TouchableOpacity
@@ -165,18 +192,16 @@ export default function PaymentScreen() {
         data={filteredPayments}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        refreshing={isRefetching}
-        onRefresh={refetch}
-        contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        }
+        contentContainerStyle={styles.list}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>Belum Ada Penarikan</Text>
-
-            <Text style={styles.emptySubtitle}>
-              Data penarikan akan muncul di sini
-            </Text>
-          </View>
+          <EmptyState
+            title="Belum Ada Penarikan"
+            subtitle="Data penarikan akan muncul di sini"
+          />
         }
       />
     </View>
@@ -188,12 +213,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
     paddingTop: 60,
-  },
-
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
   },
 
   header: {
@@ -210,17 +229,9 @@ const styles = StyleSheet.create({
   summaryCard: {
     marginHorizontal: 20,
     backgroundColor: COLORS.primary,
-    borderRadius: 20,
-    padding: 20,
-
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 5,
+    borderRadius: 24,
+    padding: 24,
+    ...SHADOW.card,
   },
 
   summaryLabel: {
@@ -270,21 +281,12 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    padding: 14,
+    borderRadius: 20,
+    padding: 16,
     marginBottom: 12,
-
     flexDirection: "row",
     alignItems: "center",
-
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 5,
+    ...SHADOW.card,
   },
 
   deviceImage: {
@@ -312,20 +314,6 @@ const styles = StyleSheet.create({
   amountText: {
     fontSize: 15,
     fontWeight: "700",
-    color: COLORS.danger,
-  },
-
-  emptyContainer: {
-    alignItems: "center",
-    marginTop: 80,
-  },
-
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  emptySubtitle: {
-    color: COLORS.textMuted,
-    fontSize: 13,
+    color: COLORS.warning,
   },
 });

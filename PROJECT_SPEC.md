@@ -1,41 +1,29 @@
-# PROJECT SPECIFICATION
+# PROJECT_SPEC.md
 
-Project:
+## PROJECT
+
 SNACK Device Manager
 
-Version:
-2.2.0-beta
+## TUJUAN
 
----
+Aplikasi manajemen perangkat untuk mengelola:
 
-# TECHNOLOGY STACK
+- Device
+- Income
+- Payment
+- Balance
+- Reporting
 
-Frontend:
+Menggunakan:
 
 - Expo SDK 54
-- React Native
-- Expo Router
-- React Query
-- Reanimated
-- Lucide React Native
-- React Native Element Dropdown
-- Gorhom Bottom Sheet
-
-Backend:
-
 - Supabase
+- React Query
+- Expo Router
 
-Database:
+## DATABASE
 
-- PostgreSQL
-
----
-
-# DATABASE
-
-## devices
-
-Fields:
+### devices
 
 - id
 - code
@@ -47,28 +35,17 @@ Fields:
 - is_active
 - created_at
 
----
-
-## income
-
-Fields:
+### income
 
 - id
 - device_id
 - amount
 - trx_date
-- created_at
 
-Rules:
+Constraint:
+1 Device = 1 Income per Hari
 
-- 1 device hanya boleh memiliki 1 pemasukan per tanggal
-- Duplicate akan memunculkan dialog timpa data
-
----
-
-## payment
-
-Fields:
+### payment
 
 - id
 - device_id
@@ -76,151 +53,91 @@ Fields:
 - admin_fee
 - net_amount
 - trx_date
-- created_at
 
-Rules:
+Constraint:
+1 Device = 1 Payment per Hari
 
-- 1 device hanya boleh memiliki 1 penarikan per tanggal
-- Duplicate akan memunculkan dialog timpa data
+## RULE PROJECT
 
----
+### RULE SOURCE CODE
 
-# BUSINESS RULES
+- Semua source code berasal dari ChatGPT
+- Setiap revisi menjadi checkpoint baru
+- Jangan mengubah file di luar scope task
+- Kirim source code full
+- Jika lebih dari 300 baris wajib dibagi beberapa bagian
+- Tidak boleh mengirim patch parsial
+- Tidak boleh mengirim potongan fungsi
+- Selalu gunakan checkpoint terakhir sebagai source of truth
 
-## Device
+### RULE UI
 
-- Device dapat aktif atau nonaktif
-- Device nonaktif tidak boleh menerima pemasukan
-- Device tanpa e-wallet tidak boleh melakukan penarikan
-- Device balance = income - gross payment
+Wajib mengikuti Design UI V2.
 
----
+Karakteristik:
 
-## Income
+- Clean
+- Rounded
+- Soft Shadow
+- White Card
+- Blue Primary
+- Consistent Spacing
 
-- Duplicate date validation
-- Override existing record
-- Active device only
+### RULE EMPTY STATE
 
----
+Semua halaman data wajib memiliki:
 
-## Payment
+- Empty State
+- Empty Message
+- Empty Description
 
-Admin Fee:
+### RULE SKELETON
 
-Dana = 2500
+Semua halaman data wajib memiliki:
 
-OVO = 2500
+- Loading Skeleton
+- Loading Placeholder
 
-GoPay = 2500
+### RULE ANIMATION
 
-ShopeePay = 750
+Wajib menggunakan Reanimated.
 
-Rules:
+Minimal:
 
-- Device harus memiliki e-wallet
-- Device harus aktif
-- Duplicate date validation
-- Override existing record
+- FadeInUp
+- FadeInDown
 
----
+Untuk:
 
-# DESIGN RULES
+- Card
+- List
+- Detail Page
 
-Reference:
-Original Snack Device Manager UI
+### RULE DATA
 
-Implemented:
+Saldo Device:
 
-✅ Device List V2
-✅ Device Detail
-✅ Add Device
-✅ Edit Device
-
-✅ Income V2
-✅ Add Income
-
-✅ Payment V2
-✅ Add Payment
-
-✅ Balance V2 Final
+Balance =
+Total Income
 
 ---
 
-# UI SYSTEM
+Total Gross Payment
 
-Theme:
+Saldo Global:
 
-- COLORS
-- SPACING
-- RADIUS
-- SHADOW
+## Total Income
 
-Global Components:
+Total Gross Payment
 
-- EmptyState
-- Skeleton
+## CURRENT CHECKPOINT
 
-Skeleton Variants:
+DEVICE_DETAIL_V2_FIXED
 
-- DeviceCardSkeleton
-- TransactionCardSkeleton
-- BalanceCardSkeleton
+## NEXT TARGET
 
----
-
-# CURRENT DEVELOPMENT
-
-Checkpoint:
-UI_CONSISTENCY_V1
-
-Completed:
-
-✅ Theme Refactor
-✅ EmptyState
-✅ Skeleton System
-
-Pending:
-
-⏳ Income Refactor
-⏳ Payment Refactor
-⏳ Device Detail Refactor
-⏳ Add Device Polish
-⏳ Edit Device Polish
-⏳ Add Income Polish
-⏳ Add Payment Polish
-
----
-
-# PROJECT RULES
-
-1. Semua source code berasal dari ChatGPT.
-
-2. Source code terbaru menjadi checkpoint terbaru.
-
-3. History chat adalah source of truth.
-
-4. Jangan meminta file yang sudah pernah dikirim.
-
-5. Jika file tidak berubah maka dianggap fixed.
-
-6. Setiap perubahan wajib mengirim FULL SOURCE CODE.
-
-7. Jangan mengirim potongan code kecuali diminta user.
-
-8. Jangan memberikan penjelasan yang tidak diminta.
-
-9. Kerjakan sesuai instruksi user.
-
-10. Design UI adalah acuan utama project.
-
-11. Dashboard bukan bagian dari design UI saat ini.
-
-12. Selalu menjaga kompatibilitas Expo SDK 54.
-
-13. Semua revisi harus dapat langsung replace file lama.
-
-14. Empty State dan Skeleton wajib menjadi standar seluruh screen.
-
-15. Current Active Checkpoint:
-    UI_CONSISTENCY_V1
+1. Device List Animation
+2. Income Skeleton Integration
+3. Payment Skeleton Integration
+4. Dashboard Final V2
+5. Reusable Component Refactor
