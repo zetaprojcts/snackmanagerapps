@@ -1,14 +1,16 @@
 CHECKPOINT
 
-Last Update: 2026-06-19
+Last Update:
+2026-06-19
 
-Current Version: v2.1.0-beta
+Version:
+v2.1.0-beta
 
 Current Checkpoint:
 BALANCE_V2_FINAL
 
 Status:
-ACTIVE
+ACTIVE DEVELOPMENT
 
 ---
 
@@ -17,6 +19,15 @@ COMPLETED MODULES
 Device Module V2
 
 Status: DONE
+
+Files:
+
+- app/(tabs)/devices.tsx
+- app/device-detail.tsx
+- app/edit-device.tsx
+- src/features/devices/api.ts
+- src/components/bottom-sheet/AddDeviceSheet.tsx
+- src/components/bottom-sheet/BrandFilterSheet.tsx
 
 Features:
 
@@ -28,17 +39,7 @@ Features:
 - Edit Device
 - Active / Inactive Status
 - Device Balance Calculation
-- Brand Image Mapping
 - Pull To Refresh
-
-Checkpoint Files:
-
-- app/(tabs)/devices.tsx
-- app/device-detail.tsx
-- app/edit-device.tsx
-- src/components/bottom-sheet/AddDeviceSheet.tsx
-- src/components/bottom-sheet/BrandFilterSheet.tsx
-- src/features/devices/api.ts
 
 ---
 
@@ -46,10 +47,16 @@ Income Module V2
 
 Status: DONE
 
+Files:
+
+- app/(tabs)/income.tsx
+- src/features/income/api.ts
+- src/components/bottom-sheet/AddIncomeSheet.tsx
+
 Features:
 
-- Income List V2
-- Summary Card
+- Income List
+- Total Income Summary
 - Today Filter
 - Month Filter
 - All Filter
@@ -58,22 +65,22 @@ Features:
 - Override Existing Data
 - Pull To Refresh
 
-Checkpoint Files:
-
-- app/(tabs)/income.tsx
-- src/components/bottom-sheet/AddIncomeSheet.tsx
-- src/features/income/api.ts
-
 ---
 
 Payment Module V2
 
 Status: DONE
 
+Files:
+
+- app/(tabs)/payment.tsx
+- src/features/payment/api.ts
+- src/components/bottom-sheet/AddPaymentSheet.tsx
+
 Features:
 
-- Payment List V2
-- Summary Card
+- Payment List
+- Total Payment Summary
 - Today Filter
 - Month Filter
 - All Filter
@@ -82,14 +89,7 @@ Features:
 - Wallet Validation
 - Duplicate Validation
 - Override Existing Data
-- Redirect To Edit Device
 - Pull To Refresh
-
-Checkpoint Files:
-
-- app/(tabs)/payment.tsx
-- src/components/bottom-sheet/AddPaymentSheet.tsx
-- src/features/payment/api.ts
 
 ---
 
@@ -97,23 +97,23 @@ Balance Module V2 Final
 
 Status: DONE
 
+Files:
+
+- app/(tabs)/balance.tsx
+
 Features:
 
 - Dashboard Saldo
 - Hero Balance Card
-- Total Income Card
-- Total Withdrawal Card
-- Total Admin Fee Card
-- Total Net Withdrawal Card
+- Income Card
+- Withdrawal Card
+- Admin Fee Card
+- Net Withdrawal Card
 - Financial Summary
-- Recent Activity
+- Recent Activities
 - Pull To Refresh
 - Loading State
 - Empty State
-
-Checkpoint File:
-
-- app/(tabs)/balance.tsx
 
 ---
 
@@ -130,28 +130,15 @@ Features:
 
 - Bottom Tabs
 - Floating Action Button
-- Action Modal
-
----
-
-Splash
-
-Status: DONE
-
-Files:
-
-- app.json
-- assets/icon.png
-- assets/adaptive-icon.png
-- assets/splash.png
+- Action Sheet Modal
 
 ---
 
 Theme
 
-Status: DONE
+Status: UPDATED
 
-File:
+Files:
 
 - src/theme/index.ts
 
@@ -160,26 +147,28 @@ Features:
 - COLORS
 - SPACING
 - RADIUS
+- SHADOW
 
 ---
 
-DATABASE
+IN PROGRESS
 
-Supabase
+Checkpoint:
+UI_CONSISTENCY_V1
 
-Tables:
+Tasks:
 
-- devices
-- income
-- payment
-
-Relationships:
-
-- income.device_id → devices.id
-- payment.device_id → devices.id
+- Theme Refactor ✅
+- Global Skeleton ⏳
+- Global Empty State ⏳
+- Income UI Refinement ⏳
+- Payment UI Refinement ⏳
+- Device Detail Refinement ⏳
+- Add Device Refinement ⏳
+- Edit Device Refinement ⏳
 
 ---
 
 NEXT CHECKPOINT
 
-DASHBOARD_V2
+UI_CONSISTENCY_V1
