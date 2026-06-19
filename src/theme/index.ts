@@ -1,13 +1,13 @@
 export const COLORS = {
-  primary: '#0D47FF',       // Biru Utama (Sesuai Dashboard)
-  background: '#F8FAFC',    // Latar belakang aplikasi (Slate 50)
-  card: '#FFFFFF',          // Latar kartu (Putih)
-  text: '#1E293B',          // Teks utama gelap (Slate 800)
-  textMuted: '#64748B',     // Teks sekunder/abu-abu (Slate 500)
-  border: '#E2E8F0',        // Garis batas (Slate 200)
-  success: '#10B981',       // Hijau (Pemasukan)
-  warning: '#F59E0B',       // Oranye (Penarikan)
-  danger: '#EF4444',        // Merah (Error / Tidak Aktif)
+  primary: "#0D47FF",
+  background: "#F8FAFC",
+  card: "#FFFFFF",
+  text: "#1E293B",
+  textMuted: "#64748B",
+  border: "#E2E8F0",
+  success: "#10B981",
+  warning: "#F59E0B",
+  danger: "#EF4444",
 };
 
 export const SPACING = {
@@ -23,5 +23,40 @@ export const RADIUS = {
   md: 12,
   lg: 16,
   xl: 24,
-  full: 9999, // Untuk bentuk bulat sempurna (seperti ikon user/perangkat)
+  full: 9999,
+};
+
+export const SHADOW = {
+  card: {
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+
+  hero: {
+    shadowColor: COLORS.primary,
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+
+  button: {
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
+  },
 };
