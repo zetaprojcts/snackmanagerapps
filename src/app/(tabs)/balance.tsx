@@ -1,10 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  Activity,
-  ArrowDownToLine,
-  Wallet,
-  TrendingDown,
-} from "lucide-react-native";
+import { ArrowDownToLine, TrendingDown, Wallet } from "lucide-react-native";
 import React, { useMemo } from "react";
 import {
   ActivityIndicator,
@@ -86,8 +81,7 @@ export default function BalanceScreen() {
     return [...incomeActivities, ...paymentActivities]
       .sort(
         (a, b) =>
-          new Date(b.trx_date).getTime() -
-          new Date(a.trx_date).getTime(),
+          new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime(),
       )
       .slice(0, 8);
   }, [incomes, payments]);
@@ -102,10 +96,7 @@ export default function BalanceScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator
-          size="large"
-          color={COLORS.primary}
-        />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
@@ -116,27 +107,17 @@ export default function BalanceScreen() {
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl
-          refreshing={
-            isRefetchingIncome || isRefetchingPayment
-          }
+          refreshing={isRefetchingIncome || isRefetchingPayment}
           onRefresh={onRefresh}
         />
       }
     >
       <View style={styles.header}>
-        <Text style={styles.pageTitle}>
-          Dashboard Saldo
-        </Text>
-
-        <Text style={styles.pageSubtitle}>
-          Ringkasan keuangan seluruh perangkat
-        </Text>
+        <Text style={styles.pageTitle}>Dashboard Saldo</Text>
       </View>
 
       <View style={styles.heroCard}>
-        <Text style={styles.heroLabel}>
-          Total Saldo Saat Ini
-        </Text>
+        <Text style={styles.heroLabel}>Total Saldo</Text>
 
         <Text style={styles.heroAmount}>
           Rp {netBalance.toLocaleString("id-ID")}
@@ -145,175 +126,48 @@ export default function BalanceScreen() {
 
       <View style={styles.cardRow}>
         <View style={styles.statCard}>
-          <View
-            style={[
-              styles.iconBox,
-              { backgroundColor: "#D1FAE5" },
-            ]}
-          >
-            <ArrowDownToLine
-              size={20}
-              color={COLORS.success}
-            />
+          <View style={[styles.iconBox, { backgroundColor: "#D1FAE5" }]}>
+            <ArrowDownToLine size={16} color={COLORS.success} />
           </View>
 
-          <Text style={styles.cardLabel}>
-            Pendapatan
-          </Text>
+          <Text style={styles.cardLabel}>Pendapatan</Text>
 
-          <Text style={styles.cardValue}>
-            Rp {totalIncome.toLocaleString("id-ID")}
-          </Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <View
-            style={[
-              styles.iconBox,
-              { backgroundColor: "#FEF3C7" },
-            ]}
-          >
-            <Wallet
-              size={20}
-              color={COLORS.warning}
-            />
-          </View>
-
-          <Text style={styles.cardLabel}>
-            Penarikan
-          </Text>
-
-          <Text style={styles.cardValue}>
-            Rp {totalGrossPayment.toLocaleString(
-              "id-ID",
-            )}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.cardRow}>
-        <View style={styles.statCard}>
-          <View
-            style={[
-              styles.iconBox,
-              { backgroundColor: "#FEE2E2" },
-            ]}
-          >
-            <TrendingDown
-              size={20}
-              color={COLORS.danger}
-            />
-          </View>
-
-          <Text style={styles.cardLabel}>
-            Biaya Admin
-          </Text>
-
-          <Text style={styles.cardValue}>
-            Rp {totalAdminFee.toLocaleString(
-              "id-ID",
-            )}
-          </Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <View
-            style={[
-              styles.iconBox,
-              { backgroundColor: "#DBEAFE" },
-            ]}
-          >
-            <Activity
-              size={20}
-              color={COLORS.primary}
-            />
-          </View>
-
-          <Text style={styles.cardLabel}>
-            Cair Bersih
-          </Text>
-
-          <Text style={styles.cardValue}>
-            Rp {totalNetPayment.toLocaleString(
-              "id-ID",
-            )}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.summaryCard}>
-        <Text style={styles.sectionTitle}>
-          Ringkasan Keuangan
-        </Text>
-
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>
-            Total Pendapatan
-          </Text>
-
-          <Text
-            style={[
-              styles.summaryValue,
-              { color: COLORS.success },
-            ]}
-          >
+          <Text style={styles.cardValueIncome}>
             + Rp {totalIncome.toLocaleString("id-ID")}
           </Text>
         </View>
 
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>
-            Total Penarikan
-          </Text>
+        <View style={styles.statCard}>
+          <View style={[styles.iconBox, { backgroundColor: "#FEF3C7" }]}>
+            <Wallet size={16} color={COLORS.warning} />
+          </View>
 
-          <Text
-            style={[
-              styles.summaryValue,
-              { color: COLORS.warning },
-            ]}
-          >
-            - Rp{" "}
-            {totalGrossPayment.toLocaleString("id-ID")}
+          <Text style={styles.cardLabel}>Penarikan</Text>
+
+          <Text style={styles.cardValuePayment}>
+            - Rp {totalGrossPayment.toLocaleString("id-ID")}
           </Text>
         </View>
 
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>
-            Total Admin
-          </Text>
+        <View style={styles.statCard}>
+          <View style={[styles.iconBox, { backgroundColor: "#FEE2E2" }]}>
+            <TrendingDown size={16} color={COLORS.danger} />
+          </View>
 
-          <Text
-            style={[
-              styles.summaryValue,
-              { color: COLORS.danger },
-            ]}
-          >
+          <Text style={styles.cardLabel}>Admin Fee</Text>
+
+          <Text style={styles.cardValueFee}>
             - Rp {totalAdminFee.toLocaleString("id-ID")}
           </Text>
         </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.summaryRow}>
-          <Text style={styles.totalLabel}>
-            Saldo Akhir
-          </Text>
-
-          <Text style={styles.totalValue}>
-            Rp {netBalance.toLocaleString("id-ID")}
-          </Text>
-        </View>
       </View>
+
       <View style={styles.activitySection}>
-        <Text style={styles.sectionTitle}>
-          Aktivitas Terbaru
-        </Text>
+        <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
 
         {recentActivities.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>
-              Belum Ada Aktivitas
-            </Text>
+            <Text style={styles.emptyTitle}>Belum Ada Aktivitas</Text>
 
             <Text style={styles.emptySubtitle}>
               Data transaksi akan muncul di sini
@@ -321,43 +175,28 @@ export default function BalanceScreen() {
           </View>
         ) : (
           recentActivities.map((item, index) => (
-            <View
-              key={`${item.type}-${index}`}
-              style={styles.activityCard}
-            >
+            <View key={`${item.type}-${index}`} style={styles.activityCard}>
               <View
                 style={[
                   styles.activityIcon,
                   {
                     backgroundColor:
-                      item.type === "income"
-                        ? "#D1FAE5"
-                        : "#FEF3C7",
+                      item.type === "income" ? "#D1FAE5" : "#FEF3C7",
                   },
                 ]}
               >
                 {item.type === "income" ? (
-                  <ArrowDownToLine
-                    size={18}
-                    color={COLORS.success}
-                  />
+                  <ArrowDownToLine size={18} color={COLORS.success} />
                 ) : (
-                  <Wallet
-                    size={18}
-                    color={COLORS.warning}
-                  />
+                  <Wallet size={18} color={COLORS.warning} />
                 )}
               </View>
 
               <View style={styles.activityContent}>
-                <Text style={styles.activityDevice}>
-                  {item.device_name}
-                </Text>
+                <Text style={styles.activityDevice}>{item.device_name}</Text>
 
                 <Text style={styles.activityDate}>
-                  {new Date(
-                    item.trx_date,
-                  ).toLocaleDateString("id-ID", {
+                  {new Date(item.trx_date).toLocaleDateString("id-ID", {
                     day: "2-digit",
                     month: "short",
                     year: "numeric",
@@ -370,9 +209,7 @@ export default function BalanceScreen() {
                   styles.activityAmount,
                   {
                     color:
-                      item.type === "income"
-                        ? COLORS.success
-                        : COLORS.warning,
+                      item.type === "income" ? COLORS.success : COLORS.warning,
                   },
                 ]}
               >
@@ -407,7 +244,7 @@ const styles = StyleSheet.create({
   },
 
   pageTitle: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: "800",
     color: COLORS.text,
   },
@@ -470,9 +307,9 @@ const styles = StyleSheet.create({
   },
 
   iconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
@@ -484,10 +321,22 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 
-  cardValue: {
-    fontSize: 16,
+  cardValueIncome: {
+    fontSize: 12,
     fontWeight: "700",
-    color: COLORS.text,
+    color: COLORS.primary,
+  },
+
+  cardValuePayment: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: COLORS.danger,
+  },
+
+  cardValueFee: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: COLORS.danger,
   },
 
   summaryCard: {

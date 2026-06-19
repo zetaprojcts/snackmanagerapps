@@ -1,22 +1,22 @@
-CHECKPOINT
+# CHECKPOINT
 
 Last Update:
 2026-06-19
 
 Version:
-v2.1.0-beta
+v2.2.0-beta
 
 Current Checkpoint:
-BALANCE_V2_FINAL
+UI_CONSISTENCY_V1
 
 Status:
 ACTIVE DEVELOPMENT
 
 ---
 
-COMPLETED MODULES
+# COMPLETED MODULES
 
-Device Module V2
+## Device Module V2
 
 Status: DONE
 
@@ -43,7 +43,7 @@ Features:
 
 ---
 
-Income Module V2
+## Income Module V2
 
 Status: DONE
 
@@ -57,17 +57,16 @@ Features:
 
 - Income List
 - Total Income Summary
-- Today Filter
-- Month Filter
-- All Filter
+- Filter Hari Ini
+- Filter Bulan Ini
+- Filter Semua
 - Add Income
 - Duplicate Validation
 - Override Existing Data
-- Pull To Refresh
 
 ---
 
-Payment Module V2
+## Payment Module V2
 
 Status: DONE
 
@@ -81,19 +80,14 @@ Features:
 
 - Payment List
 - Total Payment Summary
-- Today Filter
-- Month Filter
-- All Filter
-- Add Payment
 - Auto Admin Fee
 - Wallet Validation
 - Duplicate Validation
 - Override Existing Data
-- Pull To Refresh
 
 ---
 
-Balance Module V2 Final
+## Balance Module V2 Final
 
 Status: DONE
 
@@ -103,40 +97,19 @@ Files:
 
 Features:
 
-- Dashboard Saldo
-- Hero Balance Card
-- Income Card
-- Withdrawal Card
-- Admin Fee Card
-- Net Withdrawal Card
+- Hero Balance
 - Financial Summary
-- Recent Activities
+- Activity Feed
+- Recent Transactions
 - Pull To Refresh
-- Loading State
 - Empty State
+- Loading State
 
 ---
 
-Navigation
+## Theme System
 
 Status: DONE
-
-Files:
-
-- app/(tabs)/_layout.tsx
-- app/(tabs)/action.tsx
-
-Features:
-
-- Bottom Tabs
-- Floating Action Button
-- Action Sheet Modal
-
----
-
-Theme
-
-Status: UPDATED
 
 Files:
 
@@ -147,28 +120,54 @@ Features:
 - COLORS
 - SPACING
 - RADIUS
-- SHADOW
+- SHADOW.card
+- SHADOW.hero
+- SHADOW.button
 
 ---
 
-IN PROGRESS
+## UI Foundation
+
+Status: DONE
+
+Files:
+
+- src/components/ui/EmptyState.tsx
+- src/components/ui/Skeleton.tsx
+
+Components:
+
+- EmptyState
+- Skeleton
+- BalanceCardSkeleton
+- TransactionCardSkeleton
+- DeviceCardSkeleton
+
+---
+
+# CURRENT DEVELOPMENT
 
 Checkpoint:
 UI_CONSISTENCY_V1
 
-Tasks:
+Completed:
 
 - Theme Refactor ✅
-- Global Skeleton ⏳
-- Global Empty State ⏳
-- Income UI Refinement ⏳
-- Payment UI Refinement ⏳
-- Device Detail Refinement ⏳
-- Add Device Refinement ⏳
-- Edit Device Refinement ⏳
+- EmptyState Component ✅
+- Skeleton System ✅
+
+Pending:
+
+- Income Screen Refactor
+- Payment Screen Refactor
+- Device Detail Refactor
+- Add Device Polish
+- Edit Device Polish
+- Add Income Polish
+- Add Payment Polish
 
 ---
 
-NEXT CHECKPOINT
+# NEXT CHECKPOINT
 
-UI_CONSISTENCY_V1
+UI_CONSISTENCY_V1_COMPLETE

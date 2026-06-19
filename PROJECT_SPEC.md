@@ -1,14 +1,14 @@
-PROJECT SPECIFICATION
+# PROJECT SPECIFICATION
 
 Project:
 SNACK Device Manager
 
 Version:
-2.1.0-beta
+2.2.0-beta
 
 ---
 
-TECHNOLOGY STACK
+# TECHNOLOGY STACK
 
 Frontend:
 
@@ -17,6 +17,7 @@ Frontend:
 - Expo Router
 - React Query
 - Reanimated
+- Lucide React Native
 - React Native Element Dropdown
 - Gorhom Bottom Sheet
 
@@ -30,9 +31,9 @@ Database:
 
 ---
 
-DATABASE
+# DATABASE
 
-devices
+## devices
 
 Fields:
 
@@ -46,7 +47,9 @@ Fields:
 - is_active
 - created_at
 
-income
+---
+
+## income
 
 Fields:
 
@@ -56,7 +59,14 @@ Fields:
 - trx_date
 - created_at
 
-payment
+Rules:
+
+- 1 device hanya boleh memiliki 1 pemasukan per tanggal
+- Duplicate akan memunculkan dialog timpa data
+
+---
+
+## payment
 
 Fields:
 
@@ -68,39 +78,33 @@ Fields:
 - trx_date
 - created_at
 
-Relationships:
+Rules:
 
-income.device_id
-→ devices.id
-
-payment.device_id
-→ devices.id
+- 1 device hanya boleh memiliki 1 penarikan per tanggal
+- Duplicate akan memunculkan dialog timpa data
 
 ---
 
-BUSINESS RULES
+# BUSINESS RULES
 
-Device
+## Device
 
-- Device dapat aktif atau nonaktif.
-- Device nonaktif tidak boleh menerima pemasukan.
-- Device dapat memiliki e-wallet atau kosong.
-- Saldo device dihitung dari:
-  Total Income - Total Gross Payment.
+- Device dapat aktif atau nonaktif
+- Device nonaktif tidak boleh menerima pemasukan
+- Device tanpa e-wallet tidak boleh melakukan penarikan
+- Device balance = income - gross payment
 
-Income
+---
 
-- 1 Device hanya boleh memiliki 1 pemasukan per tanggal.
-- Jika data sudah ada:
-  - tampilkan konfirmasi.
-  - user dapat menimpa data lama.
+## Income
 
-Payment
+- Duplicate date validation
+- Override existing record
+- Active device only
 
-- 1 Device hanya boleh memiliki 1 penarikan per tanggal.
-- Jika data sudah ada:
-  - tampilkan konfirmasi.
-  - user dapat menimpa data lama.
+---
+
+## Payment
 
 Admin Fee:
 
@@ -112,19 +116,21 @@ GoPay = 2500
 
 ShopeePay = 750
 
-Jika e-wallet kosong:
+Rules:
 
-- penarikan tidak diizinkan.
-- user diarahkan ke Edit Device.
+- Device harus memiliki e-wallet
+- Device harus aktif
+- Duplicate date validation
+- Override existing record
 
 ---
 
-DESIGN RULES
+# DESIGN RULES
 
-Current Design:
-Original Design UI
+Reference:
+Original Snack Device Manager UI
 
-Completed:
+Implemented:
 
 ✅ Device List V2
 ✅ Device Detail
@@ -139,44 +145,54 @@ Completed:
 
 ✅ Balance V2 Final
 
-Current Target:
-
-🔄 UI_CONSISTENCY_V1
-
 ---
 
-UI CONSISTENCY TARGET
+# UI SYSTEM
 
-Theme
-
-Completed:
+Theme:
 
 - COLORS
 - SPACING
 - RADIUS
 - SHADOW
 
-Global Components
+Global Components:
 
-Planned:
+- EmptyState
+- Skeleton
 
-- EmptyState.tsx
-- Skeleton.tsx Refinement
+Skeleton Variants:
 
-Standard Components
-
-Target:
-
-- Unified Radius
-- Unified Shadow
-- Unified Typography
-- Unified Spacing
-- Unified Empty State
-- Unified Loading State
+- DeviceCardSkeleton
+- TransactionCardSkeleton
+- BalanceCardSkeleton
 
 ---
 
-PROJECT RULES
+# CURRENT DEVELOPMENT
+
+Checkpoint:
+UI_CONSISTENCY_V1
+
+Completed:
+
+✅ Theme Refactor
+✅ EmptyState
+✅ Skeleton System
+
+Pending:
+
+⏳ Income Refactor
+⏳ Payment Refactor
+⏳ Device Detail Refactor
+⏳ Add Device Polish
+⏳ Edit Device Polish
+⏳ Add Income Polish
+⏳ Add Payment Polish
+
+---
+
+# PROJECT RULES
 
 1. Semua source code berasal dari ChatGPT.
 
@@ -184,7 +200,7 @@ PROJECT RULES
 
 3. History chat adalah source of truth.
 
-4. Jangan meminta file yang sudah ada pada checkpoint history.
+4. Jangan meminta file yang sudah pernah dikirim.
 
 5. Jika file tidak berubah maka dianggap fixed.
 
@@ -196,23 +212,15 @@ PROJECT RULES
 
 9. Kerjakan sesuai instruksi user.
 
-10. Selalu menjaga kompatibilitas:
+10. Design UI adalah acuan utama project.
 
-- Expo SDK 54
-- Expo Router
-- React Query
-- Supabase
-- Reanimated
-- Gorhom Bottom Sheet
+11. Dashboard bukan bagian dari design UI saat ini.
 
-11. Setiap revisi harus dapat langsung replace file lama.
+12. Selalu menjaga kompatibilitas Expo SDK 54.
 
-12. Design UI adalah acuan utama project.
+13. Semua revisi harus dapat langsung replace file lama.
 
-13. Dashboard bukan bagian dari design UI saat ini.
+14. Empty State dan Skeleton wajib menjadi standar seluruh screen.
 
-14. Current Active Checkpoint:
-    BALANCE_V2_FINAL
-
-15. Current Development:
+15. Current Active Checkpoint:
     UI_CONSISTENCY_V1
