@@ -1,263 +1,185 @@
 CHECKPOINT
 
-Checkpoint ID
+Last Update: 2026-06-19
 
-SNACK-DM-CP-001
+Current Version: v2.1.0-beta
+
+Current Checkpoint:
+BALANCE_V2_FINAL
+
+Status:
+ACTIVE
 
 ---
 
-Current Repository Status
+COMPLETED MODULES
 
-Framework:
-Expo SDK 54
+Device Module V2
 
-Routing:
-Expo Router
+Status: DONE
 
-Backend:
+Features:
+
+- Device List V2
+- Search Device
+- Brand Filter
+- Device Detail
+- Add Device
+- Edit Device
+- Active / Inactive Status
+- Device Balance Calculation
+- Brand Image Mapping
+- Pull To Refresh
+
+Checkpoint Files:
+
+- app/(tabs)/devices.tsx
+- app/device-detail.tsx
+- app/edit-device.tsx
+- src/components/bottom-sheet/AddDeviceSheet.tsx
+- src/components/bottom-sheet/BrandFilterSheet.tsx
+- src/features/devices/api.ts
+
+---
+
+Income Module V2
+
+Status: DONE
+
+Features:
+
+- Income List V2
+- Summary Card
+- Today Filter
+- Month Filter
+- All Filter
+- Add Income
+- Duplicate Validation
+- Override Existing Data
+- Pull To Refresh
+
+Checkpoint Files:
+
+- app/(tabs)/income.tsx
+- src/components/bottom-sheet/AddIncomeSheet.tsx
+- src/features/income/api.ts
+
+---
+
+Payment Module V2
+
+Status: DONE
+
+Features:
+
+- Payment List V2
+- Summary Card
+- Today Filter
+- Month Filter
+- All Filter
+- Add Payment
+- Auto Admin Fee
+- Wallet Validation
+- Duplicate Validation
+- Override Existing Data
+- Redirect To Edit Device
+- Pull To Refresh
+
+Checkpoint Files:
+
+- app/(tabs)/payment.tsx
+- src/components/bottom-sheet/AddPaymentSheet.tsx
+- src/features/payment/api.ts
+
+---
+
+Balance Module V2 Final
+
+Status: DONE
+
+Features:
+
+- Dashboard Saldo
+- Hero Balance Card
+- Total Income Card
+- Total Withdrawal Card
+- Total Admin Fee Card
+- Total Net Withdrawal Card
+- Financial Summary
+- Recent Activity
+- Pull To Refresh
+- Loading State
+- Empty State
+
+Checkpoint File:
+
+- app/(tabs)/balance.tsx
+
+---
+
+Navigation
+
+Status: DONE
+
+Files:
+
+- app/(tabs)/_layout.tsx
+- app/(tabs)/action.tsx
+
+Features:
+
+- Bottom Tabs
+- Floating Action Button
+- Action Modal
+
+---
+
+Splash
+
+Status: DONE
+
+Files:
+
+- app.json
+- assets/icon.png
+- assets/adaptive-icon.png
+- assets/splash.png
+
+---
+
+Theme
+
+Status: DONE
+
+File:
+
+- src/theme/index.ts
+
+Features:
+
+- COLORS
+- SPACING
+- RADIUS
+
+---
+
+DATABASE
+
 Supabase
 
-Database:
-PostgreSQL
+Tables:
 
-State Query:
-TanStack Query
+- devices
+- income
+- payment
 
-Charts:
-react-native-gifted-charts
+Relationships:
 
-Bottom Sheet:
-@gorhom/bottom-sheet
-
-Animation:
-react-native-reanimated
+- income.device_id → devices.id
+- payment.device_id → devices.id
 
 ---
 
-Current Database
+NEXT CHECKPOINT
 
-devices
-
-Columns
-
-- id
-- code
-- brand
-- device_name
-- phone_number
-- email
-- ewallet
-- is_active
-- created_at
-
----
-
-income
-
-Columns
-
-- id
-- device_id
-- amount
-- trx_date
-
-Rules
-
-- One income per device per date
-- Duplicate blocked by database
-- User can overwrite data
-
----
-
-payment
-
-Columns
-
-- id
-- device_id
-- gross_amount
-- admin_fee
-- net_amount
-- trx_date
-
-Rules
-
-- One withdrawal per device per date
-- Duplicate blocked by database
-- User can overwrite data
-
----
-
-Current Financial Logic
-
-Balance
-
-Balance =
-Total Income
-
-Total Gross Withdrawal
-
----
-
-Net Withdrawal
-
-Net Withdrawal =
-Gross Withdrawal
-
-Admin Fee
-
----
-
-Admin Fee
-
-ShopeePay = 750
-
-Dana = 2500
-
-OVO = 2500
-
-GoPay = 2500
-
-Default = 0
-
----
-
-Supported Brands
-
-Samsung
-
-Oppo
-
-Vivo
-
-Xiaomi
-
-Realme
-
-Infinix
-
----
-
-Current Navigation
-
-Devices
-
-Income
-
-Action
-
-Payment
-
-Balance
-
----
-
-Current Splash System
-
-Custom Splash Overlay
-
-Animated Progress Bar
-
-Fade Out Animation
-
-Asset:
-assets/splash.png
-
----
-
-Active Screens
-
-Devices Screen V2
-
-Income Screen V2
-
-Payment Screen V2
-
-Balance Screen
-
-Device Detail
-
-Edit Device
-
-Action Sheet Modal
-
-Add Device Sheet
-
-Add Income Sheet
-
-Add Payment Sheet
-
-Brand Filter Sheet
-
----
-
-UI Revision Status
-
-Completed
-
-✅ Devices Screen V2
-
-✅ Income Screen V2
-
-✅ Payment Screen V2
-
-✅ Add Device V2
-
-✅ Edit Device V2
-
-✅ Add Income V2
-
-✅ Add Payment V2
-
----
-
-Partial
-
-⚠ Device Detail
-
-⚠ Balance Screen
-
----
-
-Pending
-
-❌ Dashboard V2
-
-❌ Analytics
-
-❌ Reporting
-
----
-
-Current Assets
-
-icon.png
-
-adaptive-icon.png
-
-favicon.png
-
-splash.png
-
-samsung.png
-
-oppo.png
-
-vivo.png
-
-xiaomi.png
-
-realme.png
-
-infinix.png
-
-default.png
-
----
-
-Next Checkpoint
-
-SNACK-DM-CP-002
-
-Goal:
-Dashboard V2 Completed
+DASHBOARD_V2
