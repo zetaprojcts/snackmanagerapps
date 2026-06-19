@@ -1,10 +1,10 @@
-PROJECT_SPEC.md
+# PROJECT_SPEC.md
 
-PROJECT
+## PROJECT
 
 SNACK Device Manager
 
-TUJUAN
+## TUJUAN
 
 Aplikasi manajemen perangkat untuk mengelola:
 
@@ -21,9 +21,9 @@ Menggunakan:
 - React Query
 - Expo Router
 
-DATABASE
+## DATABASE
 
-devices
+### devices
 
 - id
 - code
@@ -35,7 +35,7 @@ devices
 - is_active
 - created_at
 
-income
+### income
 
 - id
 - device_id
@@ -46,7 +46,7 @@ Constraint:
 
 1 Device = 1 Income per Hari
 
-payment
+### payment
 
 - id
 - device_id
@@ -59,9 +59,9 @@ Constraint:
 
 1 Device = 1 Payment per Hari
 
-RULE PROJECT
+## RULE PROJECT
 
-RULE SOURCE CODE
+### RULE SOURCE CODE
 
 - Semua source code berasal dari ChatGPT
 - Setiap revisi menjadi checkpoint baru
@@ -72,7 +72,7 @@ RULE SOURCE CODE
 - Tidak boleh mengirim potongan fungsi
 - Selalu gunakan checkpoint terakhir sebagai source of truth
 
-RULE UI
+### RULE UI
 
 Wajib mengikuti Design UI V2
 
@@ -85,7 +85,7 @@ Karakteristik:
 - Blue Primary
 - Consistent Spacing
 
-RULE EMPTY STATE
+### RULE EMPTY STATE
 
 Semua halaman data wajib memiliki:
 
@@ -93,14 +93,14 @@ Semua halaman data wajib memiliki:
 - Empty Message
 - Empty Description
 
-RULE SKELETON
+### RULE SKELETON
 
 Semua halaman data wajib memiliki:
 
 - Loading Skeleton
 - Loading Placeholder
 
-RULE ANIMATION
+### RULE ANIMATION
 
 Wajib menggunakan Reanimated
 
@@ -115,7 +115,7 @@ Untuk:
 - List
 - Detail Page
 
-RULE DATA
+### RULE DATA
 
 Saldo Device:
 
@@ -126,52 +126,41 @@ Saldo Global:
 
 Total Income - Total Gross Payment
 
-CURRENT CHECKPOINT
+## CURRENT CHECKPOINT
 
-DEVICE_DETAIL_V2_FINAL
+DEVICE_LIST_ANIMATION_COMPLETE
 
-CURRENT COMPLETED
+## CURRENT COMPLETED
 
-Device
+### Device
 
 - Device List
+- Device List Animation
 - Device Search
 - Device Brand Filter
 - Add Device
 - Edit Device
 - Device Detail V2
 - Device Balance
-- Device Status Active/Inactive
-- Auto Device Code
+- Device Status
 
-Income
+### Income
 
 - Add Income
 - Edit Income
 - History
-- Filter Today
-- Filter Month
-- Filter All
-- Duplicate Date Validation
+- Filter
+- Duplicate Validation
 
-Payment
+### Payment
 
 - Add Payment
 - Edit Payment
 - History
-- Filter Today
-- Filter Month
-- Filter All
-- Duplicate Date Validation
+- Filter
+- Duplicate Validation
 
-Balance
-
-- Balance V2
-- Hero Balance Card
-- Financial Summary
-- Recent Activities
-
-Shared UI
+### Shared UI
 
 - Empty State
 - Skeleton
@@ -179,23 +168,10 @@ Shared UI
 - Transaction Skeleton
 - Device Skeleton
 
-Device Detail Features
+## NEXT TARGET
 
-- Chart Income
-- Chart Payment
-- Chart Filter 7 Hari
-- Chart Filter Bulan Ini
-- Chart Filter 90 Hari
-- Recent Activity
-- Recent Activity Max 4 Data
-- Edit Device Navigation
-
-NEXT TARGET
-
-1. Device List Animation
-2. Device Empty Animation
-3. Income Skeleton Integration
-4. Payment Skeleton Integration
-5. Balance Animation Enhancement
-6. Shared Component Refactor
-7. Dashboard Finalization
+1. Income Skeleton Integration
+2. Payment Skeleton Integration
+3. Balance Animation Enhancement
+4. Reusable Component Refactor
+5. Shared Component Standardization
