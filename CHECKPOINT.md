@@ -4,9 +4,33 @@ Checkpoint ID
 
 SNACK-DM-CP-001
 
-Date
+---
 
-Current Project Checkpoint
+Current Repository Status
+
+Framework:
+Expo SDK 54
+
+Routing:
+Expo Router
+
+Backend:
+Supabase
+
+Database:
+PostgreSQL
+
+State Query:
+TanStack Query
+
+Charts:
+react-native-gifted-charts
+
+Bottom Sheet:
+@gorhom/bottom-sheet
+
+Animation:
+react-native-reanimated
 
 ---
 
@@ -37,11 +61,11 @@ Columns
 - amount
 - trx_date
 
-Business Rules
+Rules
 
 - One income per device per date
 - Duplicate blocked by database
-- User can overwrite duplicate data
+- User can overwrite data
 
 ---
 
@@ -56,11 +80,11 @@ Columns
 - net_amount
 - trx_date
 
-Business Rules
+Rules
 
 - One withdrawal per device per date
 - Duplicate blocked by database
-- User can overwrite duplicate data
+- User can overwrite data
 
 ---
 
@@ -75,7 +99,7 @@ Total Gross Withdrawal
 
 ---
 
-Withdrawal
+Net Withdrawal
 
 Net Withdrawal =
 Gross Withdrawal
@@ -84,7 +108,7 @@ Admin Fee
 
 ---
 
-Admin Fee Rules
+Admin Fee
 
 ShopeePay = 750
 
@@ -114,104 +138,56 @@ Infinix
 
 ---
 
+Current Navigation
+
+Devices
+
+Income
+
+Action
+
+Payment
+
+Balance
+
+---
+
+Current Splash System
+
+Custom Splash Overlay
+
+Animated Progress Bar
+
+Fade Out Animation
+
+Asset:
+assets/splash.png
+
+---
+
 Active Screens
 
-Tabs
+Devices Screen V2
 
-devices.tsx
+Income Screen V2
 
-income.tsx
+Payment Screen V2
 
-payment.tsx
+Balance Screen
 
-balance.tsx
+Device Detail
 
----
+Edit Device
 
-Detail
+Action Sheet Modal
 
-device-detail.tsx
+Add Device Sheet
 
-edit-device.tsx
+Add Income Sheet
 
----
+Add Payment Sheet
 
-Modal
-
-action-sheet-modal.tsx
-
----
-
-Bottom Sheet
-
-AddDeviceSheet
-
-AddIncomeSheet
-
-AddPaymentSheet
-
-BrandFilterSheet
-
----
-
-Current Theme
-
-Primary:
-#0D47FF
-
-Background:
-#F8FAFC
-
-Card:
-#FFFFFF
-
-Text:
-#1E293B
-
-TextMuted:
-#64748B
-
-Border:
-#E2E8F0
-
-Success:
-#10B981
-
-Warning:
-#F59E0B
-
-Danger:
-#EF4444
-
----
-
-Current Assets
-
-icon.png
-
-adaptive-icon.png
-
-favicon.png
-
-splash.png
-
----
-
-Device Assets
-
-samsung.png
-
-oppo.png
-
-vivo.png
-
-xiaomi.png
-
-realme.png
-
-infinix.png
-
-default.png
+Brand Filter Sheet
 
 ---
 
@@ -249,7 +225,33 @@ Pending
 
 ❌ Analytics
 
-❌ Reports
+❌ Reporting
+
+---
+
+Current Assets
+
+icon.png
+
+adaptive-icon.png
+
+favicon.png
+
+splash.png
+
+samsung.png
+
+oppo.png
+
+vivo.png
+
+xiaomi.png
+
+realme.png
+
+infinix.png
+
+default.png
 
 ---
 
