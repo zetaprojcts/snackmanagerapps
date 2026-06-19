@@ -1,333 +1,171 @@
-PROJECT_SPEC
+PROJECT SPECIFICATION
 
-Project Name
-
+Project Name:
 SNACK Device Manager
 
----
-
-Purpose
-
-Application for managing multiple devices and monitoring:
-
-- Daily Income
-- Withdrawals
-- Device Status
-- Device Performance
-- Balance
-- Financial Statistics
+Version:
+2.1.0-beta
 
 ---
 
-Technology Stack
+TECHNOLOGY STACK
 
-Frontend
+Frontend:
 
-Expo SDK 54
+- Expo SDK 54
+- React Native
+- Expo Router
+- React Query
+- React Native Reanimated
+- React Native Element Dropdown
+- Gorhom Bottom Sheet
 
-React Native
+Backend:
 
-Expo Router
+- Supabase
 
-TanStack Query
+Database:
 
-React Native Reanimated
-
-React Native Gesture Handler
-
-React Native Gifted Charts
-
-React Native Element Dropdown
-
-Lucide React Native
+- PostgreSQL
 
 ---
 
-Backend
-
-Supabase
-
----
-
-Database
-
-PostgreSQL
-
----
-
-Current Database Tables
+DATABASE STRUCTURE
 
 devices
 
+Fields:
+
+- id
+- code
+- brand
+- device_name
+- phone_number
+- email
+- ewallet
+- is_active
+- created_at
+
 income
+
+Fields:
+
+- id
+- device_id
+- amount
+- trx_date
+- created_at
 
 payment
 
----
+Fields:
 
-Current Device Code Format
-
-HP001
-
-HP002
-
-HP003
-
-...
-
-Generated Automatically
+- id
+- device_id
+- gross_amount
+- admin_fee
+- net_amount
+- trx_date
+- created_at
 
 ---
 
-Current Supported Ewallet
-
-Dana
-
-OVO
-
-GoPay
-
-ShopeePay
-
----
-
-Main Modules
-
-Device Management
-
-- Add Device
-- Edit Device
-- Device Detail
-- Device Search
-- Device Filter
-- Device Status
-
----
-
-Income Management
-
-- Add Income
-- Income History
-- Income Filter
-- Duplicate Validation
-- Overwrite Existing Data
-
----
-
-Payment Management
-
-- Add Withdrawal
-- Withdrawal History
-- Withdrawal Filter
-- Duplicate Validation
-- Overwrite Existing Data
-
----
-
-Balance Management
-
-- Total Balance
-- Total Income
-- Total Withdrawal
-- Admin Fee Summary
-
----
-
-Business Rules
+BUSINESS RULES
 
 Device
 
-Active Device
-
-- Can receive income
-- Can create withdrawal
-
-Inactive Device
-
-- Cannot receive income
-- Cannot create withdrawal
-
----
+- Device dapat aktif atau nonaktif.
+- Device nonaktif tidak dapat menerima pemasukan.
+- Device dapat memiliki atau tidak memiliki e-wallet.
+- Balance device dihitung dari:
+  Total Income - Total Gross Payment
 
 Income
 
-1 Device
+- 1 device hanya boleh memiliki 1 pemasukan per tanggal.
+- Jika data sudah ada:
+  - tampilkan konfirmasi.
+  - user dapat menimpa data lama.
 
-=
+Payment
 
-1 Income
+- 1 device hanya boleh memiliki 1 penarikan per tanggal.
+- Jika data sudah ada:
+  - tampilkan konfirmasi.
+  - user dapat menimpa data lama.
 
-=
+Admin Fee:
 
-1 Date
+Dana = 2500
+OVO = 2500
+GoPay = 2500
+ShopeePay = 750
 
-Duplicate:
+Jika e-wallet kosong:
 
-Show overwrite confirmation
-
----
-
-Withdrawal
-
-1 Device
-
-=
-
-1 Withdrawal
-
-=
-
-1 Date
-
-Duplicate:
-
-Show overwrite confirmation
+- penarikan tidak diizinkan.
+- user diarahkan ke Edit Device.
 
 ---
 
-Ewallet Requirement
+UI STATUS
 
-Withdrawal allowed only when:
+Completed:
 
-ewallet != null
+✅ Device List V2
+✅ Device Detail
+✅ Add Device
+✅ Edit Device
 
-ewallet != "-"
+✅ Income V2
+✅ Add Income
 
----
+✅ Payment V2
+✅ Add Payment
 
-Current Dashboard
+✅ Balance V2 Final
 
-balance.tsx
+Current Target:
 
-Status:
-
-Temporary Dashboard
-
-Will be replaced by:
-
-Dashboard V2
-
----
-
-Dashboard V2 Target
-
-Hero Section
-
-Total Balance
-
-Financial Overview
+🔄 Dashboard V2
 
 ---
 
-Statistics
+PROJECT WORKFLOW RULES
 
-Total Devices
+1. Semua source code adalah hasil generate ChatGPT.
 
-Active Devices
+2. Source code terbaru menjadi checkpoint terbaru.
 
-Inactive Devices
+3. History chat adalah source of truth.
 
-Total Income
+4. Jangan meminta file yang sudah pernah diberikan dan belum berubah.
 
-Total Withdrawal
+5. Jika file tidak berubah maka dianggap fixed.
 
-Admin Fee
+6. Setiap perubahan file wajib mengirim FULL SOURCE CODE.
 
----
+7. Jangan mengirim potongan code kecuali diminta user.
 
-Analytics
+8. Jangan memberikan penjelasan yang tidak diminta.
 
-Income Trend
+9. Kerjakan sesuai instruksi user.
 
-Withdrawal Trend
+10. Setiap revisi harus kompatibel dengan:
 
-Balance Trend
+- Expo SDK 54
+- Expo Router
+- React Query
+- Supabase
+- Reanimated
+- Gorhom Bottom Sheet
 
----
+11. Setiap file yang direvisi harus bisa langsung replace file lama.
 
-Quick Actions
+12. Seluruh progress wajib mengikuti checkpoint terbaru.
 
-Add Device
+13. Current Active Checkpoint:
+    BALANCE_V2_FINAL
 
-Add Income
-
-Add Withdrawal
-
----
-
-Recent Activities
-
-Latest Income
-
-Latest Withdrawal
-
----
-
-Development Rules
-
-Checkpoint Rules
-
-- Source code yang dikirim pada chat menjadi checkpoint terbaru.
-- Checkpoint terbaru menggantikan checkpoint sebelumnya untuk file yang sama.
-- Checkpoint menjadi source of truth project.
-
----
-
-Communication Rules
-
-- Jangan meminta ulang file yang sudah pernah dikirim dan belum berubah.
-- Gunakan checkpoint terbaru yang tersedia sebagai referensi utama.
-- Prioritaskan membaca checkpoint sebelum meminta data tambahan.
-
----
-
-Code Delivery Rules
-
-- Setiap perubahan file wajib mengirim full source code.
-- Jangan mengirim potongan source code.
-- Jangan mengirim perubahan per baris.
-- Full file menjadi checkpoint baru.
-
----
-
-Documentation Rules
-
-Setelah fitur besar selesai:
-
-- Update PROJECT_STATUS.md
-- Update CHECKPOINT.md
-
-Jika requirement berubah:
-
-- Update PROJECT_SPEC.md
-
----
-
-Working Rules
-
-- Fokus pada task yang diperintahkan.
-- Jangan memberikan penjelasan yang tidak diminta.
-- Selalu menjaga konsistensi dengan checkpoint project.
-
----
-
-Release Target
-
-Android First
-
-Expo Build
-
-Play Store Ready
-
----
-
-Current Development Target
-
-SNACK-DM-CP-002
-
-Deliverables
-
-- Dashboard V2
-- Analytics Dashboard
-- Improved Statistics
-- Activity Feed
+14. Next Development Target:
+    DASHBOARD_V2
