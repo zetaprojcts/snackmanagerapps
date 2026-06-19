@@ -1,12 +1,12 @@
-# PROJECT_STATUS.md
+PROJECT_STATUS.md
 
-## PROJECT
+PROJECT
 
 SNACK Device Manager
 
-## STACK
+STACK
 
-Frontend:
+Frontend
 
 - Expo SDK 54
 - React Native
@@ -14,40 +14,43 @@ Frontend:
 - React Query
 - React Native Reanimated
 
-Backend:
+Backend
 
 - Supabase
 
-Database:
+Database
 
 - PostgreSQL
 
-## STATUS FITUR
+STATUS FITUR
 
-### AUTH
+AUTH
 
 Status:
 Belum Dimulai
 
-### DASHBOARD
+DASHBOARD
 
 Status:
 Belum Final
 
 Keterangan:
+
 Masih menggunakan Balance V2 sebagai dashboard sementara.
 
-### DEVICE
+DEVICE
 
 Status:
-90%
+95%
 
 Selesai:
 
 - List Device
 - Detail Device
 - Edit Device
+- Add Device
 - Device Balance
+- Device Status
 
 Belum:
 
@@ -55,10 +58,10 @@ Belum:
 - Device Filter
 - Device Empty Animation
 
-### INCOME
+INCOME
 
 Status:
-85%
+90%
 
 Selesai:
 
@@ -66,16 +69,17 @@ Selesai:
 - Edit Income
 - History
 - Filter
+- Duplicate Validation
 
 Belum:
 
 - Skeleton Loading
 - Detail Income
 
-### PAYMENT
+PAYMENT
 
 Status:
-85%
+90%
 
 Selesai:
 
@@ -83,13 +87,14 @@ Selesai:
 - Edit Payment
 - History
 - Filter
+- Duplicate Validation
 
 Belum:
 
 - Skeleton Loading
 - Detail Payment
 
-### BALANCE
+BALANCE
 
 Status:
 90%
@@ -105,15 +110,18 @@ Belum:
 - Dashboard Merge
 - Animation Enhancement
 
-### SHARED UI
+SHARED UI
 
 Status:
-80%
+85%
 
 Selesai:
 
 - Skeleton
 - Empty State
+- BalanceCardSkeleton
+- TransactionCardSkeleton
+- DeviceCardSkeleton
 
 Belum:
 
@@ -121,7 +129,7 @@ Belum:
 - Reusable Header
 - Reusable Section Title
 
-## CURRENT PRIORITY
+CURRENT PRIORITY
 
 1. Device List Animation
 2. Income Skeleton
@@ -129,7 +137,7 @@ Belum:
 4. Dashboard Final V2
 5. Shared Component Refactor
 
-## PROJECT HEALTH
+PROJECT HEALTH
 
 Database:
 Stabil
@@ -141,7 +149,15 @@ Navigation:
 Stabil
 
 Build:
-Belum diuji setelah Device Detail Fix
+Stabil
 
 Overall Progress:
-80%
+85%
+
+LAST UPDATED
+
+2026-06-20
+
+ACTIVE CHECKPOINT
+
+DEVICE_DETAIL_V2_FIXED
