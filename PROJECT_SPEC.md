@@ -1,6 +1,4 @@
-# PROJECT_SPEC.md
-
-## PROJECT
+# PROJECT
 
 SNACK Device Manager
 
@@ -119,15 +117,13 @@ Untuk:
 Saldo Device:
 
 Balance =
-Total Income - Total Gross Payment
-
-Saldo Global:
-
-Total Income - Total Gross Payment
+Total Income
+-
+Total Gross Payment
 
 ## CURRENT CHECKPOINT
 
-BALANCE_ANIMATION_COMPLETE
+PAYMENT_DETAIL_V1
 
 ## CURRENT COMPLETED
 
@@ -137,6 +133,8 @@ BALANCE_ANIMATION_COMPLETE
 - Add Device
 - Edit Device
 - Device Detail V2
+- Device Search
+- Device Brand Filter
 - Device Balance
 
 ### Income
@@ -145,8 +143,9 @@ BALANCE_ANIMATION_COMPLETE
 - Edit Income
 - History
 - Filter
-- Skeleton Loading
-- Animation
+- Skeleton Integration
+- Income Detail
+- getIncomeById
 
 ### Payment
 
@@ -154,16 +153,9 @@ BALANCE_ANIMATION_COMPLETE
 - Edit Payment
 - History
 - Filter
-- Skeleton Loading
-- Animation
-
-### Balance
-
-- Hero Card
-- Financial Summary
-- Recent Activities
-- Skeleton Loading
-- Animation Enhancement
+- Skeleton Integration
+- Payment Detail
+- getPaymentById
 
 ### Shared UI
 
@@ -176,8 +168,8 @@ BALANCE_ANIMATION_COMPLETE
 
 ## NEXT TARGET
 
-1. Detail Income
-2. Detail Payment
-3. Reusable Component Refactor
-4. Device Empty Animation
-5. Shared Header Component
+1. Reusable Header Component
+2. Reusable Card Component
+3. Reusable Section Title
+4. Income Edit Screen
+5. Payment Edit Screen
