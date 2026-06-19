@@ -8,12 +8,13 @@ SNACK Device Manager
 
 Purpose
 
-Application for managing multiple earning devices and monitoring:
+Application for managing multiple devices and monitoring:
 
 - Daily Income
 - Withdrawals
-- Balance
 - Device Status
+- Device Performance
+- Balance
 - Financial Statistics
 
 ---
@@ -30,15 +31,15 @@ Expo Router
 
 TanStack Query
 
-Reanimated
+React Native Reanimated
 
-Gesture Handler
+React Native Gesture Handler
 
-Gifted Charts
+React Native Gifted Charts
 
-Lucide Icons
+React Native Element Dropdown
 
-Element Dropdown
+Lucide React Native
 
 ---
 
@@ -54,50 +55,80 @@ PostgreSQL
 
 ---
 
+Current Database Tables
+
+devices
+
+income
+
+payment
+
+---
+
+Current Device Code Format
+
+HP001
+
+HP002
+
+HP003
+
+...
+
+Generated Automatically
+
+---
+
+Current Supported Ewallet
+
+Dana
+
+OVO
+
+GoPay
+
+ShopeePay
+
+---
+
 Main Modules
 
 Device Management
 
-Functions:
-
 - Add Device
 - Edit Device
-- View Device
-- Filter Device
-- Search Device
+- Device Detail
+- Device Search
+- Device Filter
 - Device Status
 
 ---
 
 Income Management
 
-Functions:
-
 - Add Income
-- View Income History
-- Filter Income
-- Replace Duplicate Income
+- Income History
+- Income Filter
+- Duplicate Validation
+- Overwrite Existing Data
 
 ---
 
-Withdrawal Management
-
-Functions:
+Payment Management
 
 - Add Withdrawal
-- View Withdrawal History
-- Filter Withdrawal
-- Replace Duplicate Withdrawal
+- Withdrawal History
+- Withdrawal Filter
+- Duplicate Validation
+- Overwrite Existing Data
 
 ---
 
 Balance Management
 
-Functions:
-
 - Total Balance
-- Income Summary
-- Withdrawal Summary
+- Total Income
+- Total Withdrawal
 - Admin Fee Summary
 
 ---
@@ -106,51 +137,57 @@ Business Rules
 
 Device
 
-Active Device:
+Active Device
 
 - Can receive income
-- Can receive withdrawal
+- Can create withdrawal
 
-Inactive Device:
+Inactive Device
 
 - Cannot receive income
-- Cannot receive withdrawal
+- Cannot create withdrawal
 
 ---
 
 Income
 
-Constraint:
-
 1 Device
 
+=
+
 1 Income
+
+=
 
 1 Date
 
 Duplicate:
+
 Show overwrite confirmation
 
 ---
 
 Withdrawal
 
-Constraint:
-
 1 Device
 
+=
+
 1 Withdrawal
+
+=
 
 1 Date
 
 Duplicate:
+
 Show overwrite confirmation
 
 ---
 
 Ewallet Requirement
 
-Withdrawal only allowed when:
+Withdrawal allowed only when:
 
 ewallet != null
 
@@ -158,25 +195,31 @@ ewallet != "-"
 
 ---
 
-Dashboard V2 Specification
+Current Dashboard
 
-Header
+balance.tsx
 
-Greeting
+Status:
 
-Date
+Temporary Dashboard
 
-User Summary
+Will be replaced by:
+
+Dashboard V2
 
 ---
 
-Hero Card
+Dashboard V2 Target
+
+Hero Section
 
 Total Balance
 
+Financial Overview
+
 ---
 
-Statistics Grid
+Statistics
 
 Total Devices
 
@@ -216,43 +259,55 @@ Recent Activities
 
 Latest Income
 
-Latest Withdrawals
+Latest Withdrawal
 
 ---
 
-Design Language
+Development Rules
 
-Modern
+Checkpoint Rules
 
-Minimal
-
-Financial Dashboard
-
-Blue Accent
-
-Rounded Corners
-
-Soft Shadows
-
-High Readability
-
-Mobile First
+- Source code yang dikirim pada chat menjadi checkpoint terbaru.
+- Checkpoint terbaru menggantikan checkpoint sebelumnya untuk file yang sama.
+- Checkpoint menjadi source of truth project.
 
 ---
 
-Folder Structure Target
+Communication Rules
 
-app
+- Jangan meminta ulang file yang sudah pernah dikirim dan belum berubah.
+- Gunakan checkpoint terbaru yang tersedia sebagai referensi utama.
+- Prioritaskan membaca checkpoint sebelum meminta data tambahan.
 
-components
+---
 
-features
+Code Delivery Rules
 
-lib
+- Setiap perubahan file wajib mengirim full source code.
+- Jangan mengirim potongan source code.
+- Jangan mengirim perubahan per baris.
+- Full file menjadi checkpoint baru.
 
-theme
+---
 
-assets
+Documentation Rules
+
+Setelah fitur besar selesai:
+
+- Update PROJECT_STATUS.md
+- Update CHECKPOINT.md
+
+Jika requirement berubah:
+
+- Update PROJECT_SPEC.md
+
+---
+
+Working Rules
+
+- Fokus pada task yang diperintahkan.
+- Jangan memberikan penjelasan yang tidak diminta.
+- Selalu menjaga konsistensi dengan checkpoint project.
 
 ---
 
@@ -270,7 +325,7 @@ Current Development Target
 
 SNACK-DM-CP-002
 
-Deliverables:
+Deliverables
 
 - Dashboard V2
 - Analytics Dashboard
