@@ -120,43 +120,56 @@ RULE DATA
 Saldo Device:
 
 Balance =
-Total Income
-
-Total Gross Payment
+Total Income - Total Gross Payment
 
 Saldo Global:
 
-Total Income
-
-Total Gross Payment
+Total Income - Total Gross Payment
 
 CURRENT CHECKPOINT
 
-DEVICE_DETAIL_V2_FIXED
+DEVICE_DETAIL_V2_FINAL
 
 CURRENT COMPLETED
 
 Device
 
 - Device List
+- Device Search
+- Device Brand Filter
 - Add Device
 - Edit Device
 - Device Detail V2
 - Device Balance
+- Device Status Active/Inactive
+- Auto Device Code
 
 Income
 
 - Add Income
 - Edit Income
 - History
-- Filter
+- Filter Today
+- Filter Month
+- Filter All
+- Duplicate Date Validation
 
 Payment
 
 - Add Payment
 - Edit Payment
 - History
-- Filter
+- Filter Today
+- Filter Month
+- Filter All
+- Duplicate Date Validation
+
+Balance
+
+- Balance V2
+- Hero Balance Card
+- Financial Summary
+- Recent Activities
 
 Shared UI
 
@@ -166,10 +179,23 @@ Shared UI
 - Transaction Skeleton
 - Device Skeleton
 
+Device Detail Features
+
+- Chart Income
+- Chart Payment
+- Chart Filter 7 Hari
+- Chart Filter Bulan Ini
+- Chart Filter 90 Hari
+- Recent Activity
+- Recent Activity Max 4 Data
+- Edit Device Navigation
+
 NEXT TARGET
 
 1. Device List Animation
-2. Income Skeleton Integration
-3. Payment Skeleton Integration
-4. Dashboard Final V2
-5. Reusable Component Refactor
+2. Device Empty Animation
+3. Income Skeleton Integration
+4. Payment Skeleton Integration
+5. Balance Animation Enhancement
+6. Shared Component Refactor
+7. Dashboard Finalization
