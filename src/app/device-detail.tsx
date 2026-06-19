@@ -154,7 +154,7 @@ export default function DeviceDetail() {
         (a, b) =>
           new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime(),
       )
-      .slice(0, 10);
+      .slice(0, 4);
   }, [incomes, payments, activityFilter]);
 
   if (isLoading) {
@@ -380,19 +380,17 @@ export default function DeviceDetail() {
           {chartData.length > 0 ? (
             <BarChart
               data={chartData}
-              height={220}
-              barWidth={24}
-              spacing={16}
-              roundedTop
-              hideRules
-              noOfSections={4}
+              height={160}
+              barWidth={16}
+              spacing={10}
+              noOfSections={5}
               yAxisThickness={0}
               xAxisThickness={1}
               isAnimated
-              animationDuration={1200}
+              animationDuration={1300}
               xAxisLabelTextStyle={{
                 color: COLORS.textMuted,
-                fontSize: 10,
+                fontSize: 8,
               }}
               yAxisTextStyle={{
                 color: COLORS.textMuted,
@@ -413,43 +411,7 @@ export default function DeviceDetail() {
         style={styles.activitySection}
       >
         <View style={styles.activityHeader}>
-          <Text style={styles.sectionTitle}>Aktivitas Terakhir</Text>
-
-          <View style={styles.activityTabs}>
-            <TouchableOpacity
-              style={[
-                styles.activityChip,
-                activityFilter === "income" && styles.activityChipActive,
-              ]}
-              onPress={() => setActivityFilter("income")}
-            >
-              <Text
-                style={[
-                  styles.activityChipText,
-                  activityFilter === "income" && styles.activityChipTextActive,
-                ]}
-              >
-                Income
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.activityChip,
-                activityFilter === "payment" && styles.activityChipActive,
-              ]}
-              onPress={() => setActivityFilter("payment")}
-            >
-              <Text
-                style={[
-                  styles.activityChipText,
-                  activityFilter === "payment" && styles.activityChipTextActive,
-                ]}
-              >
-                Payment
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
         </View>
 
         {activities.length === 0 ? (
@@ -731,27 +693,6 @@ const styles = StyleSheet.create({
   activityTabs: {
     flexDirection: "row",
     gap: 8,
-  },
-
-  activityChip: {
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-  },
-
-  activityChipActive: {
-    backgroundColor: COLORS.primary,
-  },
-
-  activityChipText: {
-    color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "600",
-  },
-
-  activityChipTextActive: {
-    color: "#FFFFFF",
   },
 
   activityItem: {

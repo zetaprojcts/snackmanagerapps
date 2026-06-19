@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDownToLine, TrendingDown, Wallet } from "lucide-react-native";
+import { ArrowDownToLine, Wallet } from "lucide-react-native";
 import React, { useMemo } from "react";
 import {
   ActivityIndicator,
@@ -138,26 +138,14 @@ export default function BalanceScreen() {
         </View>
 
         <View style={styles.statCard}>
-          <View style={[styles.iconBox, { backgroundColor: "#FEF3C7" }]}>
-            <Wallet size={16} color={COLORS.warning} />
+          <View style={[styles.iconBox, { backgroundColor: "#ffd0d0" }]}>
+            <Wallet size={16} color={COLORS.danger} />
           </View>
 
           <Text style={styles.cardLabel}>Penarikan</Text>
 
           <Text style={styles.cardValuePayment}>
             - Rp {totalGrossPayment.toLocaleString("id-ID")}
-          </Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <View style={[styles.iconBox, { backgroundColor: "#FEE2E2" }]}>
-            <TrendingDown size={16} color={COLORS.danger} />
-          </View>
-
-          <Text style={styles.cardLabel}>Admin Fee</Text>
-
-          <Text style={styles.cardValueFee}>
-            - Rp {totalAdminFee.toLocaleString("id-ID")}
           </Text>
         </View>
       </View>
@@ -307,9 +295,9 @@ const styles = StyleSheet.create({
   },
 
   iconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
@@ -322,19 +310,13 @@ const styles = StyleSheet.create({
   },
 
   cardValueIncome: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: "700",
     color: COLORS.primary,
   },
 
   cardValuePayment: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: COLORS.danger,
-  },
-
-  cardValueFee: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: "700",
     color: COLORS.danger,
   },
