@@ -1,18 +1,19 @@
-CHECKPOINT.md
+# CHECKPOINT.md
 
-CHECKPOINT TERAKHIR
+## CHECKPOINT TERAKHIR
 
 Tanggal: 2026-06-20
 
-STATUS PROJECT
+### STATUS PROJECT
 
 SNACK Device Manager V2
 
-FITUR SELESAI
+### FITUR SELESAI
 
-Device
+#### Device
 
 - Device List
+- Device List Animation
 - Device Search
 - Device Brand Filter
 - Add Device
@@ -22,7 +23,7 @@ Device
 - Device Status Active/Inactive
 - Auto Device Code (HP001, HP002, dst)
 
-Income
+#### Income
 
 - Add Income
 - Update Income
@@ -32,7 +33,7 @@ Income
 - Filter Month
 - Filter All
 
-Payment
+#### Payment
 
 - Add Payment
 - Update Payment
@@ -42,14 +43,7 @@ Payment
 - Filter Month
 - Filter All
 
-Balance
-
-- Balance V2
-- Hero Balance Card
-- Financial Summary
-- Recent Activities
-
-Shared Components
+#### Shared Components
 
 - EmptyState
 - Skeleton
@@ -57,86 +51,74 @@ Shared Components
 - TransactionCardSkeleton
 - DeviceCardSkeleton
 
-ANIMASI YANG SUDAH ADA
+### ANIMASI YANG SUDAH ADA
 
-Device Detail
+#### Device Detail
 
 - FadeInDown
 - FadeInUp
 
-Chart
+#### Device List
+
+- FadeInDown Header
+- FadeInDown Search Section
+- FadeInUp Device Card Stagger Animation
+- Empty State Animation
+
+#### Chart
 
 - BarChart Animation
 
-BUG FIX TERAKHIR
+### BUG FIX TERAKHIR
 
-Device Detail
+#### Device Detail
 
 FIX:
 Rendered more hooks than during the previous render
 
-Penyebab:
-useMemo() dieksekusi setelah conditional return.
-
 Status:
 SELESAI
 
-Edit Device
+#### Edit Device
 
 FIX:
-Load data device berdasarkan ID.
+Load data device berdasarkan ID
 
 Status:
 SELESAI
 
-Device Detail
+#### Device Detail
 
 FIX:
-Filter chart tidak konsisten.
+Filter Chart berjalan normal
 
 Status:
 SELESAI
 
-FILE TERAKHIR DIUBAH
+### FILE TERAKHIR DIUBAH
 
 - src/app/device-detail.tsx
 - src/app/edit-device.tsx
 - src/app/(tabs)/devices.tsx
 
-CHECKPOINT AKTIF
+### CHECKPOINT AKTIF
 
-DEVICE_DETAIL_V2_FINAL
+DEVICE_LIST_ANIMATION_COMPLETE
 
-BUILD STATUS
+### BUILD STATUS
 
+- Device List: Stabil
 - Device Detail: Stabil
 - Edit Device: Stabil
-- Device List: Stabil
 - Navigation: Stabil
 
-CATATAN
+### CATATAN
 
-Checkpoint aktif untuk revisi berikutnya menggunakan:
+Checkpoint aktif untuk revisi berikutnya:
 
-DEVICE_DETAIL_V2_FINAL
+DEVICE_LIST_ANIMATION_COMPLETE
 
-Source of truth:
+Source of Truth:
 
-src/app/device-detail.tsx
-
-Versi aktif:
-
-- Filter Chart 7 Hari
-- Filter Chart Bulan Ini
-- Filter Chart 90 Hari
-- Activity Max 4 Data
-- Chart Height 160
-- Chart Spacing 10
-- Chart Animation 1300ms
-- Tanpa Bottom Sheet Filter
-- Tanpa Activity Filter Chip
-- Edit Device Navigation Aktif
-- Skeleton Aktif
-- Empty State Aktif
-- FadeInDown Aktif
-- FadeInUp Aktif
+- device-detail.tsx versi terakhir user
+- devices.tsx dengan animation integration
