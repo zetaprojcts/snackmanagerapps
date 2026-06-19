@@ -1,12 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-import { Activity, TrendingDown } from "lucide-react-native";
 import {
+  Activity,
+  ArrowDownToLine,
+  Wallet,
+  TrendingDown,
+} from "lucide-react-native";
+import React, { useMemo } from "react";
+import {
+  ActivityIndicator,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+
 import { fetchIncomes } from "../../features/income/api";
 import { fetchPayments } from "../../features/payment/api";
 import { COLORS } from "../../theme";
@@ -17,28 +25,72 @@ export default function BalanceScreen() {
     isLoading: loadingIncome,
     refetch: refetchIncome,
     isRefetching: isRefetchingIncome,
-  } = useQuery({ queryKey: ["income"], queryFn: fetchIncomes });
+  } = useQuery({
+    queryKey: ["income"],
+    queryFn: fetchIncomes,
+  });
+
   const {
     data: payments,
     isLoading: loadingPayment,
     refetch: refetchPayment,
     isRefetching: isRefetchingPayment,
-  } = useQuery({ queryKey: ["payment"], queryFn: fetchPayments });
+  } = useQuery({
+    queryKey: ["payment"],
+    queryFn: fetchPayments,
+  });
 
-  // 1. Kalkulasi Total Pemasukan
   const totalIncome =
-    incomes?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+    incomes?.reduce(
+      (total: number, item: any) => total + Number(item.amount),
+      0,
+    ) || 0;
 
-  // 2. Kalkulasi Penarikan (Kotor, Admin, dan Bersih)
   const totalGrossPayment =
-    payments?.reduce((acc, curr) => acc + Number(curr.gross_amount), 0) || 0;
-  const totalAdminFee =
-    payments?.reduce((acc, curr) => acc + Number(curr.admin_fee), 0) || 0;
-  const totalNetPayment =
-    payments?.reduce((acc, curr) => acc + Number(curr.net_amount), 0) || 0;
+    payments?.reduce(
+      (total: number, item: any) => total + Number(item.gross_amount),
+      0,
+    ) || 0;
 
-  // 3. Kalkulasi Mutlak: Saldo Bersih Aktual (Pemasukan - Penarikan Kotor)
+  const totalAdminFee =
+    payments?.reduce(
+      (total: number, item: any) => total + Number(item.admin_fee),
+      0,
+    ) || 0;
+
+  const totalNetPayment =
+    payments?.reduce(
+      (total: number, item: any) => total + Number(item.net_amount),
+      0,
+    ) || 0;
+
   const netBalance = totalIncome - totalGrossPayment;
+
+  const recentActivities = useMemo(() => {
+    const incomeActivities =
+      incomes?.map((item: any) => ({
+        type: "income",
+        amount: Number(item.amount),
+        trx_date: item.trx_date,
+        device_name: item.devices?.device_name ?? "Perangkat",
+      })) || [];
+
+    const paymentActivities =
+      payments?.map((item: any) => ({
+        type: "payment",
+        amount: Number(item.gross_amount),
+        trx_date: item.trx_date,
+        device_name: item.devices?.device_name ?? "Perangkat",
+      })) || [];
+
+    return [...incomeActivities, ...paymentActivities]
+      .sort(
+        (a, b) =>
+          new Date(b.trx_date).getTime() -
+          new Date(a.trx_date).getTime(),
+      )
+      .slice(0, 8);
+  }, [incomes, payments]);
 
   const onRefresh = () => {
     refetchIncome();
@@ -47,69 +99,289 @@ export default function BalanceScreen() {
 
   const isLoading = loadingIncome || loadingPayment;
 
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator
+          size="large"
+          color={COLORS.primary}
+        />
+      </View>
+    );
+  }
+
   return (
     <ScrollView
       style={styles.container}
+      showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl
-          refreshing={isRefetchingIncome || isRefetchingPayment}
+          refreshing={
+            isRefetchingIncome || isRefetchingPayment
+          }
           onRefresh={onRefresh}
         />
       }
     >
-      <Text style={styles.pageTitle}>Saldo</Text>
+      <View style={styles.header}>
+        <Text style={styles.pageTitle}>
+          Dashboard Saldo
+        </Text>
 
-      {/* Baris 1: Hero Card (Total Saldo) */}
-      <View style={styles.heroCard}>
-        <Text style={styles.heroLabel}>Total Saldo</Text>
-        <Text style={styles.heroAmount}>
-          Rp {isLoading ? "..." : netBalance.toLocaleString("id-ID")}
+        <Text style={styles.pageSubtitle}>
+          Ringkasan keuangan seluruh perangkat
         </Text>
       </View>
 
-      {/* Baris 2: Stat Cards */}
-      <View style={styles.statsContainer}>
-        {/* Kiri: Pemasukan */}
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Pemasukan</Text>
-          <Text style={styles.statAmount}>
-            {isLoading ? "..." : (totalIncome / 1000).toFixed(0)}K
-          </Text>
-          <View style={styles.trendRow}>
-            <Activity size={12} color={COLORS.success} />
-            <Text style={[styles.trendText, { color: COLORS.success }]}>
-              Dari bulan lalu
-            </Text>
+      <View style={styles.heroCard}>
+        <Text style={styles.heroLabel}>
+          Total Saldo Saat Ini
+        </Text>
+
+        <Text style={styles.heroAmount}>
+          Rp {netBalance.toLocaleString("id-ID")}
+        </Text>
+      </View>
+
+      <View style={styles.cardRow}>
+        <View style={styles.statCard}>
+          <View
+            style={[
+              styles.iconBox,
+              { backgroundColor: "#D1FAE5" },
+            ]}
+          >
+            <ArrowDownToLine
+              size={20}
+              color={COLORS.success}
+            />
           </View>
+
+          <Text style={styles.cardLabel}>
+            Pendapatan
+          </Text>
+
+          <Text style={styles.cardValue}>
+            Rp {totalIncome.toLocaleString("id-ID")}
+          </Text>
         </View>
 
-        {/* Tengah: Cair Bersih */}
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Penarikan</Text>
-          <Text style={styles.statAmount}>
-            {isLoading ? "..." : (totalNetPayment / 1000).toFixed(0)}K
-          </Text>
-          <View style={styles.trendRow}>
-            <Activity size={12} color={COLORS.primary} />
-            <Text style={[styles.trendText, { color: COLORS.primary }]}>
-              Dari bulan lalu
-            </Text>
+        <View style={styles.statCard}>
+          <View
+            style={[
+              styles.iconBox,
+              { backgroundColor: "#FEF3C7" },
+            ]}
+          >
+            <Wallet
+              size={20}
+              color={COLORS.warning}
+            />
           </View>
+
+          <Text style={styles.cardLabel}>
+            Penarikan
+          </Text>
+
+          <Text style={styles.cardValue}>
+            Rp {totalGrossPayment.toLocaleString(
+              "id-ID",
+            )}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.cardRow}>
+        <View style={styles.statCard}>
+          <View
+            style={[
+              styles.iconBox,
+              { backgroundColor: "#FEE2E2" },
+            ]}
+          >
+            <TrendingDown
+              size={20}
+              color={COLORS.danger}
+            />
+          </View>
+
+          <Text style={styles.cardLabel}>
+            Biaya Admin
+          </Text>
+
+          <Text style={styles.cardValue}>
+            Rp {totalAdminFee.toLocaleString(
+              "id-ID",
+            )}
+          </Text>
         </View>
 
-        {/* Kanan: Biaya Admin */}
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Biaya Admin</Text>
-          <Text style={styles.statAmount}>
-            {isLoading ? "..." : (totalAdminFee / 1000).toFixed(0)}K
+        <View style={styles.statCard}>
+          <View
+            style={[
+              styles.iconBox,
+              { backgroundColor: "#DBEAFE" },
+            ]}
+          >
+            <Activity
+              size={20}
+              color={COLORS.primary}
+            />
+          </View>
+
+          <Text style={styles.cardLabel}>
+            Cair Bersih
           </Text>
-          <View style={styles.trendRow}>
-            <TrendingDown size={12} color={COLORS.danger} />
-            <Text style={[styles.trendText, { color: COLORS.danger }]}>
-              Dari bulan lalu
+
+          <Text style={styles.cardValue}>
+            Rp {totalNetPayment.toLocaleString(
+              "id-ID",
+            )}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.summaryCard}>
+        <Text style={styles.sectionTitle}>
+          Ringkasan Keuangan
+        </Text>
+
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>
+            Total Pendapatan
+          </Text>
+
+          <Text
+            style={[
+              styles.summaryValue,
+              { color: COLORS.success },
+            ]}
+          >
+            + Rp {totalIncome.toLocaleString("id-ID")}
+          </Text>
+        </View>
+
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>
+            Total Penarikan
+          </Text>
+
+          <Text
+            style={[
+              styles.summaryValue,
+              { color: COLORS.warning },
+            ]}
+          >
+            - Rp{" "}
+            {totalGrossPayment.toLocaleString("id-ID")}
+          </Text>
+        </View>
+
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>
+            Total Admin
+          </Text>
+
+          <Text
+            style={[
+              styles.summaryValue,
+              { color: COLORS.danger },
+            ]}
+          >
+            - Rp {totalAdminFee.toLocaleString("id-ID")}
+          </Text>
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.summaryRow}>
+          <Text style={styles.totalLabel}>
+            Saldo Akhir
+          </Text>
+
+          <Text style={styles.totalValue}>
+            Rp {netBalance.toLocaleString("id-ID")}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.activitySection}>
+        <Text style={styles.sectionTitle}>
+          Aktivitas Terbaru
+        </Text>
+
+        {recentActivities.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>
+              Belum Ada Aktivitas
+            </Text>
+
+            <Text style={styles.emptySubtitle}>
+              Data transaksi akan muncul di sini
             </Text>
           </View>
-        </View>
+        ) : (
+          recentActivities.map((item, index) => (
+            <View
+              key={`${item.type}-${index}`}
+              style={styles.activityCard}
+            >
+              <View
+                style={[
+                  styles.activityIcon,
+                  {
+                    backgroundColor:
+                      item.type === "income"
+                        ? "#D1FAE5"
+                        : "#FEF3C7",
+                  },
+                ]}
+              >
+                {item.type === "income" ? (
+                  <ArrowDownToLine
+                    size={18}
+                    color={COLORS.success}
+                  />
+                ) : (
+                  <Wallet
+                    size={18}
+                    color={COLORS.warning}
+                  />
+                )}
+              </View>
+
+              <View style={styles.activityContent}>
+                <Text style={styles.activityDevice}>
+                  {item.device_name}
+                </Text>
+
+                <Text style={styles.activityDate}>
+                  {new Date(
+                    item.trx_date,
+                  ).toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </Text>
+              </View>
+
+              <Text
+                style={[
+                  styles.activityAmount,
+                  {
+                    color:
+                      item.type === "income"
+                        ? COLORS.success
+                        : COLORS.warning,
+                  },
+                ]}
+              >
+                {item.type === "income" ? "+" : "-"} Rp{" "}
+                {item.amount.toLocaleString("id-ID")}
+              </Text>
+            </View>
+          ))
+        )}
       </View>
     </ScrollView>
   );
@@ -119,49 +391,235 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.background,
+  },
+
+  header: {
     paddingTop: 60,
     paddingHorizontal: 20,
-  },
-  pageTitle: { fontSize: 24, fontWeight: "700", marginBottom: 20 },
-  heroCard: {
-    backgroundColor: COLORS.primary,
-    padding: 24,
-    borderRadius: 16,
     marginBottom: 20,
+  },
+
+  pageTitle: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: COLORS.text,
+  },
+
+  pageSubtitle: {
+    marginTop: 4,
+    fontSize: 14,
+    color: COLORS.textMuted,
+  },
+
+  heroCard: {
+    marginHorizontal: 20,
+    backgroundColor: COLORS.primary,
+    borderRadius: 24,
+    padding: 24,
+
     shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
     elevation: 8,
   },
+
   heroLabel: {
     color: "rgba(255,255,255,0.8)",
     fontSize: 14,
-    marginBottom: 8,
-    fontWeight: "500",
-  },
-  heroAmount: { color: "#FFF", fontSize: 32, fontWeight: "700" },
-  statsContainer: { flexDirection: "row", justifyContent: "space-between" },
-  statBox: {
-    width: "31%",
-    backgroundColor: COLORS.card,
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: COLORS.textMuted,
     marginBottom: 6,
-    fontWeight: "600",
   },
-  statAmount: {
-    fontSize: 15,
+
+  heroAmount: {
+    color: "#FFFFFF",
+    fontSize: 30,
+    fontWeight: "800",
+  },
+
+  cardRow: {
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 20,
+    marginTop: 16,
+  },
+
+  statCard: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+
+  iconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  cardLabel: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginBottom: 4,
+  },
+
+  cardValue: {
+    fontSize: 16,
     fontWeight: "700",
-    marginBottom: 8,
     color: COLORS.text,
   },
-  trendRow: { flexDirection: "row", alignItems: "center" },
-  trendText: { fontSize: 10, fontWeight: "700", marginLeft: 4 },
+
+  summaryCard: {
+    marginHorizontal: 20,
+    marginTop: 20,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 20,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginBottom: 16,
+  },
+
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  summaryLabel: {
+    fontSize: 14,
+    color: COLORS.textMuted,
+  },
+
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginVertical: 10,
+  },
+
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
+
+  totalValue: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: COLORS.primary,
+  },
+
+  activitySection: {
+    paddingHorizontal: 20,
+    marginTop: 24,
+    marginBottom: 120,
+  },
+
+  activityCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 12,
+
+    flexDirection: "row",
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+
+  activityIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  activityContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+
+  activityDevice: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
+
+  activityDate: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 3,
+  },
+
+  activityAmount: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  emptyState: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 40,
+    alignItems: "center",
+  },
+
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginBottom: 6,
+  },
+
+  emptySubtitle: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+  },
 });
