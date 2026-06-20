@@ -19,7 +19,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.yourname.snackmanager"
+      "package": "com.app.snackdevicemanager"
     },
     "web": {
       "favicon": "./assets/favicon.png"
