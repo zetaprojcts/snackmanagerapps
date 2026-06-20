@@ -374,10 +374,6 @@ export default function DeviceDetail() {
               onPress={(item: any, index: number) => {
                 setSelectedIndex(selectedIndex === index ? null : index);
               }}
-              focusedBarConfig={{
-                glowColor: 'rgba(33, 150, 243, 0.2)',
-                glowRadius: 4,
-              }}
             />
           ) : (
             <EmptyState
