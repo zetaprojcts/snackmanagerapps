@@ -25,7 +25,6 @@ import {
 import { getDeviceDetail } from "../features/devices/api";
 import { COLORS, SHADOW } from "../theme";
 
-// Mengaktifkan LayoutAnimation untuk Android
 if (Platform.OS === "android") {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -67,7 +66,6 @@ export default function DeviceDetail() {
   const balance = data?.balance ?? 0;
   const imageSource = BRAND_IMAGES[device?.brand || ""] || DEFAULT_IMAGE;
 
-  // Fungsi helper untuk memicu animasi transisi tata letak
   const animateLayout = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   };
@@ -99,8 +97,7 @@ export default function DeviceDetail() {
     });
   };
 
-  const chartSource =
-    metricTab === "income" ? filterByPeriod(incomes) : filterByPeriod(payments);
+  const chartSource = metricTab === "income" ? filterByPeriod(incomes) : filterByPeriod(payments);
 
   const sortedChartSource = [...chartSource].sort(
     (a, b) => new Date(a.trx_date).getTime() - new Date(b.trx_date).getTime()
@@ -162,34 +159,26 @@ export default function DeviceDetail() {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        {/* HEADER STICKY SKELETON */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
             <ChevronLeft size={24} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Detail Perangkat</Text>
-          <View style={{ width: 20 }} /> {/* Spacer penjaga keseimbangan header */}
+          <View style={{ width: 24 }} />
         </View>
 
-        <ScrollView 
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 40 }}
-        >
-          {/* 1. Device Info Skeleton */}
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
           <DeviceCardSkeleton />
           
-          {/* 2. Saldo Utama Skeleton */}
           <View style={{ marginTop: 16 }}>
             <BalanceCardSkeleton />
           </View>
 
-          {/* 3. Tab Pendapatan & Penarikan Skeleton */}
           <View style={styles.summaryRow}>
             <View style={[styles.summaryCard, { backgroundColor: '#E5E7EB', height: 85, borderWidth: 0, elevation: 0 }]} />
             <View style={[styles.summaryCard, { backgroundColor: '#E5E7EB', height: 85, borderWidth: 0, elevation: 0 }]} />
           </View>
 
-          {/* 4. Chart & Filter Skeleton */}
           <View style={styles.chartSection}>
             <View style={styles.chartFilterContainer}>
               <View style={{ width: 70, height: 32, backgroundColor: '#E5E7EB', borderRadius: 999 }} />
@@ -199,7 +188,6 @@ export default function DeviceDetail() {
             <View style={[styles.chartContainer, { height: 220, backgroundColor: '#E5E7EB', borderWidth: 0, elevation: 0 }]} />
           </View>
 
-          {/* 5. Aktivitas Header & List Skeleton */}
           <View style={styles.activitySection}>
             <View style={styles.activityHeader}>
               <View style={{ width: 140, height: 20, backgroundColor: '#E5E7EB', borderRadius: 6 }} />
@@ -217,10 +205,7 @@ export default function DeviceDetail() {
   if (!device) {
     return (
       <View style={styles.centerContainer}>
-        <EmptyState
-          title="Device Tidak Ditemukan"
-          subtitle="Data perangkat tidak tersedia"
-        />
+        <EmptyState title="Device Tidak Ditemukan" subtitle="Data perangkat tidak tersedia" />
       </View>
     );
   }
@@ -231,43 +216,27 @@ export default function DeviceDetail() {
   return (
     <View style={styles.container}>
       
-      {/* HEADER STICKY */}
       <Animated.View entering={FadeInDown} style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Detail Perangkat</Text>
         <TouchableOpacity
-          onPress={() =>
-            router.push({
-              pathname: "/edit-device",
-              params: { id: device.id },
-            })
-          }
+          onPress={() => router.push({ pathname: "/edit-device", params: { id: device.id } })}
         >
           <Edit size={20} color={COLORS.primary} />
         </TouchableOpacity>
       </Animated.View>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         <Animated.View entering={FadeInUp} style={styles.deviceCard}>
           <View style={styles.deviceTop}>
             <Image source={imageSource} style={styles.deviceImage} resizeMode="contain" />
             <View style={styles.deviceInfo}>
               <Text style={styles.deviceName}>{device.device_name}</Text>
               <Text style={styles.phoneNumber}>{device.phone_number || "-"}</Text>
-              <View
-                style={[
-                  styles.statusChip,
-                  { backgroundColor: device.is_active ? COLORS.success : COLORS.danger },
-                ]}
-              >
-                <Text style={styles.statusChipText}>
-                  {device.is_active ? "Aktif" : "Nonaktif"}
-                </Text>
+              <View style={[styles.statusChip, { backgroundColor: device.is_active ? COLORS.success : COLORS.danger }]}>
+                <Text style={styles.statusChipText}>{device.is_active ? "Aktif" : "Nonaktif"}</Text>
               </View>
             </View>
           </View>
@@ -287,9 +256,7 @@ export default function DeviceDetail() {
 
         <Animated.View entering={FadeInUp.delay(100)} style={styles.balanceHero}>
           <Text style={styles.balanceLabel}>Saldo Saat Ini</Text>
-          <Text style={styles.balanceValue}>
-            Rp {balance.toLocaleString("id-ID")}
-          </Text>
+          <Text style={styles.balanceValue}>Rp {balance.toLocaleString("id-ID")}</Text>
         </Animated.View>
 
         <Animated.View entering={FadeInUp.delay(150)} style={styles.summaryRow}>
@@ -392,7 +359,6 @@ export default function DeviceDetail() {
               </TouchableOpacity>
             </View>
 
-            {/* Efek FadeIn untuk Toast Menu */}
             {showActivityMenu && (
               <Animated.View entering={FadeInUp.duration(200)} style={styles.dropdownMenu}>
                 <TouchableOpacity
@@ -468,7 +434,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: COLORS.background,
   },
-  
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -483,7 +448,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: COLORS.text,
   },
-
   deviceCard: {
     backgroundColor: "#FFFFFF",
     marginHorizontal: 20,
@@ -559,7 +523,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: 6,
   },
-
   summaryRow: {
     flexDirection: "row",
     marginHorizontal: 20,
@@ -595,7 +558,6 @@ const styles = StyleSheet.create({
   textDarkMuted: {
     color: COLORS.textMuted,
   },
-
   chartSection: {
     marginTop: 24,
     marginHorizontal: 20,
@@ -625,7 +587,6 @@ const styles = StyleSheet.create({
   filterChipTextActive: {
     color: "#FFFFFF",
   },
-
   chartContainer: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
@@ -651,7 +612,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
-
   activitySection: {
     marginHorizontal: 20,
     marginTop: 24,
@@ -697,7 +657,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: COLORS.primary,
   },
-
   activityItem: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
