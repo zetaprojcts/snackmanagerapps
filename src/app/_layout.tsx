@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   },
   loadingTrack: {
     position: "absolute",
-    bottom: 160, // Jarak dari bawah layar
+    bottom: 130, // Jarak dari bawah layar
     width: width * 0.6, // Lebar trek maksimal 60% dari layar
     height: 6,
     backgroundColor: "rgba(255, 255, 255, 0.3)", // Warna trek redup
