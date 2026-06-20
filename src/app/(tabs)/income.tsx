@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router"; // <-- Ditambahkan untuk navigasi
 import React, { useMemo, useState } from "react";
 import {
   FlatList,
@@ -30,6 +31,7 @@ const BRAND_IMAGES: Record<string, any> = {
 const DEFAULT_IMAGE = require("../../../assets/devices/default.png");
 
 export default function IncomeScreen() {
+  const router = useRouter(); // <-- Inisialisasi router
   const [filter, setFilter] = useState<"today" | "month" | "all">("today");
 
   const {
@@ -88,7 +90,11 @@ export default function IncomeScreen() {
 
     return (
       <FadeInView>
-        <TouchableOpacity activeOpacity={0.85} style={styles.card}>
+        <TouchableOpacity 
+          activeOpacity={0.85} 
+          style={styles.card}
+          onPress={() => router.push({ pathname: "/income-detail", params: { id: item.id } })} // <-- Penambahan navigasi
+        >
           <Image
             source={imageSource}
             resizeMode="contain"
