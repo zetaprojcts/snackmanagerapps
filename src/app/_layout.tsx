@@ -1,12 +1,6 @@
-import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  useFonts,
-} from "@expo-google-fonts/inter";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
@@ -36,10 +30,10 @@ export default function RootLayout() {
   const splashOpacity = useSharedValue(1);
 
   const [fontsLoaded, error] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
+    Inter_400Regular: require("../../assets/fonts/Inter-Regular.ttf"),
+    Inter_500Medium: require("../../assets/fonts/Inter-Medium.ttf"),
+    Inter_600SemiBold: require("../../assets/fonts/Inter-SemiBold.ttf"),
+    Inter_700Bold: require("../../assets/fonts/Inter-Bold.ttf"),
   });
 
   useEffect(() => {
