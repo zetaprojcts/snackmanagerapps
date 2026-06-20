@@ -48,139 +48,67 @@ export default function BalanceScreen() {
 
   const totalIncome =
     incomes?.reduce(
-      (
-        total: number,
-        item: any,
-      ) =>
-        total +
-        Number(
-          item.amount,
-        ),
+      (total: number, item: any) => total + Number(item.amount),
       0,
     ) || 0;
 
   const totalGrossPayment =
     payments?.reduce(
-      (
-        total: number,
-        item: any,
-      ) =>
-        total +
-        Number(
-          item.gross_amount,
-        ),
+      (total: number, item: any) => total + Number(item.gross_amount),
       0,
     ) || 0;
 
   const totalAdminFee =
     payments?.reduce(
-      (
-        total: number,
-        item: any,
-      ) =>
-        total +
-        Number(
-          item.admin_fee,
-        ),
+      (total: number, item: any) => total + Number(item.admin_fee),
       0,
     ) || 0;
 
-  const netBalance =
-    totalIncome -
-    totalGrossPayment;
+  const netBalance = totalIncome - totalGrossPayment;
 
-  const recentActivities =
-    useMemo(() => {
-      const incomeActivities =
-        incomes?.map(
-          (item: any) => ({
-            type: "income",
-            amount: Number(
-              item.amount,
-            ),
-            trx_date:
-              item.trx_date,
-            device_name:
-              item.devices
-                ?.device_name ??
-              "Perangkat",
-          }),
-        ) || [];
+  const recentActivities = useMemo(() => {
+    const incomeActivities =
+      incomes?.map((item: any) => ({
+        type: "income",
+        amount: Number(item.amount),
+        trx_date: item.trx_date,
+        device_name: item.devices?.device_name ?? "Perangkat",
+      })) || [];
 
-      const paymentActivities =
-        payments?.map(
-          (item: any) => ({
-            type: "payment",
-            amount: Number(
-              item.gross_amount,
-            ),
-            trx_date:
-              item.trx_date,
-            device_name:
-              item.devices
-                ?.device_name ??
-              "Perangkat",
-          }),
-        ) || [];
+    const paymentActivities =
+      payments?.map((item: any) => ({
+        type: "payment",
+        amount: Number(item.gross_amount),
+        trx_date: item.trx_date,
+        device_name: item.devices?.device_name ?? "Perangkat",
+      })) || [];
 
-      return [
-        ...incomeActivities,
-        ...paymentActivities,
-      ]
-        .sort(
-          (a, b) =>
-            new Date(
-              b.trx_date,
-            ).getTime() -
-            new Date(
-              a.trx_date,
-            ).getTime(),
-        )
-        .slice(0, 8);
-    }, [
-      incomes,
-      payments,
-    ]);
+    return [...incomeActivities, ...paymentActivities]
+      .sort(
+        (a, b) =>
+          new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime(),
+      )
+      // REVISI: Mengubah batas maksimal data yang tampil menjadi 20
+      .slice(0, 20);
+  }, [incomes, payments]);
 
-  const onRefresh =
-    () => {
-      refetchIncome();
-      refetchPayment();
-    };
+  const onRefresh = () => {
+    refetchIncome();
+    refetchPayment();
+  };
 
-  const isLoading =
-    loadingIncome ||
-    loadingPayment;
+  const isLoading = loadingIncome || loadingPayment;
 
   if (isLoading) {
     return (
-      <View
-        style={
-          styles.container
-        }
-      >
-        <View
-          style={
-            styles.header
-          }
-        >
-          <Text
-            style={
-              styles.pageTitle
-            }
-          >
-            Dashboard
-            Saldo
-          </Text>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.pageTitle}>Dashboard Saldo</Text>
         </View>
 
         <BalanceCardSkeleton />
 
-        <View
-          style={{
-            height: 16,
-          }}
-        />
+        <View style={{ height: 16 }} />
 
         <BalanceCardSkeleton />
 
@@ -200,288 +128,116 @@ export default function BalanceScreen() {
   }
 
   return (
-    <ScrollView
-      style={
-        styles.container
-      }
-      showsVerticalScrollIndicator={
-        false
-      }
-      refreshControl={
-        <RefreshControl
-          refreshing={
-            isRefetchingIncome ||
-            isRefetchingPayment
-          }
-          onRefresh={
-            onRefresh
-          }
-        />
-      }
-    >
-      <Animated.View
-        entering={
-          FadeInDown
-        }
-        style={
-          styles.header
-        }
-      >
-        <Text
-          style={
-            styles.pageTitle
-          }
-        >
-          Dashboard
-          Saldo
+    // REVISI: Mengubah ScrollView utama menjadi View statis
+    <View style={styles.container}>
+      <Animated.View entering={FadeInDown} style={styles.header}>
+        <Text style={styles.pageTitle}>Dashboard Saldo</Text>
+      </Animated.View>
+
+      <Animated.View entering={FadeInUp.delay(100)} style={styles.heroCard}>
+        <Text style={styles.heroLabel}>Total Saldo</Text>
+
+        <Text style={styles.heroAmount}>
+          Rp {netBalance.toLocaleString("id-ID")}
         </Text>
       </Animated.View>
 
-      <Animated.View
-        entering={FadeInUp.delay(
-          100,
-        )}
-        style={
-          styles.heroCard
-        }
-      >
-        <Text
-          style={
-            styles.heroLabel
-          }
-        >
-          Total Saldo
-        </Text>
-
-        <Text
-          style={
-            styles.heroAmount
-          }
-        >
-          Rp{" "}
-          {netBalance.toLocaleString(
-            "id-ID",
-          )}
-        </Text>
-      </Animated.View>
-
-      <Animated.View
-        entering={FadeInUp.delay(
-          150,
-        )}
-        style={
-          styles.cardRow
-        }
-      >
-        <View
-          style={
-            styles.statCard
-          }
-        >
+      <Animated.View entering={FadeInUp.delay(150)} style={styles.cardRow}>
+        <View style={styles.statCard}>
           <View
             style={[
               styles.iconBox,
               {
-                backgroundColor:
-                  "#D1FAE5",
+                backgroundColor: "#D1FAE5",
               },
             ]}
           >
-            <ArrowDownToLine
-              size={16}
-              color={
-                COLORS.success
-              }
-            />
+            <ArrowDownToLine size={16} color={COLORS.success} />
           </View>
 
-          <Text
-            style={
-              styles.cardLabel
-            }
-          >
-            Pendapatan
-          </Text>
+          <Text style={styles.cardLabel}>Pendapatan</Text>
 
-          <Text
-            style={
-              styles.cardValueIncome
-            }
-          >
-            + Rp{" "}
-            {totalIncome.toLocaleString(
-              "id-ID",
-            )}
+          <Text style={styles.cardValueIncome}>
+            + Rp {totalIncome.toLocaleString("id-ID")}
           </Text>
         </View>
 
-        <View
-          style={
-            styles.statCard
-          }
-        >
+        <View style={styles.statCard}>
           <View
             style={[
               styles.iconBox,
               {
-                backgroundColor:
-                  "#ffd0d0",
+                backgroundColor: "#ffd0d0",
               },
             ]}
           >
-            <Wallet
-              size={16}
-              color={
-                COLORS.danger
-              }
-            />
+            <Wallet size={16} color={COLORS.danger} />
           </View>
 
-          <Text
-            style={
-              styles.cardLabel
-            }
-          >
-            Penarikan
-          </Text>
+          <Text style={styles.cardLabel}>Penarikan</Text>
 
-          <Text
-            style={
-              styles.cardValuePayment
-            }
-          >
-            - Rp{" "}
-            {totalGrossPayment.toLocaleString(
-              "id-ID",
-            )}
+          <Text style={styles.cardValuePayment}>
+            - Rp {totalGrossPayment.toLocaleString("id-ID")}
           </Text>
         </View>
       </Animated.View>
-      <Animated.View
-        entering={FadeInUp.delay(
-          200,
-        )}
-        style={
-          styles.activitySection
-        }
-      >
-        <Text
-          style={
-            styles.sectionTitle
+
+      <Animated.View entering={FadeInUp.delay(200)} style={styles.activitySection}>
+        <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
+
+        {/* REVISI: Memasukkan daftar aktivitas ke dalam ScrollView independen */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 120 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetchingIncome || isRefetchingPayment}
+              onRefresh={onRefresh}
+            />
           }
         >
-          Aktivitas Terbaru
-        </Text>
+          {recentActivities.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyTitle}>Belum Ada Aktivitas</Text>
 
-        {recentActivities.length ===
-        0 ? (
-          <View
-            style={
-              styles.emptyState
-            }
-          >
-            <Text
-              style={
-                styles.emptyTitle
-              }
-            >
-              Belum Ada
-              Aktivitas
-            </Text>
-
-            <Text
-              style={
-                styles.emptySubtitle
-              }
-            >
-              Data transaksi
-              akan muncul di
-              sini
-            </Text>
-          </View>
-        ) : (
-          recentActivities.map(
-            (
-              item,
-              index,
-            ) => (
+              <Text style={styles.emptySubtitle}>
+                Data transaksi akan muncul di sini
+              </Text>
+            </View>
+          ) : (
+            recentActivities.map((item, index) => (
               <Animated.View
                 key={`${item.type}-${index}`}
-                entering={FadeInUp.delay(
-                  250 +
-                    index *
-                      50,
-                )}
-                style={
-                  styles.activityCard
-                }
+                entering={FadeInUp.delay(250 + index * 50)}
+                style={styles.activityCard}
               >
                 <View
                   style={[
                     styles.activityIcon,
                     {
                       backgroundColor:
-                        item.type ===
-                        "income"
-                          ? "#D1FAE5"
-                          : "#FEF3C7",
+                        item.type === "income" ? "#D1FAE5" : "#FEF3C7",
                     },
                   ]}
                 >
-                  {item.type ===
-                  "income" ? (
-                    <ArrowDownToLine
-                      size={
-                        18
-                      }
-                      color={
-                        COLORS.success
-                      }
-                    />
+                  {item.type === "income" ? (
+                    <ArrowDownToLine size={18} color={COLORS.success} />
                   ) : (
-                    <Wallet
-                      size={
-                        18
-                      }
-                      color={
-                        COLORS.warning
-                      }
-                    />
+                    <Wallet size={18} color={COLORS.warning} />
                   )}
                 </View>
 
-                <View
-                  style={
-                    styles.activityContent
-                  }
-                >
-                  <Text
-                    style={
-                      styles.activityDevice
-                    }
-                  >
-                    {
-                      item.device_name
-                    }
+                <View style={styles.activityContent}>
+                  <Text style={styles.activityDevice}>
+                    {item.device_name}
                   </Text>
 
-                  <Text
-                    style={
-                      styles.activityDate
-                    }
-                  >
-                    {new Date(
-                      item.trx_date,
-                    ).toLocaleDateString(
-                      "id-ID",
-                      {
-                        day: "2-digit",
-                        month:
-                          "short",
-                        year:
-                          "numeric",
-                      },
-                    )}
+                  <Text style={styles.activityDate}>
+                    {new Date(item.trx_date).toLocaleDateString("id-ID", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </Text>
                 </View>
 
@@ -490,229 +246,199 @@ export default function BalanceScreen() {
                     styles.activityAmount,
                     {
                       color:
-                        item.type ===
-                        "income"
+                        item.type === "income"
                           ? COLORS.success
                           : COLORS.warning,
                     },
                   ]}
                 >
-                  {item.type ===
-                  "income"
-                    ? "+"
-                    : "-"}{" "}
-                  Rp{" "}
-                  {item.amount.toLocaleString(
-                    "id-ID",
-                  )}
+                  {item.type === "income" ? "+" : "-"} Rp{" "}
+                  {item.amount.toLocaleString("id-ID")}
                 </Text>
               </Animated.View>
-            ),
-          )
-        )}
+            ))
+          )}
+        </ScrollView>
       </Animated.View>
-    </ScrollView>
+    </View>
   );
 }
 
-const styles =
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor:
-        COLORS.background,
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+
+  pageTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: COLORS.text,
+  },
+
+  heroCard: {
+    marginHorizontal: 20,
+    backgroundColor: COLORS.primary,
+    borderRadius: 24,
+    padding: 24,
+
+    shadowColor: COLORS.primary,
+    shadowOffset: {
+      width: 0,
+      height: 10,
     },
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    elevation: 8,
+  },
 
-    header: {
-      paddingTop: 60,
-      paddingHorizontal: 20,
-      marginBottom: 20,
+  heroLabel: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 14,
+    marginBottom: 6,
+  },
+
+  heroAmount: {
+    color: "#FFFFFF",
+    fontSize: 30,
+    fontWeight: "800",
+  },
+
+  cardRow: {
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 20,
+    marginTop: 16,
+  },
+
+  statCard: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
     },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
 
-    pageTitle: {
-      fontSize: 22,
-      fontWeight: "800",
-      color: COLORS.text,
+  iconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  cardLabel: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginBottom: 4,
+  },
+
+  cardValueIncome: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+
+  cardValuePayment: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: COLORS.danger,
+  },
+
+  // REVISI: Mengaktifkan flex: 1 dan menghapus marginBottom agar ScrollView dapat mengambil sisa layar penuh
+  activitySection: {
+    flex: 1,
+    paddingHorizontal: 20,
+    marginTop: 24,
+  },
+
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginBottom: 16,
+  },
+
+  activityCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 12,
+
+    flexDirection: "row",
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
     },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
 
-    heroCard: {
-      marginHorizontal: 20,
-      backgroundColor:
-        COLORS.primary,
-      borderRadius: 24,
-      padding: 24,
+  activityIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 
-      shadowColor:
-        COLORS.primary,
-      shadowOffset: {
-        width: 0,
-        height: 10,
-      },
-      shadowOpacity:
-        0.25,
-      shadowRadius: 18,
-      elevation: 8,
-    },
+  activityContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
 
-    heroLabel: {
-      color:
-        "rgba(255,255,255,0.8)",
-      fontSize: 14,
-      marginBottom: 6,
-    },
+  activityDevice: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
 
-    heroAmount: {
-      color: "#FFFFFF",
-      fontSize: 30,
-      fontWeight: "800",
-    },
+  activityDate: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 3,
+  },
 
-    cardRow: {
-      flexDirection:
-        "row",
-      gap: 12,
-      paddingHorizontal: 20,
-      marginTop: 16,
-    },
+  activityAmount: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
 
-    statCard: {
-      flex: 1,
-      backgroundColor:
-        "#FFFFFF",
-      borderRadius: 20,
-      padding: 16,
+  emptyState: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 40,
+    alignItems: "center",
+  },
 
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 3,
-      },
-      shadowOpacity:
-        0.08,
-      shadowRadius: 12,
-      elevation: 3,
-    },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginBottom: 6,
+  },
 
-    iconBox: {
-      width: 42,
-      height: 42,
-      borderRadius: 12,
-      justifyContent:
-        "center",
-      alignItems:
-        "center",
-      marginBottom: 12,
-    },
-
-    cardLabel: {
-      fontSize: 12,
-      color:
-        COLORS.textMuted,
-      marginBottom: 4,
-    },
-
-    cardValueIncome: {
-      fontSize: 16,
-      fontWeight: "700",
-      color:
-        COLORS.primary,
-    },
-
-    cardValuePayment: {
-      fontSize: 16,
-      fontWeight: "700",
-      color:
-        COLORS.danger,
-    },
-
-    activitySection: {
-      paddingHorizontal: 20,
-      marginTop: 24,
-      marginBottom: 120,
-    },
-
-    sectionTitle: {
-      fontSize: 18,
-      fontWeight: "700",
-      color: COLORS.text,
-      marginBottom: 16,
-    },
-
-    activityCard: {
-      backgroundColor:
-        "#FFFFFF",
-      borderRadius: 18,
-      padding: 16,
-      marginBottom: 12,
-
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 3,
-      },
-      shadowOpacity:
-        0.08,
-      shadowRadius: 12,
-      elevation: 3,
-    },
-
-    activityIcon: {
-      width: 42,
-      height: 42,
-      borderRadius: 12,
-      justifyContent:
-        "center",
-      alignItems:
-        "center",
-    },
-
-    activityContent: {
-      flex: 1,
-      marginLeft: 12,
-    },
-
-    activityDevice: {
-      fontSize: 14,
-      fontWeight: "700",
-      color: COLORS.text,
-    },
-
-    activityDate: {
-      fontSize: 12,
-      color:
-        COLORS.textMuted,
-      marginTop: 3,
-    },
-
-    activityAmount: {
-      fontSize: 14,
-      fontWeight: "700",
-    },
-
-    emptyState: {
-      backgroundColor:
-        "#FFFFFF",
-      borderRadius: 20,
-      padding: 40,
-      alignItems:
-        "center",
-    },
-
-    emptyTitle: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: COLORS.text,
-      marginBottom: 6,
-    },
-
-    emptySubtitle: {
-      fontSize: 13,
-      color:
-        COLORS.textMuted,
-    },
-  });
+  emptySubtitle: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+  },
+});
