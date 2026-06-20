@@ -4,12 +4,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Dimensions, Image, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
   Easing,
@@ -97,23 +92,17 @@ export default function RootLayout() {
 
             {showSplash && (
               <Animated.View
-                style={[
-                  styles.splashContainer,
-                  animatedSplashStyle,
-                ]}
+                style={[styles.splashContainer, animatedSplashStyle]}
               >
                 <Image
-                  source={require("../../assets/splash.png")}
-                  resizeMode="contain"
+                  source={require("../../assets/splash-screen.png")}
+                  resizeMode="cover"
                   style={styles.splashImage}
                 />
 
                 <View style={styles.loadingTrack}>
                   <Animated.View
-                    style={[
-                      styles.loadingFill,
-                      animatedProgressStyle,
-                    ]}
+                    style={[styles.loadingFill, animatedProgressStyle]}
                   />
                 </View>
               </Animated.View>
