@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Snack Device Manager",
+    "name": "Snack Manager",
     "slug": "snack-device-manager",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
