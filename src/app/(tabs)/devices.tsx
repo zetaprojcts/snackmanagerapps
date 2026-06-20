@@ -15,10 +15,7 @@ import {
   View,
 } from "react-native";
 
-import Animated, {
-  FadeInDown,
-  FadeInUp,
-} from "react-native-reanimated";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 import BrandFilterSheet from "../../components/bottom-sheet/BrandFilterSheet";
 import EmptyState from "../../components/ui/EmptyState";
@@ -36,101 +33,49 @@ const BRAND_IMAGES: Record<string, any> = {
   Infinix: require("../../../assets/devices/infinix.png"),
 };
 
-const DEFAULT_IMAGE =
-  require("../../../assets/devices/default.png");
+const DEFAULT_IMAGE = require("../../../assets/devices/default.png");
 
 export default function DevicesScreen() {
   const router = useRouter();
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
+  const [selectedBrand, setSelectedBrand] = useState("Semua");
+  const [showFilter, setShowFilter] = useState(false);
 
-  const [
-    selectedBrand,
-    setSelectedBrand,
-  ] = useState("Semua");
-
-  const [
-    showFilter,
-    setShowFilter,
-  ] = useState(false);
-
-  const {
-    data,
-    isLoading,
-    refetch,
-    isRefetching,
-  } = useQuery({
+  const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ["devices"],
-    queryFn:
-      getDevicesWithBalance,
+    queryFn: getDevicesWithBalance,
   });
 
-  const devices =
-    data || [];
+  const devices = data || [];
 
-  const filteredDevices =
-    useMemo(() => {
-      let result =
-        devices;
+  const filteredDevices = useMemo(() => {
+    let result = devices;
 
-      if (
-        selectedBrand !==
-        "Semua"
-      ) {
-        result =
-          result.filter(
-            (item) =>
-              item.brand ===
-              selectedBrand,
-          );
-      }
+    if (selectedBrand !== "Semua") {
+      result = result.filter((item) => item.brand === selectedBrand);
+    }
 
-      if (search) {
-        result =
-          result.filter(
-            (item) =>
-              item.device_name
-                ?.toLowerCase()
-                .includes(
-                  search.toLowerCase(),
-                ),
-          );
-      }
+    if (search) {
+      result = result.filter((item) =>
+        item.device_name?.toLowerCase().includes(search.toLowerCase())
+      );
+    }
 
-      return result;
-    }, [
-      devices,
-      search,
-      selectedBrand,
-    ]);
+    return result;
+  }, [devices, search, selectedBrand]);
 
-  const renderItem = ({
-    item,
-    index,
-  }: any) => {
-    const imageSource =
-      BRAND_IMAGES[
-        item.brand
-      ] || DEFAULT_IMAGE;
+  const renderItem = ({ item, index }: any) => {
+    const imageSource = BRAND_IMAGES[item.brand] || DEFAULT_IMAGE;
 
     return (
-      <Animated.View
-        entering={FadeInUp.delay(
-          index * 50,
-        )}
-      >
+      <Animated.View entering={FadeInUp.delay(index * 50)}>
         <TouchableOpacity
-          activeOpacity={
-            0.85
-          }
-          style={
-            styles.card
-          }
+          activeOpacity={0.85}
+          style={styles.card}
           onPress={() =>
             router.push({
-              pathname:
-                "/device-detail",
+              pathname: "/device-detail",
               params: {
                 id: item.id,
               },
@@ -138,72 +83,33 @@ export default function DevicesScreen() {
           }
         >
           <Image
-            source={
-              imageSource
-            }
+            source={imageSource}
             resizeMode="contain"
-            style={
-              styles.deviceImage
-            }
+            style={styles.deviceImage}
           />
 
-          <View
-            style={
-              styles.content
-            }
-          >
-            <View
-              style={
-                styles.topRow
-              }
-            >
-              <Text
-                numberOfLines={
-                  1
-                }
-                style={
-                  styles.deviceName
-                }
-              >
-                {
-                  item.device_name
-                }
+          <View style={styles.content}>
+            <View style={styles.topRow}>
+              <Text numberOfLines={1} style={styles.deviceName}>
+                {item.device_name}
               </Text>
 
               <View
                 style={[
                   styles.statusDot,
                   {
-                    backgroundColor:
-                      item.is_active
-                        ? COLORS.success
-                        : COLORS.danger,
+                    backgroundColor: item.is_active
+                      ? COLORS.success
+                      : COLORS.danger,
                   },
                 ]}
               />
             </View>
 
-            <Text
-              style={
-                styles.wallet
-              }
-            >
-              {item.ewallet ||
-                "-"}
-            </Text>
+            <Text style={styles.wallet}>{item.ewallet || "-"}</Text>
 
-            <Text
-              style={
-                styles.balance
-              }
-            >
-              Rp{" "}
-              {Number(
-                item.balance ||
-                  0,
-              ).toLocaleString(
-                "id-ID",
-              )}
+            <Text style={styles.balance}>
+              Rp {Number(item.balance || 0).toLocaleString("id-ID")}
             </Text>
           </View>
         </TouchableOpacity>
@@ -213,99 +119,46 @@ export default function DevicesScreen() {
 
   if (isLoading) {
     return (
-      <View
-        style={
-          styles.loadingContainer
-        }
-      >
-        <ActivityIndicator
-          size="large"
-          color={
-            COLORS.primary
-          }
-        />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
 
   return (
     <>
-      <View
-        style={
-          styles.container
-        }
-      >
-        <Animated.View
-          entering={
-            FadeInDown
-          }
-          style={
-            styles.header
-          }
-        >
-          <Text
-            style={
-              styles.title
-            }
-          >
-            Daftar
-            Perangkat
-          </Text>
+      <View style={styles.container}>
+        <Animated.View entering={FadeInDown} style={styles.header}>
+          <Text style={styles.title}>Daftar Perangkat</Text>
         </Animated.View>
 
-        <Animated.View
-          entering={FadeInDown.delay(
-            100,
-          )}
-          style={
-            styles.searchRow
-          }
-        >
-          <View
-            style={
-              styles.searchBox
-            }
-          >
-            <Search
-              size={18}
-              color={
-                COLORS.textMuted
-              }
-            />
+        <Animated.View entering={FadeInDown.delay(100)} style={styles.searchRow}>
+          <View style={styles.searchBox}>
+            <Search size={18} color={COLORS.textMuted} />
 
             <TextInput
-              value={
-                search
-              }
-              onChangeText={
-                setSearch
-              }
+              value={search}
+              onChangeText={setSearch}
               placeholder="Cari perangkat..."
-              placeholderTextColor={
-                COLORS.textMuted
-              }
-              style={
-                styles.searchInput
-              }
+              placeholderTextColor={COLORS.textMuted}
+              style={styles.searchInput}
             />
           </View>
 
           <TouchableOpacity
-            style={
-              styles.filterBtn
-            }
-            onPress={() =>
-              setShowFilter(
-                true,
-              )
-            }
+            style={styles.filterBtn}
+            onPress={() => setShowFilter(true)}
           >
-            <Filter
-              size={20}
-              color="#FFF"
-            />
+            <Filter size={20} color="#FFF" />
           </TouchableOpacity>
         </Animated.View>
+
+        {/* --- Bagian Total Perangkat --- */}
+        <Animated.View entering={FadeInUp.delay(120)} style={styles.totalRow}>
+          <Text style={styles.totalLabel}>Total perangkat</Text>
+          <Text style={styles.totalValue}>{filteredDevices.length}</Text>
+        </Animated.View>
+
         {filteredDevices.length === 0 ? (
           <Animated.View
             entering={FadeInUp.delay(150)}
@@ -329,10 +182,7 @@ export default function DevicesScreen() {
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl
-                refreshing={isRefetching}
-                onRefresh={refetch}
-              />
+              <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
             }
           />
         )}
@@ -344,7 +194,6 @@ export default function DevicesScreen() {
         onClose={() => setShowFilter(false)}
         onSelect={(brand) => {
           setSelectedBrand(brand);
-
           setShowFilter(false);
         }}
       />
@@ -385,7 +234,6 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     backgroundColor: "#FFF",
-
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -394,7 +242,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 15,
     elevation: 3,
-
     borderRadius: 20,
     padding: 18,
   },
@@ -423,13 +270,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#e8e8e8",
     borderRadius: 30,
     paddingHorizontal: 14,
-
     flexDirection: "row",
     alignItems: "center",
-
     borderWidth: 1,
     borderColor: "#e8e8e8",
-
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -451,9 +295,7 @@ const styles = StyleSheet.create({
     height: 54,
     borderRadius: 30,
     backgroundColor: COLORS.primary,
-
     borderColor: "#e8e8e8",
-
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -462,10 +304,30 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 15,
     elevation: 3,
-
     justifyContent: "center",
     alignItems: "center",
   },
+
+  // --- Style Baru untuk Total Perangkat ---
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  
+  totalLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.text,
+  },
+  
+  totalValue: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: COLORS.primary,
+  },
+  // ----------------------------------------
 
   list: {
     paddingHorizontal: 20,
@@ -477,10 +339,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
     marginBottom: 14,
-
     flexDirection: "row",
     alignItems: "center",
-
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
