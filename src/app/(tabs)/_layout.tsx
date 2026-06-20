@@ -90,6 +90,12 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Activity size={22} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
@@ -104,25 +110,17 @@ const styles = StyleSheet.create({
   fab: {
     width: 60,
     height: 60,
-
     borderRadius: 30,
-
     backgroundColor: COLORS.primary,
-
     justifyContent: "center",
     alignItems: "center",
-
     shadowColor: COLORS.primary,
-
     shadowOffset: {
       width: 0,
       height: 6,
     },
-
     shadowOpacity: 0.3,
-
     shadowRadius: 10,
-
     elevation: 10,
   },
 });
