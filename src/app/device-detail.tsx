@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-
 import { ChevronLeft, Edit, Filter, Mail, Wallet } from "lucide-react-native";
-
 import React, { useMemo, useState } from "react";
-
 import {
   Image,
   ScrollView,
@@ -13,21 +10,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
-
 import { BarChart } from "react-native-gifted-charts";
 
 import EmptyState from "../components/ui/EmptyState";
-
 import {
   BalanceCardSkeleton,
   DeviceCardSkeleton,
   TransactionCardSkeleton,
 } from "../components/ui/Skeleton";
-
 import { getDeviceDetail } from "../features/devices/api";
-
 import { COLORS, SHADOW } from "../theme";
 
 const BRAND_IMAGES: Record<string, any> = {
@@ -43,18 +35,18 @@ const DEFAULT_IMAGE = require("../../assets/devices/default.png");
 
 export default function DeviceDetail() {
   const { id } = useLocalSearchParams();
-
   const router = useRouter();
 
   const [metricTab, setMetricTab] = useState<"income" | "payment">("income");
-
   const [periodFilter, setPeriodFilter] = useState<
     "7days" | "month" | "90days"
   >("7days");
-
   const [activityFilter, setActivityFilter] = useState<
     "all" | "income" | "payment"
   >("all");
+
+  // State untuk mendeteksi bar mana yang sedang ditekan/aktif
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["device-detail", id],
@@ -62,17 +54,11 @@ export default function DeviceDetail() {
   });
 
   const device = data?.device;
-
   const incomes = data?.incomes ?? [];
-
   const payments = data?.payments ?? [];
-
   const totalIncome = data?.totalIncome ?? 0;
-
   const totalPayment = data?.totalPayment ?? 0;
-
   const balance = data?.balance ?? 0;
-
   const imageSource = BRAND_IMAGES[device?.brand || ""] || DEFAULT_IMAGE;
 
   const filterByPeriod = (items: any[]) => {
@@ -88,24 +74,20 @@ export default function DeviceDetail() {
       }
 
       const trxDate = new Date(item.trx_date);
-
       const diffDays = Math.floor(
-        (now.getTime() - trxDate.getTime()) / (1000 * 60 * 60 * 24),
+        (now.getTime() - trxDate.getTime()) / (1000 * 60 * 60 * 24)
       );
 
       switch (periodFilter) {
         case "7days":
           return diffDays <= 7;
-
         case "month":
           return (
             trxDate.getMonth() === now.getMonth() &&
             trxDate.getFullYear() === now.getFullYear()
           );
-
         case "90days":
           return diffDays <= 90;
-
         default:
           return true;
       }
@@ -115,16 +97,37 @@ export default function DeviceDetail() {
   const chartSource =
     metricTab === "income" ? filterByPeriod(incomes) : filterByPeriod(payments);
 
-  const chartData = chartSource.map((item: any) => ({
-    value: Number(metricTab === "income" ? item.amount : item.gross_amount),
+  const sortedChartSource = [...chartSource].sort(
+    (a, b) => new Date(a.trx_date).getTime() - new Date(b.trx_date).getTime()
+  );
 
-    label: new Date(item.trx_date).toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "2-digit",
-    }),
+  // Menyusun data chart dengan nominal penuh sesuai input user
+  const chartData = sortedChartSource.map((item: any, index: number) => {
+    const rawValue = Number(metricTab === "income" ? item.amount : item.gross_amount);
+    const isSelected = selectedIndex === index;
 
-    frontColor: metricTab === "income" ? COLORS.success : COLORS.warning,
-  }));
+    return {
+      value: rawValue,
+      label: new Date(item.trx_date).toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
+      frontColor: COLORS.primary,
+      
+      // Menampilkan teks nominal asli lengkap dengan format ribuan Indonesia
+      topLabelComponent: () => {
+        if (!isSelected) return null;
+        return (
+          <View style={styles.tooltipContainer}>
+            <Text style={styles.tooltipText}>
+              {rawValue.toLocaleString("id-ID")}
+            </Text>
+          </View>
+        );
+      },
+      opacity: selectedIndex === null || isSelected ? 1 : 0.6,
+    };
+  });
 
   const activities = useMemo(() => {
     const incomeList = incomes.map((item: any) => ({
@@ -152,7 +155,7 @@ export default function DeviceDetail() {
     return merged
       .sort(
         (a, b) =>
-          new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime(),
+          new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime()
       )
       .slice(0, 4);
   }, [incomes, payments, activityFilter]);
@@ -163,31 +166,12 @@ export default function DeviceDetail() {
         <View style={styles.header}>
           <Text style={styles.title}>Detail Perangkat</Text>
         </View>
-
         <DeviceCardSkeleton />
-
-        <View
-          style={{
-            height: 16,
-          }}
-        />
-
+        <View style={{ height: 16 }} />
         <BalanceCardSkeleton />
-
-        <View
-          style={{
-            height: 16,
-          }}
-        />
-
+        <View style={{ height: 16 }} />
         <BalanceCardSkeleton />
-
-        <View
-          style={{
-            marginHorizontal: 20,
-            marginTop: 20,
-          }}
-        >
+        <View style={{ marginHorizontal: 20, marginTop: 20 }}>
           <TransactionCardSkeleton />
           <TransactionCardSkeleton />
           <TransactionCardSkeleton />
@@ -213,9 +197,7 @@ export default function DeviceDetail() {
         <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft size={24} color={COLORS.text} />
         </TouchableOpacity>
-
         <Text style={styles.title}>Detail Perangkat</Text>
-
         <TouchableOpacity
           onPress={() =>
             router.push({
@@ -237,12 +219,9 @@ export default function DeviceDetail() {
             style={styles.deviceImage}
             resizeMode="contain"
           />
-
           <View style={styles.deviceInfo}>
             <Text style={styles.deviceName}>{device.device_name}</Text>
-
             <Text style={styles.phoneNumber}>{device.phone_number || "-"}</Text>
-
             <View
               style={[
                 styles.statusChip,
@@ -264,20 +243,17 @@ export default function DeviceDetail() {
 
         <View style={styles.infoRow}>
           <Mail size={16} color={COLORS.textMuted} />
-
           <Text style={styles.infoText}>{device.email || "-"}</Text>
         </View>
 
         <View style={styles.infoRow}>
           <Wallet size={16} color={COLORS.textMuted} />
-
           <Text style={styles.infoText}>{device.ewallet || "-"}</Text>
         </View>
       </Animated.View>
 
       <Animated.View entering={FadeInUp.delay(100)} style={styles.balanceHero}>
         <Text style={styles.balanceLabel}>Saldo Saat Ini</Text>
-
         <Text style={styles.balanceValue}>
           Rp {balance.toLocaleString("id-ID")}
         </Text>
@@ -286,15 +262,12 @@ export default function DeviceDetail() {
       <Animated.View entering={FadeInUp.delay(150)} style={styles.summaryRow}>
         <View style={styles.incomeCard}>
           <Text style={styles.summaryLabel}>Pendapatan</Text>
-
           <Text style={styles.summaryValue}>
             Rp {totalIncome.toLocaleString("id-ID")}
           </Text>
         </View>
-
         <View style={styles.paymentCard}>
           <Text style={styles.summaryLabelDark}>Penarikan</Text>
-
           <Text style={styles.summaryValueDark}>
             Rp {totalPayment.toLocaleString("id-ID")}
           </Text>
@@ -310,7 +283,10 @@ export default function DeviceDetail() {
                   styles.chartTab,
                   metricTab === "income" && styles.chartTabActive,
                 ]}
-                onPress={() => setMetricTab("income")}
+                onPress={() => {
+                  setMetricTab("income");
+                  setSelectedIndex(null);
+                }}
               >
                 <Text
                   style={[
@@ -321,13 +297,15 @@ export default function DeviceDetail() {
                   Pendapatan
                 </Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={[
                   styles.chartTab,
                   metricTab === "payment" && styles.chartTabActive,
                 ]}
-                onPress={() => setMetricTab("payment")}
+                onPress={() => {
+                  setMetricTab("payment");
+                  setSelectedIndex(null);
+                }}
               >
                 <Text
                   style={[
@@ -339,7 +317,6 @@ export default function DeviceDetail() {
                 </Text>
               </TouchableOpacity>
             </View>
-
             <Text
               style={{
                 marginTop: 10,
@@ -355,20 +332,18 @@ export default function DeviceDetail() {
                   : " 90 Hari"}
             </Text>
           </View>
-
           <TouchableOpacity
             style={styles.filterButton}
             onPress={() => {
+              setSelectedIndex(null);
               if (periodFilter === "7days") {
                 setPeriodFilter("month");
                 return;
               }
-
               if (periodFilter === "month") {
                 setPeriodFilter("90days");
                 return;
               }
-
               setPeriodFilter("7days");
             }}
           >
@@ -381,20 +356,27 @@ export default function DeviceDetail() {
             <BarChart
               data={chartData}
               height={160}
-              barWidth={16}
-              spacing={10}
+              barWidth={18}
+              spacing={14}
               noOfSections={5}
               yAxisThickness={0}
               xAxisThickness={1}
               isAnimated
-              animationDuration={1300}
+              animationDuration={1000}
               xAxisLabelTextStyle={{
                 color: COLORS.textMuted,
-                fontSize: 8,
+                fontSize: 9,
               }}
               yAxisTextStyle={{
                 color: COLORS.textMuted,
                 fontSize: 10,
+              }}
+              onPress={(item: any, index: number) => {
+                setSelectedIndex(selectedIndex === index ? null : index);
+              }}
+              focusedBarConfig={{
+                glowColor: 'rgba(33, 150, 243, 0.2)',
+                glowRadius: 4,
               }}
             />
           ) : (
@@ -430,12 +412,10 @@ export default function DeviceDetail() {
                 <Text style={styles.activityType}>
                   {item.type === "income" ? "Pendapatan" : "Penarikan"}
                 </Text>
-
                 <Text style={styles.activityDate}>
                   {new Date(item.trx_date).toLocaleDateString("id-ID")}
                 </Text>
               </View>
-
               <Text
                 style={[
                   styles.activityAmount,
@@ -462,14 +442,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     paddingTop: 55,
   },
-
   centerContainer: {
     flex: 1,
     justifyContent: "center",
     paddingHorizontal: 20,
     backgroundColor: COLORS.background,
   },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -477,13 +455,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 20,
   },
-
   title: {
     fontSize: 20,
     fontWeight: "800",
     color: COLORS.text,
   },
-
   deviceCard: {
     backgroundColor: "#FFFFFF",
     marginHorizontal: 20,
@@ -491,33 +467,27 @@ const styles = StyleSheet.create({
     padding: 20,
     ...SHADOW.card,
   },
-
   deviceTop: {
     flexDirection: "row",
   },
-
   deviceImage: {
     width: 72,
     height: 72,
   },
-
   deviceInfo: {
     flex: 1,
     marginLeft: 16,
   },
-
   deviceName: {
     fontSize: 18,
     fontWeight: "700",
     color: COLORS.text,
   },
-
   phoneNumber: {
     fontSize: 13,
     color: COLORS.textMuted,
     marginTop: 4,
   },
-
   statusChip: {
     alignSelf: "flex-start",
     marginTop: 8,
@@ -525,31 +495,28 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 999,
   },
-
   statusChipText: {
     color: "#FFFFFF",
     fontSize: 11,
     fontWeight: "700",
   },
-
   divider: {
     height: 1,
     backgroundColor: COLORS.border,
     marginVertical: 16,
   },
-
   infoRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
     gap: 10,
   },
-
   infoText: {
+    flex: 1,
+    flexWrap: "wrap",
     fontSize: 14,
     color: COLORS.text,
   },
-
   balanceHero: {
     marginHorizontal: 20,
     marginTop: 16,
@@ -558,26 +525,22 @@ const styles = StyleSheet.create({
     padding: 24,
     ...SHADOW.card,
   },
-
   balanceLabel: {
     color: "rgba(255,255,255,0.8)",
     fontSize: 14,
   },
-
   balanceValue: {
     color: "#FFFFFF",
     fontSize: 30,
     fontWeight: "800",
     marginTop: 6,
   },
-
   summaryRow: {
     flexDirection: "row",
     marginHorizontal: 20,
     marginTop: 16,
     gap: 12,
   },
-
   incomeCard: {
     flex: 1,
     backgroundColor: COLORS.primary,
@@ -585,7 +548,6 @@ const styles = StyleSheet.create({
     padding: 18,
     ...SHADOW.card,
   },
-
   paymentCard: {
     flex: 1,
     backgroundColor: "#FFFFFF",
@@ -593,68 +555,56 @@ const styles = StyleSheet.create({
     padding: 18,
     ...SHADOW.card,
   },
-
   summaryLabel: {
     fontSize: 13,
     color: "rgba(255,255,255,0.8)",
   },
-
   summaryValue: {
     fontSize: 18,
     fontWeight: "700",
     color: "#FFFFFF",
     marginTop: 8,
   },
-
   summaryLabelDark: {
     fontSize: 13,
     color: COLORS.textMuted,
   },
-
   summaryValueDark: {
     fontSize: 18,
     fontWeight: "700",
     color: COLORS.text,
     marginTop: 8,
   },
-
   chartSection: {
     marginTop: 24,
     marginHorizontal: 20,
   },
-
   chartHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 16,
   },
-
   chartTabs: {
     flexDirection: "row",
     gap: 10,
   },
-
   chartTab: {
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 999,
   },
-
   chartTabActive: {
     backgroundColor: COLORS.primary,
   },
-
   chartTabText: {
     color: COLORS.text,
     fontWeight: "600",
   },
-
   chartTabTextActive: {
     color: "#FFFFFF",
   },
-
   filterButton: {
     width: 42,
     height: 42,
@@ -663,38 +613,47 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   chartContainer: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 20,
+    paddingTop: 32, // Ditambah sedikit ruang atas agar angka nominal penuh memiliki tempat yang lega
     ...SHADOW.card,
   },
-
+  tooltipContainer: {
+    backgroundColor: '#1A1A1A',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginBottom: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tooltipText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '700',
+  },
   activitySection: {
     marginHorizontal: 20,
     marginTop: 24,
     marginBottom: 120,
   },
-
   activityHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 16,
   },
-
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: COLORS.text,
   },
-
   activityTabs: {
     flexDirection: "row",
     gap: 8,
   },
-
   activityItem: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
@@ -705,19 +664,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     ...SHADOW.card,
   },
-
   activityType: {
     fontSize: 14,
     fontWeight: "700",
     color: COLORS.text,
   },
-
   activityDate: {
     fontSize: 12,
     color: COLORS.textMuted,
     marginTop: 3,
   },
-
   activityAmount: {
     fontSize: 14,
     fontWeight: "700",
