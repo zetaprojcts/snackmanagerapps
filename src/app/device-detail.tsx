@@ -9,8 +9,11 @@ import {
   Text,
   TouchableOpacity,
   View,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from "react-native";
-import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import Animated, { FadeInDown, FadeInUp, FadeIn } from "react-native-reanimated";
 import { BarChart } from "react-native-gifted-charts";
 
 import EmptyState from "../components/ui/EmptyState";
@@ -21,6 +24,13 @@ import {
 } from "../components/ui/Skeleton";
 import { getDeviceDetail } from "../features/devices/api";
 import { COLORS, SHADOW } from "../theme";
+
+// Mengaktifkan LayoutAnimation untuk Android
+if (Platform.OS === "android") {
+  if (UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+}
 
 const BRAND_IMAGES: Record<string, any> = {
   Samsung: require("../../assets/devices/samsung.png"),
@@ -38,14 +48,10 @@ export default function DeviceDetail() {
   const router = useRouter();
 
   const [metricTab, setMetricTab] = useState<"income" | "payment">("income");
-  const [periodFilter, setPeriodFilter] = useState<
-    "7days" | "month" | "90days"
-  >("7days");
-  const [activityFilter, setActivityFilter] = useState<
-    "all" | "income" | "payment"
-  >("all");
-
-  // State untuk mendeteksi bar mana yang sedang ditekan/aktif
+  const [periodFilter, setPeriodFilter] = useState<"7days" | "month" | "90days">("7days");
+  
+  const [activityFilter, setActivityFilter] = useState<"all" | "income" | "payment">("all");
+  const [showActivityMenu, setShowActivityMenu] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -61,18 +67,17 @@ export default function DeviceDetail() {
   const balance = data?.balance ?? 0;
   const imageSource = BRAND_IMAGES[device?.brand || ""] || DEFAULT_IMAGE;
 
-  const filterByPeriod = (items: any[]) => {
-    if (!items?.length) {
-      return [];
-    }
+  // Fungsi helper untuk memicu animasi transisi tata letak
+  const animateLayout = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  };
 
+  const filterByPeriod = (items: any[]) => {
+    if (!items?.length) return [];
     const now = new Date();
 
     return items.filter((item) => {
-      if (!item?.trx_date) {
-        return false;
-      }
-
+      if (!item?.trx_date) return false;
       const trxDate = new Date(item.trx_date);
       const diffDays = Math.floor(
         (now.getTime() - trxDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -101,7 +106,6 @@ export default function DeviceDetail() {
     (a, b) => new Date(a.trx_date).getTime() - new Date(b.trx_date).getTime()
   );
 
-  // Menyusun data chart dengan nominal penuh sesuai input user
   const chartData = sortedChartSource.map((item: any, index: number) => {
     const rawValue = Number(metricTab === "income" ? item.amount : item.gross_amount);
     const isSelected = selectedIndex === index;
@@ -113,16 +117,14 @@ export default function DeviceDetail() {
         month: "2-digit",
       }),
       frontColor: COLORS.primary,
-      
-      // Menampilkan teks nominal asli lengkap dengan format ribuan Indonesia
       topLabelComponent: () => {
         if (!isSelected) return null;
         return (
-          <View style={styles.tooltipContainer}>
+          <Animated.View entering={FadeIn.duration(200)} style={styles.tooltipContainer}>
             <Text style={styles.tooltipText}>
               {rawValue.toLocaleString("id-ID")}
             </Text>
-          </View>
+          </Animated.View>
         );
       },
       opacity: selectedIndex === null || isSelected ? 1 : 0.6,
@@ -153,30 +155,62 @@ export default function DeviceDetail() {
     }
 
     return merged
-      .sort(
-        (a, b) =>
-          new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime()
-      )
-      .slice(0, 4);
+      .sort((a, b) => new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime())
+      .slice(0, 7);
   }, [incomes, payments, activityFilter]);
 
   if (isLoading) {
     return (
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.container}>
+        {/* HEADER STICKY SKELETON */}
         <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <ChevronLeft size={24} color={COLORS.text} />
+          </TouchableOpacity>
           <Text style={styles.title}>Detail Perangkat</Text>
+          <View style={{ width: 20 }} /> {/* Spacer penjaga keseimbangan header */}
         </View>
-        <DeviceCardSkeleton />
-        <View style={{ height: 16 }} />
-        <BalanceCardSkeleton />
-        <View style={{ height: 16 }} />
-        <BalanceCardSkeleton />
-        <View style={{ marginHorizontal: 20, marginTop: 20 }}>
-          <TransactionCardSkeleton />
-          <TransactionCardSkeleton />
-          <TransactionCardSkeleton />
-        </View>
-      </ScrollView>
+
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 40 }}
+        >
+          {/* 1. Device Info Skeleton */}
+          <DeviceCardSkeleton />
+          
+          {/* 2. Saldo Utama Skeleton */}
+          <View style={{ marginTop: 16 }}>
+            <BalanceCardSkeleton />
+          </View>
+
+          {/* 3. Tab Pendapatan & Penarikan Skeleton */}
+          <View style={styles.summaryRow}>
+            <View style={[styles.summaryCard, { backgroundColor: '#E5E7EB', height: 85, borderWidth: 0, elevation: 0 }]} />
+            <View style={[styles.summaryCard, { backgroundColor: '#E5E7EB', height: 85, borderWidth: 0, elevation: 0 }]} />
+          </View>
+
+          {/* 4. Chart & Filter Skeleton */}
+          <View style={styles.chartSection}>
+            <View style={styles.chartFilterContainer}>
+              <View style={{ width: 70, height: 32, backgroundColor: '#E5E7EB', borderRadius: 999 }} />
+              <View style={{ width: 85, height: 32, backgroundColor: '#E5E7EB', borderRadius: 999 }} />
+              <View style={{ width: 70, height: 32, backgroundColor: '#E5E7EB', borderRadius: 999 }} />
+            </View>
+            <View style={[styles.chartContainer, { height: 220, backgroundColor: '#E5E7EB', borderWidth: 0, elevation: 0 }]} />
+          </View>
+
+          {/* 5. Aktivitas Header & List Skeleton */}
+          <View style={styles.activitySection}>
+            <View style={styles.activityHeader}>
+              <View style={{ width: 140, height: 20, backgroundColor: '#E5E7EB', borderRadius: 6 }} />
+              <View style={{ width: 24, height: 24, backgroundColor: '#E5E7EB', borderRadius: 6 }} />
+            </View>
+            <TransactionCardSkeleton />
+            <TransactionCardSkeleton />
+            <TransactionCardSkeleton />
+          </View>
+        </ScrollView>
+      </View>
     );
   }
 
@@ -191,8 +225,13 @@ export default function DeviceDetail() {
     );
   }
 
+  const isIncomeActive = metricTab === "income";
+  const isPaymentActive = metricTab === "payment";
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
+      
+      {/* HEADER STICKY */}
       <Animated.View entering={FadeInDown} style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft size={24} color={COLORS.text} />
@@ -202,9 +241,7 @@ export default function DeviceDetail() {
           onPress={() =>
             router.push({
               pathname: "/edit-device",
-              params: {
-                id: device.id,
-              },
+              params: { id: device.id },
             })
           }
         >
@@ -212,223 +249,210 @@ export default function DeviceDetail() {
         </TouchableOpacity>
       </Animated.View>
 
-      <Animated.View entering={FadeInUp} style={styles.deviceCard}>
-        <View style={styles.deviceTop}>
-          <Image
-            source={imageSource}
-            style={styles.deviceImage}
-            resizeMode="contain"
-          />
-          <View style={styles.deviceInfo}>
-            <Text style={styles.deviceName}>{device.device_name}</Text>
-            <Text style={styles.phoneNumber}>{device.phone_number || "-"}</Text>
-            <View
-              style={[
-                styles.statusChip,
-                {
-                  backgroundColor: device.is_active
-                    ? COLORS.success
-                    : COLORS.danger,
-                },
-              ]}
-            >
-              <Text style={styles.statusChipText}>
-                {device.is_active ? "Aktif" : "Nonaktif"}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.infoRow}>
-          <Mail size={16} color={COLORS.textMuted} />
-          <Text style={styles.infoText}>{device.email || "-"}</Text>
-        </View>
-
-        <View style={styles.infoRow}>
-          <Wallet size={16} color={COLORS.textMuted} />
-          <Text style={styles.infoText}>{device.ewallet || "-"}</Text>
-        </View>
-      </Animated.View>
-
-      <Animated.View entering={FadeInUp.delay(100)} style={styles.balanceHero}>
-        <Text style={styles.balanceLabel}>Saldo Saat Ini</Text>
-        <Text style={styles.balanceValue}>
-          Rp {balance.toLocaleString("id-ID")}
-        </Text>
-      </Animated.View>
-
-      <Animated.View entering={FadeInUp.delay(150)} style={styles.summaryRow}>
-        <View style={styles.incomeCard}>
-          <Text style={styles.summaryLabel}>Pendapatan</Text>
-          <Text style={styles.summaryValue}>
-            Rp {totalIncome.toLocaleString("id-ID")}
-          </Text>
-        </View>
-        <View style={styles.paymentCard}>
-          <Text style={styles.summaryLabelDark}>Penarikan</Text>
-          <Text style={styles.summaryValueDark}>
-            Rp {totalPayment.toLocaleString("id-ID")}
-          </Text>
-        </View>
-      </Animated.View>
-
-      <Animated.View entering={FadeInUp.delay(200)} style={styles.chartSection}>
-        <View style={styles.chartHeader}>
-          <View>
-            <View style={styles.chartTabs}>
-              <TouchableOpacity
-                style={[
-                  styles.chartTab,
-                  metricTab === "income" && styles.chartTabActive,
-                ]}
-                onPress={() => {
-                  setMetricTab("income");
-                  setSelectedIndex(null);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.chartTabText,
-                    metricTab === "income" && styles.chartTabTextActive,
-                  ]}
-                >
-                  Pendapatan
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.chartTab,
-                  metricTab === "payment" && styles.chartTabActive,
-                ]}
-                onPress={() => {
-                  setMetricTab("payment");
-                  setSelectedIndex(null);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.chartTabText,
-                    metricTab === "payment" && styles.chartTabTextActive,
-                  ]}
-                >
-                  Penarikan
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <Text
-              style={{
-                marginTop: 10,
-                color: COLORS.textMuted,
-                fontSize: 12,
-              }}
-            >
-              Filter :
-              {periodFilter === "7days"
-                ? " 7 Hari"
-                : periodFilter === "month"
-                  ? " Bulan Ini"
-                  : " 90 Hari"}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.filterButton}
-            onPress={() => {
-              setSelectedIndex(null);
-              if (periodFilter === "7days") {
-                setPeriodFilter("month");
-                return;
-              }
-              if (periodFilter === "month") {
-                setPeriodFilter("90days");
-                return;
-              }
-              setPeriodFilter("7days");
-            }}
-          >
-            <Filter size={18} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.chartContainer}>
-          {chartData.length > 0 ? (
-            <BarChart
-              data={chartData}
-              height={160}
-              barWidth={18}
-              spacing={14}
-              noOfSections={5}
-              yAxisThickness={0}
-              xAxisThickness={1}
-              isAnimated
-              animationDuration={1000}
-              xAxisLabelTextStyle={{
-                color: COLORS.textMuted,
-                fontSize: 9,
-              }}
-              yAxisTextStyle={{
-                color: COLORS.textMuted,
-                fontSize: 10,
-              }}
-              onPress={(item: any, index: number) => {
-                setSelectedIndex(selectedIndex === index ? null : index);
-              }}
-            />
-          ) : (
-            <EmptyState
-              title="Belum Ada Data"
-              subtitle="Belum ada transaksi pada periode ini"
-            />
-          )}
-        </View>
-      </Animated.View>
-
-      <Animated.View
-        entering={FadeInUp.delay(250)}
-        style={styles.activitySection}
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <View style={styles.activityHeader}>
-          <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
-        </View>
-
-        {activities.length === 0 ? (
-          <EmptyState
-            title="Belum Ada Aktivitas"
-            subtitle="Aktivitas perangkat akan muncul di sini"
-          />
-        ) : (
-          activities.map((item, index) => (
-            <Animated.View
-              key={`${item.type}-${index}`}
-              entering={FadeInUp.delay(index * 50)}
-              style={styles.activityItem}
-            >
-              <View>
-                <Text style={styles.activityType}>
-                  {item.type === "income" ? "Pendapatan" : "Penarikan"}
-                </Text>
-                <Text style={styles.activityDate}>
-                  {new Date(item.trx_date).toLocaleDateString("id-ID")}
+        <Animated.View entering={FadeInUp} style={styles.deviceCard}>
+          <View style={styles.deviceTop}>
+            <Image source={imageSource} style={styles.deviceImage} resizeMode="contain" />
+            <View style={styles.deviceInfo}>
+              <Text style={styles.deviceName}>{device.device_name}</Text>
+              <Text style={styles.phoneNumber}>{device.phone_number || "-"}</Text>
+              <View
+                style={[
+                  styles.statusChip,
+                  { backgroundColor: device.is_active ? COLORS.success : COLORS.danger },
+                ]}
+              >
+                <Text style={styles.statusChipText}>
+                  {device.is_active ? "Aktif" : "Nonaktif"}
                 </Text>
               </View>
-              <Text
-                style={[
-                  styles.activityAmount,
-                  {
-                    color:
-                      item.type === "income" ? COLORS.success : COLORS.warning,
-                  },
-                ]}
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.infoRow}>
+            <Mail size={16} color={COLORS.textMuted} />
+            <Text style={styles.infoText}>{device.email || "-"}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Wallet size={16} color={COLORS.textMuted} />
+            <Text style={styles.infoText}>{device.ewallet || "-"}</Text>
+          </View>
+        </Animated.View>
+
+        <Animated.View entering={FadeInUp.delay(100)} style={styles.balanceHero}>
+          <Text style={styles.balanceLabel}>Saldo Saat Ini</Text>
+          <Text style={styles.balanceValue}>
+            Rp {balance.toLocaleString("id-ID")}
+          </Text>
+        </Animated.View>
+
+        <Animated.View entering={FadeInUp.delay(150)} style={styles.summaryRow}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={[styles.summaryCard, isIncomeActive ? styles.cardActive : styles.cardInactive]}
+            onPress={() => {
+              animateLayout();
+              setMetricTab("income");
+              setSelectedIndex(null);
+            }}
+          >
+            <Text style={[styles.summaryLabel, isIncomeActive ? styles.textWhite : styles.textDarkMuted]}>
+              Pendapatan
+            </Text>
+            <Text style={[styles.summaryValue, isIncomeActive ? styles.textWhite : styles.textDark]}>
+              Rp {totalIncome.toLocaleString("id-ID")}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={[styles.summaryCard, isPaymentActive ? styles.cardActive : styles.cardInactive]}
+            onPress={() => {
+              animateLayout();
+              setMetricTab("payment");
+              setSelectedIndex(null);
+            }}
+          >
+            <Text style={[styles.summaryLabel, isPaymentActive ? styles.textWhite : styles.textDarkMuted]}>
+              Penarikan
+            </Text>
+            <Text style={[styles.summaryValue, isPaymentActive ? styles.textWhite : styles.textDark]}>
+              Rp {totalPayment.toLocaleString("id-ID")}
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+
+        <Animated.View entering={FadeInUp.delay(200)} style={styles.chartSection}>
+          <View style={styles.chartFilterContainer}>
+            {[
+              { id: "7days", label: "7 Hari" },
+              { id: "month", label: "Bulan Ini" },
+              { id: "90days", label: "90 Hari" },
+            ].map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={[styles.filterChip, periodFilter === item.id && styles.filterChipActive]}
+                onPress={() => {
+                  animateLayout();
+                  setPeriodFilter(item.id as any);
+                  setSelectedIndex(null);
+                }}
               >
-                {item.type === "income" ? "+" : "-"}
-                Rp {item.amount.toLocaleString("id-ID")}
-              </Text>
+                <Text style={[styles.filterChipText, periodFilter === item.id && styles.filterChipTextActive]}>
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={styles.chartContainer}>
+            {chartData.length > 0 ? (
+              <BarChart
+                data={chartData}
+                height={160}
+                barWidth={18}
+                spacing={14}
+                noOfSections={5}
+                yAxisThickness={0}
+                xAxisThickness={1}
+                isAnimated
+                animationDuration={800}
+                xAxisLabelTextStyle={{ color: COLORS.textMuted, fontSize: 9 }}
+                yAxisTextStyle={{ color: COLORS.textMuted, fontSize: 10 }}
+                onPress={(item: any, index: number) => {
+                  animateLayout();
+                  setSelectedIndex(selectedIndex === index ? null : index);
+                }}
+              />
+            ) : (
+              <EmptyState title="Belum Ada Data" subtitle="Belum ada transaksi pada periode ini" />
+            )}
+          </View>
+        </Animated.View>
+
+        <Animated.View entering={FadeInUp.delay(250)} style={styles.activitySection}>
+          <View style={styles.activityHeaderContainer}>
+            <View style={styles.activityHeader}>
+              <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
+              
+              <TouchableOpacity
+                style={styles.activityFilterBtn}
+                onPress={() => {
+                  animateLayout();
+                  setShowActivityMenu(!showActivityMenu);
+                }}
+              >
+                <Filter size={18} color={activityFilter !== "all" ? COLORS.primary : COLORS.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Efek FadeIn untuk Toast Menu */}
+            {showActivityMenu && (
+              <Animated.View entering={FadeInUp.duration(200)} style={styles.dropdownMenu}>
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => { animateLayout(); setActivityFilter("all"); setShowActivityMenu(false); }}
+                >
+                  <Text style={[styles.dropdownText, activityFilter === "all" && styles.dropdownTextActive]}>Semua</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => { animateLayout(); setActivityFilter("income"); setShowActivityMenu(false); }}
+                >
+                  <Text style={[styles.dropdownText, activityFilter === "income" && styles.dropdownTextActive]}>Pemasukan</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.dropdownItem, { borderBottomWidth: 0 }]}
+                  onPress={() => { animateLayout(); setActivityFilter("payment"); setShowActivityMenu(false); }}
+                >
+                  <Text style={[styles.dropdownText, activityFilter === "payment" && styles.dropdownTextActive]}>Penarikan</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            )}
+          </View>
+
+          {activities.length === 0 ? (
+            <Animated.View entering={FadeIn.duration(300)}>
+              <EmptyState
+                title="Belum Ada Aktivitas"
+                subtitle={`Tidak ada data ${activityFilter === 'income' ? 'pemasukan' : activityFilter === 'payment' ? 'penarikan' : 'transaksi'}`}
+              />
             </Animated.View>
-          ))
-        )}
-      </Animated.View>
-    </ScrollView>
+          ) : (
+            activities.map((item, index) => (
+              <Animated.View
+                key={`${item.type}-${item.trx_date}-${index}`} 
+                entering={FadeInUp.duration(300).delay(index * 40)}
+                style={styles.activityItem}
+              >
+                <View>
+                  <Text style={styles.activityType}>
+                    {item.type === "income" ? "Pendapatan" : "Penarikan"}
+                  </Text>
+                  <Text style={styles.activityDate}>
+                    {new Date(item.trx_date).toLocaleDateString("id-ID")}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.activityAmount,
+                    { color: item.type === "income" ? COLORS.success : COLORS.warning },
+                  ]}
+                >
+                  {item.type === "income" ? "+" : "-"} Rp {item.amount.toLocaleString("id-ID")}
+                </Text>
+              </Animated.View>
+            ))
+          )}
+        </Animated.View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -444,18 +468,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: COLORS.background,
   },
+  
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingBottom: 16,
+    backgroundColor: COLORS.background,
+    zIndex: 10,
   },
   title: {
     fontSize: 20,
     fontWeight: "800",
     color: COLORS.text,
   },
+
   deviceCard: {
     backgroundColor: "#FFFFFF",
     marginHorizontal: 20,
@@ -531,84 +559,73 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: 6,
   },
+
   summaryRow: {
     flexDirection: "row",
     marginHorizontal: 20,
     marginTop: 16,
     gap: 12,
   },
-  incomeCard: {
+  summaryCard: {
     flex: 1,
-    backgroundColor: COLORS.primary,
     borderRadius: 20,
     padding: 18,
     ...SHADOW.card,
   },
-  paymentCard: {
-    flex: 1,
+  cardActive: {
+    backgroundColor: COLORS.primary,
+  },
+  cardInactive: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 18,
-    ...SHADOW.card,
   },
   summaryLabel: {
     fontSize: 13,
-    color: "rgba(255,255,255,0.8)",
   },
   summaryValue: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#FFFFFF",
     marginTop: 8,
   },
-  summaryLabelDark: {
-    fontSize: 13,
+  textWhite: {
+    color: "#FFFFFF",
+  },
+  textDark: {
+    color: COLORS.text,
+  },
+  textDarkMuted: {
     color: COLORS.textMuted,
   },
-  summaryValueDark: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.text,
-    marginTop: 8,
-  },
+
   chartSection: {
     marginTop: 24,
     marginHorizontal: 20,
   },
-  chartHeader: {
+  chartFilterContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    gap: 8,
     marginBottom: 16,
   },
-  chartTabs: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  chartTab: {
-    backgroundColor: "#FFFFFF",
+  filterChip: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
+    backgroundColor: "#FFFFFF",
     borderRadius: 999,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  chartTabActive: {
+  filterChipActive: {
     backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
-  chartTabText: {
-    color: COLORS.text,
+  filterChipText: {
+    fontSize: 12,
     fontWeight: "600",
+    color: COLORS.textMuted,
   },
-  chartTabTextActive: {
+  filterChipTextActive: {
     color: "#FFFFFF",
   },
-  filterButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: COLORS.primary,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+
   chartContainer: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
@@ -634,10 +651,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
+
   activitySection: {
     marginHorizontal: 20,
     marginTop: 24,
-    marginBottom: 120,
+  },
+  activityHeaderContainer: {
+    zIndex: 99, 
   },
   activityHeader: {
     flexDirection: "row",
@@ -650,10 +670,34 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: COLORS.text,
   },
-  activityTabs: {
-    flexDirection: "row",
-    gap: 8,
+  activityFilterBtn: {
+    padding: 6,
   },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 36,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    width: 130,
+    ...SHADOW.card,
+    elevation: 5, 
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: COLORS.text,
+  },
+  dropdownTextActive: {
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+
   activityItem: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
