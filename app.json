@@ -32,6 +32,12 @@
       "expo-font",
       "@react-native-community/datetimepicker"
     ],
-    "scheme": "snackmanager"
+    "scheme": "snackmanager",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "23f79acb-91c7-401a-8c28-b2072ac938b9"
+      }
+    }
   }
 }
