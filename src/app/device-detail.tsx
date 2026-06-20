@@ -281,4 +281,405 @@ export default function DeviceDetail() {
               <TouchableOpacity
                 style={[
                   styles.chartTab,
-                  metric
+                  metricTab === "income" && styles.chartTabActive,
+                ]}
+                onPress={() => {
+                  setMetricTab("income");
+                  setSelectedIndex(null);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.chartTabText,
+                    metricTab === "income" && styles.chartTabTextActive,
+                  ]}
+                >
+                  Pendapatan
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.chartTab,
+                  metricTab === "payment" && styles.chartTabActive,
+                ]}
+                onPress={() => {
+                  setMetricTab("payment");
+                  setSelectedIndex(null);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.chartTabText,
+                    metricTab === "payment" && styles.chartTabTextActive,
+                  ]}
+                >
+                  Penarikan
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <Text
+              style={{
+                marginTop: 10,
+                color: COLORS.textMuted,
+                fontSize: 12,
+              }}
+            >
+              Filter :
+              {periodFilter === "7days"
+                ? " 7 Hari"
+                : periodFilter === "month"
+                  ? " Bulan Ini"
+                  : " 90 Hari"}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => {
+              setSelectedIndex(null);
+              if (periodFilter === "7days") {
+                setPeriodFilter("month");
+                return;
+              }
+              if (periodFilter === "month") {
+                setPeriodFilter("90days");
+                return;
+              }
+              setPeriodFilter("7days");
+            }}
+          >
+            <Filter size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.chartContainer}>
+          {chartData.length > 0 ? (
+            <BarChart
+              data={chartData}
+              height={160}
+              barWidth={18}
+              spacing={14}
+              noOfSections={5}
+              yAxisThickness={0}
+              xAxisThickness={1}
+              isAnimated
+              animationDuration={1000}
+              xAxisLabelTextStyle={{
+                color: COLORS.textMuted,
+                fontSize: 9,
+              }}
+              yAxisTextStyle={{
+                color: COLORS.textMuted,
+                fontSize: 10,
+              }}
+              onPress={(item: any, index: number) => {
+                setSelectedIndex(selectedIndex === index ? null : index);
+              }}
+              focusedBarConfig={{
+                glowColor: 'rgba(33, 150, 243, 0.2)',
+                glowRadius: 4,
+              }}
+            />
+          ) : (
+            <EmptyState
+              title="Belum Ada Data"
+              subtitle="Belum ada transaksi pada periode ini"
+            />
+          )}
+        </View>
+      </Animated.View>
+
+      <Animated.View
+        entering={FadeInUp.delay(250)}
+        style={styles.activitySection}
+      >
+        <View style={styles.activityHeader}>
+          <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
+        </View>
+
+        {activities.length === 0 ? (
+          <EmptyState
+            title="Belum Ada Aktivitas"
+            subtitle="Aktivitas perangkat akan muncul di sini"
+          />
+        ) : (
+          activities.map((item, index) => (
+            <Animated.View
+              key={`${item.type}-${index}`}
+              entering={FadeInUp.delay(index * 50)}
+              style={styles.activityItem}
+            >
+              <View>
+                <Text style={styles.activityType}>
+                  {item.type === "income" ? "Pendapatan" : "Penarikan"}
+                </Text>
+                <Text style={styles.activityDate}>
+                  {new Date(item.trx_date).toLocaleDateString("id-ID")}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.activityAmount,
+                  {
+                    color:
+                      item.type === "income" ? COLORS.success : COLORS.warning,
+                  },
+                ]}
+              >
+                {item.type === "income" ? "+" : "-"}
+                Rp {item.amount.toLocaleString("id-ID")}
+              </Text>
+            </Animated.View>
+          ))
+        )}
+      </Animated.View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    paddingTop: 55,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    backgroundColor: COLORS.background,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: COLORS.text,
+  },
+  deviceCard: {
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 20,
+    borderRadius: 24,
+    padding: 20,
+    ...SHADOW.card,
+  },
+  deviceTop: {
+    flexDirection: "row",
+  },
+  deviceImage: {
+    width: 72,
+    height: 72,
+  },
+  deviceInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  deviceName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
+  phoneNumber: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+    marginTop: 4,
+  },
+  statusChip: {
+    alignSelf: "flex-start",
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  statusChipText: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginVertical: 16,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 10,
+  },
+  infoText: {
+    flex: 1,
+    flexWrap: "wrap",
+    fontSize: 14,
+    color: COLORS.text,
+  },
+  balanceHero: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    backgroundColor: COLORS.primary,
+    borderRadius: 24,
+    padding: 24,
+    ...SHADOW.card,
+  },
+  balanceLabel: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 14,
+  },
+  balanceValue: {
+    color: "#FFFFFF",
+    fontSize: 30,
+    fontWeight: "800",
+    marginTop: 6,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    marginHorizontal: 20,
+    marginTop: 16,
+    gap: 12,
+  },
+  incomeCard: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
+    borderRadius: 20,
+    padding: 18,
+    ...SHADOW.card,
+  },
+  paymentCard: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 18,
+    ...SHADOW.card,
+  },
+  summaryLabel: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.8)",
+  },
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginTop: 8,
+  },
+  summaryLabelDark: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+  },
+  summaryValueDark: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginTop: 8,
+  },
+  chartSection: {
+    marginTop: 24,
+    marginHorizontal: 20,
+  },
+  chartHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 16,
+  },
+  chartTabs: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  chartTab: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+  },
+  chartTabActive: {
+    backgroundColor: COLORS.primary,
+  },
+  chartTabText: {
+    color: COLORS.text,
+    fontWeight: "600",
+  },
+  chartTabTextActive: {
+    color: "#FFFFFF",
+  },
+  filterButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: COLORS.primary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  chartContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 20,
+    paddingTop: 32,
+    ...SHADOW.card,
+  },
+  tooltipContainer: {
+    position: 'absolute',
+    bottom: 4,         
+    width: 70,         
+    left: -26,         
+    backgroundColor: '#1A1A1A',
+    paddingVertical: 5,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,       
+  },
+  tooltipText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  activitySection: {
+    marginHorizontal: 20,
+    marginTop: 24,
+    marginBottom: 120,
+  },
+  activityHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
+  activityTabs: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  activityItem: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    ...SHADOW.card,
+  },
+  activityType: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
+  activityDate: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 3,
+  },
+  activityAmount: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+});
