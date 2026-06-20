@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: COLORS.primary, // Latar belakang harus persis sama dengan di app.json
+    backgroundColor: "#fbfbfb", // Latar belakang harus persis sama dengan di app.json
     justifyContent: "center",
     alignItems: "center",
     zIndex: 999, // Pastikan menutupi seluruh aplikasi
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   },
   loadingTrack: {
     position: "absolute",
-    bottom: 120, // Jarak dari bawah layar
+    bottom: 160, // Jarak dari bawah layar
     width: width * 0.6, // Lebar trek maksimal 60% dari layar
     height: 6,
     backgroundColor: "rgba(255, 255, 255, 0.3)", // Warna trek redup
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   },
   loadingFill: {
     height: "100%",
-    backgroundColor: "#FFFFFF", // Warna garis loading (Putih)
+    backgroundColor: COLORS.primary, // Warna garis loading (Putih)
     borderRadius: 10,
   },
 });
