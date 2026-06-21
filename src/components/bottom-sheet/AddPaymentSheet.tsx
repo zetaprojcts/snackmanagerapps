@@ -194,44 +194,42 @@ export default function AddPaymentSheet({ visible, onClose }: Props) {
 
       return;
     }
-    
-    const walletValue = String(
-  selectedDevice?.ewallet ?? "",
-).trim();
 
-if (
-  walletValue === "" ||
-  walletValue === "-" ||
-  walletValue.toLowerCase() === "null"
-) {
-  Alert.alert(
-    "Perangkat Belum Siap",
-    "Device ini belum bisa melakukan penarikan. Silahkan lengkapi data perangkat terlebih dahulu.",
-    [
-      {
-        text: "Kembali",
-        style: "cancel",
-      },
-      {
-        text: "Edit Data Perangkat",
-        onPress: () => {
-          onClose();
+    const walletValue = String(selectedDevice?.ewallet ?? "").trim();
 
-          setTimeout(() => {
-            router.push({
-              pathname: "/edit-device",
-              params: {
-                id: selectedDevice?.id,
-              },
-            });
-          }, 300);
-        },
-      },
-    ],
-  );
+    if (
+      walletValue === "" ||
+      walletValue === "-" ||
+      walletValue.toLowerCase() === "null"
+    ) {
+      Alert.alert(
+        "Perangkat Belum Siap",
+        "Device ini belum bisa melakukan penarikan. Silahkan lengkapi data perangkat terlebih dahulu.",
+        [
+          {
+            text: "Kembali",
+            style: "cancel",
+          },
+          {
+            text: "Edit Data Perangkat",
+            onPress: () => {
+              onClose();
 
-  return;
-}
+              setTimeout(() => {
+                router.push({
+                  pathname: "/edit-device",
+                  params: {
+                    id: selectedDevice?.id,
+                  },
+                });
+              }, 300);
+            },
+          },
+        ],
+      );
+
+      return;
+    }
 
     if (!form.amount.trim()) {
       Alert.alert("Perhatian", "Nominal penarikan wajib diisi");

@@ -8,6 +8,10 @@ export const COLORS = {
   success: "#10B981",
   warning: "#F59E0B",
   danger: "#EF4444",
+  softGreen: "#D1FAE5",
+  softBlue: "#EEF2FF",
+  softYellow: "#FEF3C7",
+  softRed: "#FAD1D1",
 };
 
 export const SPACING = {

@@ -55,7 +55,7 @@ export default function ActionSheetModal() {
               style={[
                 styles.iconBox,
                 {
-                  backgroundColor: "#EEF2FF",
+                  backgroundColor: COLORS.softBlue,
                 },
               ]}
             >
@@ -77,7 +77,7 @@ export default function ActionSheetModal() {
               style={[
                 styles.iconBox,
                 {
-                  backgroundColor: "#D1FAE5",
+                  backgroundColor: COLORS.softGreen,
                 },
               ]}
             >
@@ -99,7 +99,7 @@ export default function ActionSheetModal() {
               style={[
                 styles.iconBox,
                 {
-                  backgroundColor: "#FEF3C7",
+                  backgroundColor: COLORS.softYellow,
                 },
               ]}
             >

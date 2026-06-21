@@ -308,6 +308,6 @@ const styles = StyleSheet.create({
   amountText: {
     fontSize: 15,
     fontWeight: "700",
-    color: COLORS.danger,
+    color: COLORS.warning,
   },
 });

@@ -202,14 +202,14 @@ export default function BalanceScreen() {
             </Text>
           </View>
           <View style={styles.heroIconWrapper}>
-            <Wallet size={42} color="#9bb3ff" />
+            <Wallet size={42} color={COLORS.softBlue} />
           </View>
         </View>
       </Animated.View>
 
       <Animated.View entering={FadeInUp.delay(150)} style={styles.cardRow}>
         <View style={styles.statCard}>
-          <View style={[styles.iconBox, { backgroundColor: "#D1FAE5" }]}>
+          <View style={[styles.iconBox, { backgroundColor: COLORS.softGreen }]}>
             <ArrowDownToLine size={16} color={COLORS.success} />
           </View>
           <Text style={styles.cardLabel}>Pendapatan</Text>
@@ -219,9 +219,11 @@ export default function BalanceScreen() {
         </View>
 
         <View style={styles.statCard}>
-          <View style={[styles.iconBox, { backgroundColor: "#ffd0d0" }]}>
+          <View
+            style={[styles.iconBox, { backgroundColor: COLORS.softYellow }]}
+          >
             {/* REVISI: Mengubah Icon menjadi ArrowUpToLine (Panah ke Atas) */}
-            <ArrowUpToLine size={16} color={COLORS.danger} />
+            <ArrowUpToLine size={16} color={COLORS.warning} />
           </View>
           <Text style={styles.cardLabel}>Penarikan</Text>
           <Text style={styles.cardValuePayment}>
@@ -354,7 +356,9 @@ export default function BalanceScreen() {
                     styles.activityIcon,
                     {
                       backgroundColor:
-                        item.type === "income" ? "#D1FAE5" : "#ffd0d0",
+                        item.type === "income"
+                          ? COLORS.softGreen
+                          : COLORS.softYellow,
                     },
                   ]}
                 >
@@ -362,7 +366,7 @@ export default function BalanceScreen() {
                   {item.type === "income" ? (
                     <ArrowDownToLine size={18} color={COLORS.success} />
                   ) : (
-                    <ArrowUpToLine size={18} color={COLORS.danger} />
+                    <ArrowUpToLine size={18} color={COLORS.warning} />
                   )}
                 </View>
 
@@ -382,7 +386,9 @@ export default function BalanceScreen() {
                     styles.activityAmount,
                     {
                       color:
-                        item.type === "income" ? COLORS.success : COLORS.danger,
+                        item.type === "income"
+                          ? COLORS.success
+                          : COLORS.warning,
                     },
                   ]}
                 >
@@ -469,12 +475,12 @@ const styles = StyleSheet.create({
   cardValueIncome: {
     fontSize: 16,
     fontWeight: "700",
-    color: COLORS.primary,
+    color: COLORS.success,
   },
   cardValuePayment: {
     fontSize: 16,
     fontWeight: "700",
-    color: COLORS.danger,
+    color: COLORS.warning,
   },
   activitySectionSkeleton: {
     paddingHorizontal: 20,
