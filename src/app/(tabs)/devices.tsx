@@ -34,18 +34,18 @@ const BRAND_IMAGES: Record<string, any> = {
 
 const DEFAULT_IMAGE = require("../../../assets/devices/default.png");
 
+// 1. DATA FILTER TERSTRUKTUR DENGAN KATEGORI
+const BRANDS = ["Samsung", "Oppo", "Vivo", "Xiaomi", "Realme", "Infinix"].sort();
+
 const FILTER_OPTIONS = [
-  { label: "Semua", value: "Semua" },
-  { label: "Pendapatan Tertinggi", value: "Pendapatan Tertinggi" },
-  { label: "Aktif", value: "Aktif" },
-  { label: "Nonaktif", value: "Nonaktif" },
-  { label: "Samsung", value: "Samsung" },
-  { label: "Oppo", value: "Oppo" },
-  { label: "Vivo", value: "Vivo" },
-  { label: "Xiaomi", value: "Xiaomi" },
-  { label: "Realme", value: "Realme" },
-  { label: "Infinix", value: "Infinix" },
-];
+  { type: "option", label: "Semua", value: "Semua" },
+  { type: "option", label: "Pendapatan Tertinggi", value: "Pendapatan Tertinggi" },
+  { type: "header", label: "STATUS" },
+  { type: "option", label: "Aktif", value: "Aktif" },
+  { type: "option", label: "Nonaktif", value: "Nonaktif" },
+  { type: "header", label: "MERK HP" },
+  ...BRANDS.map((b) => ({ type: "option", label: b, value: b })),
+] as const;
 
 export default function DevicesScreen() {
   const router = useRouter();
@@ -62,27 +62,23 @@ export default function DevicesScreen() {
   const devices = data || [];
 
   const filteredDevices = useMemo(() => {
-    let result = [...devices]; // Copy array agar tidak merusak data asli saat di-sort
+    let result = [...devices]; 
 
-    // 1. Terapkan logika berdasarkan filter yang dipilih
+    // Filter berdasarkan opsi yang dipilih
     if (activeFilter === "Aktif") {
       result = result.filter((item) => item.is_active === true);
     } else if (activeFilter === "Nonaktif") {
       result = result.filter((item) => item.is_active === false);
-    } else if (
-      ["Samsung", "Oppo", "Vivo", "Xiaomi", "Realme", "Infinix"].includes(
-        activeFilter
-      )
-    ) {
+    } else if (BRANDS.includes(activeFilter)) {
       result = result.filter((item) => item.brand === activeFilter);
     }
 
-    // 2. Sort untuk Pendapatan Tertinggi
+    // Sort untuk Pendapatan Tertinggi
     if (activeFilter === "Pendapatan Tertinggi") {
       result.sort((a, b) => Number(b.balance || 0) - Number(a.balance || 0));
     }
 
-    // 3. Terapkan Pencarian Teks
+    // Terapkan Pencarian Teks
     if (search) {
       result = result.filter((item) =>
         item.device_name?.toLowerCase().includes(search.toLowerCase())
@@ -103,9 +99,7 @@ export default function DevicesScreen() {
           onPress={() =>
             router.push({
               pathname: "/device-detail",
-              params: {
-                id: item.id,
-              },
+              params: { id: item.id },
             })
           }
         >
@@ -175,7 +169,7 @@ export default function DevicesScreen() {
             />
           </View>
 
-          {/* Tombol Filter yang sudah dihapus background birunya */}
+          {/* Tombol Filter Polos (Tanpa Lingkaran) */}
           <TouchableOpacity
             style={styles.filterBtn}
             onPress={() => setShowFilter(true)}
@@ -223,22 +217,29 @@ export default function DevicesScreen() {
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setShowFilter(false)} // Klik di luar akan menutup filter
+          onPress={() => setShowFilter(false)} 
         >
           <View style={styles.dropdownMenu}>
             <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-              {FILTER_OPTIONS.map((option, index) => {
-                const isActive = activeFilter === option.value;
+              {FILTER_OPTIONS.map((item, index) => {
+                // Render jika tipe item adalah Header
+                if (item.type === "header") {
+                  return (
+                    <Text key={item.label} style={styles.dropdownHeader}>
+                      {item.label}
+                    </Text>
+                  );
+                }
+
+                // Render jika tipe item adalah Option
+                const isActive = activeFilter === item.value;
                 return (
                   <TouchableOpacity
-                    key={option.value}
-                    style={[
-                      styles.dropdownItem,
-                      index !== FILTER_OPTIONS.length - 1 && styles.dropdownItemBorder
-                    ]}
+                    key={item.value}
+                    style={styles.dropdownItem}
                     onPress={() => {
-                      setActiveFilter(option.value);
-                      setShowFilter(false); // Tutup setelah memilih
+                      setActiveFilter(item.value);
+                      setShowFilter(false); 
                     }}
                   >
                     <Text
@@ -247,9 +248,8 @@ export default function DevicesScreen() {
                         isActive && styles.dropdownItemTextActive,
                       ]}
                     >
-                      {option.label}
+                      {item.label}
                     </Text>
-                    {/* Jika aktif, munculkan titik warna */}
                     {isActive && <View style={styles.activeDot} />}
                   </TouchableOpacity>
                 );
@@ -318,14 +318,12 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
 
-  // --- Style Baru untuk Filter (Tanpa Lingkaran Biru) ---
   filterBtn: {
-    width: 50,
+    width: 44,
     height: 54,
     justifyContent: "center",
     alignItems: "center",
   },
-  // -----------------------------------------------------
 
   totalRow: {
     flexDirection: "row",
@@ -408,7 +406,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
 
-  // --- STYLE UNTUK DROPDOWN MELAYANG ---
+  // --- STYLE DROPDOWN MELAYANG ---
   modalOverlay: {
     flex: 1,
     backgroundColor: "transparent",
@@ -416,13 +414,13 @@ const styles = StyleSheet.create({
 
   dropdownMenu: {
     position: "absolute",
-    top: 165, // Letak persis di bawah search bar
+    top: 165,
     right: 20,
     width: 220,
-    maxHeight: 350, // Agar tidak kepanjangan dan bisa di-scroll
+    maxHeight: 400,
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    paddingVertical: 8,
+    paddingVertical: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -431,21 +429,26 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
 
+  dropdownHeader: {
+    fontSize: 11,
+    fontWeight: "900",
+    color: COLORS.textMuted,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 6,
+    letterSpacing: 0.5,
+  },
+
   dropdownItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 20,
   },
 
-  dropdownItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-  },
-
   dropdownItemText: {
-    fontSize: 14,
+    fontSize: 13, 
     color: COLORS.text,
     fontWeight: "500",
   },
@@ -456,9 +459,9 @@ const styles = StyleSheet.create({
   },
 
   activeDot: {
-    width: 8,
-    height: 8,
+    width: 6,
+    height: 6,
     backgroundColor: COLORS.primary,
-    borderRadius: 4,
+    borderRadius: 3,
   },
 });
