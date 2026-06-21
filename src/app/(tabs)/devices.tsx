@@ -35,7 +35,14 @@ const BRAND_IMAGES: Record<string, any> = {
 const DEFAULT_IMAGE = require("../../../assets/devices/default.png");
 
 // 1. DATA FILTER TERSTRUKTUR DENGAN KATEGORI DAN TYPE STRICT
-const BRANDS = ["Samsung", "Oppo", "Vivo", "Xiaomi", "Realme", "Infinix"].sort();
+const BRANDS = [
+  "Samsung",
+  "Oppo",
+  "Vivo",
+  "Xiaomi",
+  "Realme",
+  "Infinix",
+].sort();
 
 type FilterItem = {
   type: "header" | "option";
@@ -45,16 +52,20 @@ type FilterItem = {
 
 const FILTER_OPTIONS: FilterItem[] = [
   { type: "option", label: "Semua", value: "Semua" },
-  { type: "option", label: "Pendapatan Tertinggi", value: "Pendapatan Tertinggi" },
-  
+  {
+    type: "option",
+    label: "Pendapatan Tertinggi",
+    value: "Pendapatan Tertinggi",
+  },
+
   // Header diberi value semu agar TypeScript tidak error
   { type: "header", label: "STATUS", value: "header-status" },
   { type: "option", label: "Aktif", value: "Aktif" },
   { type: "option", label: "Nonaktif", value: "Nonaktif" },
-  
+
   // Header diberi value semu agar TypeScript tidak error
   { type: "header", label: "MERK HP", value: "header-merk" },
-  
+
   // Solusi Error: Menambahkan penegasan tipe data "FilterItem" di dalam map
   ...BRANDS.map((b): FilterItem => ({ type: "option", label: b, value: b })),
 ];
@@ -74,7 +85,7 @@ export default function DevicesScreen() {
   const devices = data || [];
 
   const filteredDevices = useMemo(() => {
-    let result = [...devices]; 
+    let result = [...devices];
 
     // Filter berdasarkan opsi yang dipilih
     if (activeFilter === "Aktif") {
@@ -93,7 +104,7 @@ export default function DevicesScreen() {
     // Terapkan Pencarian Teks
     if (search) {
       result = result.filter((item) =>
-        item.device_name?.toLowerCase().includes(search.toLowerCase())
+        item.device_name?.toLowerCase().includes(search.toLowerCase()),
       );
     }
 
@@ -229,7 +240,7 @@ export default function DevicesScreen() {
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setShowFilter(false)} 
+          onPress={() => setShowFilter(false)}
         >
           <View style={styles.dropdownMenu}>
             <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
@@ -251,7 +262,7 @@ export default function DevicesScreen() {
                     style={styles.dropdownItem}
                     onPress={() => {
                       setActiveFilter(item.value);
-                      setShowFilter(false); 
+                      setShowFilter(false);
                     }}
                   >
                     <Text
@@ -429,7 +440,7 @@ const styles = StyleSheet.create({
     top: 165,
     right: 20,
     width: 220,
-    maxHeight: 400,
+    maxHeight: 350,
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     paddingVertical: 12,
@@ -442,11 +453,11 @@ const styles = StyleSheet.create({
   },
 
   dropdownHeader: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "900",
-    color: COLORS.textMuted,
+    color: COLORS.text,
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 14,
     paddingBottom: 6,
     letterSpacing: 0.5,
   },
@@ -460,8 +471,8 @@ const styles = StyleSheet.create({
   },
 
   dropdownItemText: {
-    fontSize: 13, 
-    color: COLORS.text,
+    fontSize: 12,
+    color: "#bcbcbc",
     fontWeight: "500",
   },
 
@@ -471,9 +482,9 @@ const styles = StyleSheet.create({
   },
 
   activeDot: {
-    width: 6,
-    height: 6,
+    width: 8,
+    height: 8,
     backgroundColor: COLORS.primary,
-    borderRadius: 3,
+    borderRadius: 8,
   },
 });
