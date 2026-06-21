@@ -1,14 +1,4 @@
-<<<<<<< HEAD
-import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, X } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
-=======
 Import React, { useMemo, useState } from "react";
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
 import {
   Alert,
   KeyboardAvoidingView,
@@ -20,9 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-<<<<<<< HEAD
-import { Dropdown } from "react-native-element-dropdown";
-=======
 
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -35,7 +22,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Save, X } from "lucide-react-native";
 
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
 import { addDevice } from "../../features/devices/api";
 
 import { COLORS } from "../../theme";
@@ -118,10 +104,7 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
       });
 
       Alert.alert("Sukses", "Perangkat berhasil ditambahkan");
-<<<<<<< HEAD
-=======
 
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
       setForm({
         brand: "Samsung",
         device_name: "",
@@ -130,10 +113,7 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
         ewallet: "-",
         is_active: true,
       });
-<<<<<<< HEAD
-=======
 
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
       onClose();
     },
 
@@ -179,14 +159,6 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
           opacity={0.5}
         />
       )}
-<<<<<<< HEAD
-      handleIndicatorStyle={{ backgroundColor: "#CBD5E1", width: 48 }}
-      backgroundStyle={{ borderTopLeftRadius: 32, borderTopRightRadius: 32 }}
-    >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-=======
       handleIndicatorStyle={{
         backgroundColor: "#CBD5E1",
         width: 48,
@@ -202,7 +174,6 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
           flex: 1,
         }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
       >
         <BottomSheetScrollView
           keyboardShouldPersistTaps="handled"
@@ -219,12 +190,6 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
           <View style={styles.statusCard}>
             <View>
               <Text style={styles.statusTitle}>Status Perangkat</Text>
-<<<<<<< HEAD
-              <Text
-                style={[
-                  styles.statusText,
-                  { color: form.is_active ? COLORS.success : COLORS.danger },
-=======
 
               <Text
                 style={[
@@ -232,20 +197,11 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
                   {
                     color: form.is_active ? COLORS.success : COLORS.danger,
                   },
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
                 ]}
               >
                 {form.is_active ? "Aktif" : "Nonaktif"}
               </Text>
             </View>
-<<<<<<< HEAD
-            <Switch
-              value={form.is_active}
-              onValueChange={(val) => setForm({ ...form, is_active: val })}
-            />
-          </View>
-=======
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
 
             <Switch
               value={form.is_active}
@@ -294,25 +250,11 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
           />
 
           <Text style={styles.label}>Nomor Telepon</Text>
-<<<<<<< HEAD
-=======
 
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
           <TextInput
             style={styles.input}
             keyboardType="phone-pad"
             value={form.phone_number}
-<<<<<<< HEAD
-            onChangeText={(text) => setForm({ ...form, phone_number: text })}
-          />
-
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="email-address"
-            value={form.email}
-            onChangeText={(text) => setForm({ ...form, email: text })}
-=======
             onChangeText={(text) =>
               setForm({
                 ...form,
@@ -334,7 +276,6 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
                 email: text,
               })
             }
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
           />
 
           <Text style={styles.label}>E-Wallet</Text>
@@ -358,23 +299,11 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
 
           <TouchableOpacity
             style={styles.saveBtn}
-<<<<<<< HEAD
-            onPress={() =>
-              mutation.mutate({
-                ...form,
-                ewallet: form.ewallet === "-" ? null : form.ewallet,
-              })
-            }
-            disabled={mutation.isPending}
-          >
-            <Save size={18} color="#FFF" />
-=======
             onPress={handleSave}
             disabled={mutation.isPending}
           >
             <Save size={18} color="#FFF" />
 
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
             <Text style={styles.saveText}>
               {mutation.isPending ? "Menyimpan..." : "Simpan Perangkat"}
             </Text>
@@ -386,24 +315,17 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-<<<<<<< HEAD
-  content: { padding: 20, paddingBottom: 100 },
-=======
   content: {
     padding: 20,
     paddingBottom: 60,
   },
 
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
   },
-<<<<<<< HEAD
-  title: { fontSize: 20, fontWeight: "800", color: COLORS.text },
-=======
 
   title: {
     fontSize: 20,
@@ -411,30 +333,12 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
 
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
   closeBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
-<<<<<<< HEAD
-    backgroundColor: "#F1F5F9",
-  },
-  statusCard: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    borderRadius: 20,
-    padding: 18,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  statusTitle: { fontWeight: "700", fontSize: 14, color: COLORS.text },
-  statusText: { marginTop: 4, fontWeight: "600", fontSize: 12 },
-=======
     backgroundColor: COLORS.background,
   },
 
@@ -461,54 +365,32 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
   label: {
     fontSize: 13,
     fontWeight: "600",
     color: COLORS.textMuted,
     marginBottom: 8,
-<<<<<<< HEAD
-    marginTop: 16,
-  },
-=======
     marginTop: 12,
   },
 
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
   input: {
     height: 56,
     borderRadius: 16,
     borderWidth: 1,
-<<<<<<< HEAD
-    borderColor: "#E2E8F0",
-=======
     borderColor: COLORS.border,
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
     color: COLORS.text,
   },
-<<<<<<< HEAD
-  dropdown: {
-    height: 56,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-=======
 
   dropdown: {
     height: 56,
     borderWidth: 1,
     borderColor: COLORS.border,
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
     borderRadius: 16,
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
   },
-<<<<<<< HEAD
-  dropdownText: { fontSize: 15, color: COLORS.text },
-  saveBtn: {
-    marginTop: 32,
-=======
 
   dropdownMenu: {
     borderRadius: 16,
@@ -524,7 +406,6 @@ const styles = StyleSheet.create({
 
   saveBtn: {
     marginTop: 30,
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
     height: 56,
     borderRadius: 16,
     backgroundColor: COLORS.primary,
@@ -533,14 +414,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
   },
-<<<<<<< HEAD
-  saveText: { color: "#FFF", fontWeight: "700", fontSize: 15 },
-=======
 
   saveText: {
     color: "#FFF",
     fontWeight: "700",
     fontSize: 15,
   },
->>>>>>> e05fa530eaca0801a5fcb00887dc993f011be475
 });
