@@ -54,7 +54,9 @@ const FILTER_OPTIONS: FilterItem[] = [
   
   // Header diberi value semu agar TypeScript tidak error
   { type: "header", label: "MERK HP", value: "header-merk" },
-  ...BRANDS.map((b) => ({ type: "option", label: b, value: b })),
+  
+  // Solusi Error: Menambahkan penegasan tipe data "FilterItem" di dalam map
+  ...BRANDS.map((b): FilterItem => ({ type: "option", label: b, value: b })),
 ];
 
 export default function DevicesScreen() {
