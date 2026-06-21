@@ -34,18 +34,28 @@ const BRAND_IMAGES: Record<string, any> = {
 
 const DEFAULT_IMAGE = require("../../../assets/devices/default.png");
 
-// 1. DATA FILTER TERSTRUKTUR DENGAN KATEGORI
+// 1. DATA FILTER TERSTRUKTUR DENGAN KATEGORI DAN TYPE STRICT
 const BRANDS = ["Samsung", "Oppo", "Vivo", "Xiaomi", "Realme", "Infinix"].sort();
 
-const FILTER_OPTIONS = [
+type FilterItem = {
+  type: "header" | "option";
+  label: string;
+  value: string;
+};
+
+const FILTER_OPTIONS: FilterItem[] = [
   { type: "option", label: "Semua", value: "Semua" },
   { type: "option", label: "Pendapatan Tertinggi", value: "Pendapatan Tertinggi" },
-  { type: "header", label: "STATUS" },
+  
+  // Header diberi value semu agar TypeScript tidak error
+  { type: "header", label: "STATUS", value: "header-status" },
   { type: "option", label: "Aktif", value: "Aktif" },
   { type: "option", label: "Nonaktif", value: "Nonaktif" },
-  { type: "header", label: "MERK HP" },
+  
+  // Header diberi value semu agar TypeScript tidak error
+  { type: "header", label: "MERK HP", value: "header-merk" },
   ...BRANDS.map((b) => ({ type: "option", label: b, value: b })),
-] as const;
+];
 
 export default function DevicesScreen() {
   const router = useRouter();
@@ -221,11 +231,11 @@ export default function DevicesScreen() {
         >
           <View style={styles.dropdownMenu}>
             <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-              {FILTER_OPTIONS.map((item, index) => {
+              {FILTER_OPTIONS.map((item) => {
                 // Render jika tipe item adalah Header
                 if (item.type === "header") {
                   return (
-                    <Text key={item.label} style={styles.dropdownHeader}>
+                    <Text key={item.value} style={styles.dropdownHeader}>
                       {item.label}
                     </Text>
                   );
