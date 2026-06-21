@@ -192,12 +192,12 @@ export default function DevicesScreen() {
             />
           </View>
 
-          {/* Tombol Filter Polos (Tanpa Lingkaran) */}
+          {/* Tombol Filter dengan Lingkaran Biru dan Shadow */}
           <TouchableOpacity
             style={styles.filterBtn}
             onPress={() => setShowFilter(true)}
           >
-            <Filter size={24} color={COLORS.primary} />
+            <Filter size={20} color="#FFFFFF" />
           </TouchableOpacity>
         </Animated.View>
 
@@ -341,11 +341,19 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
 
+  // --- STYLE TOMBOL FILTER KEMBALI KE LINGKARAN BIRU ---
   filterBtn: {
-    width: 44,
+    width: 54,
     height: 54,
+    borderRadius: 30, // Mengikuti radius searchBox agar serasi
+    backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
+    elevation: 3,
   },
 
   totalRow: {
