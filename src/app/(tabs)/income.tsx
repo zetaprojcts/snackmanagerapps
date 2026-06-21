@@ -90,10 +90,12 @@ export default function IncomeScreen() {
 
     return (
       <FadeInView>
-        <TouchableOpacity 
-          activeOpacity={0.85} 
+        <TouchableOpacity
+          activeOpacity={0.85}
           style={styles.card}
-          onPress={() => router.push({ pathname: "/income-detail", params: { id: item.id } })} // <-- Penambahan navigasi
+          onPress={() =>
+            router.push({ pathname: "/income-detail", params: { id: item.id } })
+          } // <-- Penambahan navigasi
         >
           <Image
             source={imageSource}
@@ -110,7 +112,7 @@ export default function IncomeScreen() {
           </View>
 
           <Text style={styles.amountText}>
-            Rp {Number(item.amount).toLocaleString("id-ID")}
+            + Rp {Number(item.amount).toLocaleString("id-ID")}
           </Text>
         </TouchableOpacity>
       </FadeInView>

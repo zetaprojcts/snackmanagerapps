@@ -4,17 +4,21 @@ import { ChevronLeft, Edit, Filter, Mail, Wallet } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
   Image,
+  LayoutAnimation,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  LayoutAnimation,
-  Platform,
   UIManager,
+  View,
 } from "react-native";
-import Animated, { FadeInDown, FadeInUp, FadeIn } from "react-native-reanimated";
 import { BarChart } from "react-native-gifted-charts";
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+} from "react-native-reanimated";
 
 import EmptyState from "../components/ui/EmptyState";
 import {
@@ -47,9 +51,13 @@ export default function DeviceDetail() {
   const router = useRouter();
 
   const [metricTab, setMetricTab] = useState<"income" | "payment">("income");
-  const [periodFilter, setPeriodFilter] = useState<"7days" | "month" | "90days">("7days");
-  
-  const [activityFilter, setActivityFilter] = useState<"all" | "income" | "payment">("all");
+  const [periodFilter, setPeriodFilter] = useState<
+    "7days" | "month" | "90days"
+  >("7days");
+
+  const [activityFilter, setActivityFilter] = useState<
+    "all" | "income" | "payment"
+  >("all");
   const [showActivityMenu, setShowActivityMenu] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -78,7 +86,7 @@ export default function DeviceDetail() {
       if (!item?.trx_date) return false;
       const trxDate = new Date(item.trx_date);
       const diffDays = Math.floor(
-        (now.getTime() - trxDate.getTime()) / (1000 * 60 * 60 * 24)
+        (now.getTime() - trxDate.getTime()) / (1000 * 60 * 60 * 24),
       );
 
       switch (periodFilter) {
@@ -97,14 +105,17 @@ export default function DeviceDetail() {
     });
   };
 
-  const chartSource = metricTab === "income" ? filterByPeriod(incomes) : filterByPeriod(payments);
+  const chartSource =
+    metricTab === "income" ? filterByPeriod(incomes) : filterByPeriod(payments);
 
   const sortedChartSource = [...chartSource].sort(
-    (a, b) => new Date(a.trx_date).getTime() - new Date(b.trx_date).getTime()
+    (a, b) => new Date(a.trx_date).getTime() - new Date(b.trx_date).getTime(),
   );
 
   const chartData = sortedChartSource.map((item: any, index: number) => {
-    const rawValue = Number(metricTab === "income" ? item.amount : item.gross_amount);
+    const rawValue = Number(
+      metricTab === "income" ? item.amount : item.gross_amount,
+    );
     const isSelected = selectedIndex === index;
 
     return {
@@ -117,7 +128,10 @@ export default function DeviceDetail() {
       topLabelComponent: () => {
         if (!isSelected) return null;
         return (
-          <Animated.View entering={FadeIn.duration(200)} style={styles.tooltipContainer}>
+          <Animated.View
+            entering={FadeIn.duration(200)}
+            style={styles.tooltipContainer}
+          >
             <Text style={styles.tooltipText}>
               {rawValue.toLocaleString("id-ID")}
             </Text>
@@ -152,7 +166,10 @@ export default function DeviceDetail() {
     }
 
     return merged
-      .sort((a, b) => new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime(),
+      )
       .slice(0, 7);
   }, [incomes, payments, activityFilter]);
 
@@ -167,31 +184,99 @@ export default function DeviceDetail() {
           <View style={{ width: 24 }} />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 40 }}
+        >
           <DeviceCardSkeleton />
-          
+
           <View style={{ marginTop: 16 }}>
             <BalanceCardSkeleton />
           </View>
 
           <View style={styles.summaryRow}>
-            <View style={[styles.summaryCard, { backgroundColor: '#E5E7EB', height: 85, borderWidth: 0, elevation: 0 }]} />
-            <View style={[styles.summaryCard, { backgroundColor: '#E5E7EB', height: 85, borderWidth: 0, elevation: 0 }]} />
+            <View
+              style={[
+                styles.summaryCard,
+                {
+                  backgroundColor: "#E5E7EB",
+                  height: 85,
+                  borderWidth: 0,
+                  elevation: 0,
+                },
+              ]}
+            />
+            <View
+              style={[
+                styles.summaryCard,
+                {
+                  backgroundColor: "#E5E7EB",
+                  height: 85,
+                  borderWidth: 0,
+                  elevation: 0,
+                },
+              ]}
+            />
           </View>
 
           <View style={styles.chartSection}>
             <View style={styles.chartFilterContainer}>
-              <View style={{ width: 70, height: 32, backgroundColor: '#E5E7EB', borderRadius: 999 }} />
-              <View style={{ width: 85, height: 32, backgroundColor: '#E5E7EB', borderRadius: 999 }} />
-              <View style={{ width: 70, height: 32, backgroundColor: '#E5E7EB', borderRadius: 999 }} />
+              <View
+                style={{
+                  width: 70,
+                  height: 32,
+                  backgroundColor: "#E5E7EB",
+                  borderRadius: 999,
+                }}
+              />
+              <View
+                style={{
+                  width: 85,
+                  height: 32,
+                  backgroundColor: "#E5E7EB",
+                  borderRadius: 999,
+                }}
+              />
+              <View
+                style={{
+                  width: 70,
+                  height: 32,
+                  backgroundColor: "#E5E7EB",
+                  borderRadius: 999,
+                }}
+              />
             </View>
-            <View style={[styles.chartContainer, { height: 220, backgroundColor: '#E5E7EB', borderWidth: 0, elevation: 0 }]} />
+            <View
+              style={[
+                styles.chartContainer,
+                {
+                  height: 220,
+                  backgroundColor: "#E5E7EB",
+                  borderWidth: 0,
+                  elevation: 0,
+                },
+              ]}
+            />
           </View>
 
           <View style={styles.activitySection}>
             <View style={styles.activityHeader}>
-              <View style={{ width: 140, height: 20, backgroundColor: '#E5E7EB', borderRadius: 6 }} />
-              <View style={{ width: 24, height: 24, backgroundColor: '#E5E7EB', borderRadius: 6 }} />
+              <View
+                style={{
+                  width: 140,
+                  height: 20,
+                  backgroundColor: "#E5E7EB",
+                  borderRadius: 6,
+                }}
+              />
+              <View
+                style={{
+                  width: 24,
+                  height: 24,
+                  backgroundColor: "#E5E7EB",
+                  borderRadius: 6,
+                }}
+              />
             </View>
             <TransactionCardSkeleton />
             <TransactionCardSkeleton />
@@ -205,7 +290,10 @@ export default function DeviceDetail() {
   if (!device) {
     return (
       <View style={styles.centerContainer}>
-        <EmptyState title="Device Tidak Ditemukan" subtitle="Data perangkat tidak tersedia" />
+        <EmptyState
+          title="Device Tidak Ditemukan"
+          subtitle="Data perangkat tidak tersedia"
+        />
       </View>
     );
   }
@@ -215,28 +303,49 @@ export default function DeviceDetail() {
 
   return (
     <View style={styles.container}>
-      
       <Animated.View entering={FadeInDown} style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Detail Perangkat</Text>
         <TouchableOpacity
-          onPress={() => router.push({ pathname: "/edit-device", params: { id: device.id } })}
+          onPress={() =>
+            router.push({ pathname: "/edit-device", params: { id: device.id } })
+          }
         >
           <Edit size={20} color={COLORS.primary} />
         </TouchableOpacity>
       </Animated.View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
         <Animated.View entering={FadeInUp} style={styles.deviceCard}>
           <View style={styles.deviceTop}>
-            <Image source={imageSource} style={styles.deviceImage} resizeMode="contain" />
+            <Image
+              source={imageSource}
+              style={styles.deviceImage}
+              resizeMode="contain"
+            />
             <View style={styles.deviceInfo}>
               <Text style={styles.deviceName}>{device.device_name}</Text>
-              <Text style={styles.phoneNumber}>{device.phone_number || "-"}</Text>
-              <View style={[styles.statusChip, { backgroundColor: device.is_active ? COLORS.success : COLORS.danger }]}>
-                <Text style={styles.statusChipText}>{device.is_active ? "Aktif" : "Nonaktif"}</Text>
+              <Text style={styles.phoneNumber}>
+                {device.phone_number || "-"}
+              </Text>
+              <View
+                style={[
+                  styles.statusChip,
+                  {
+                    backgroundColor: device.is_active
+                      ? COLORS.success
+                      : COLORS.danger,
+                  },
+                ]}
+              >
+                <Text style={styles.statusChipText}>
+                  {device.is_active ? "Aktif" : "Nonaktif"}
+                </Text>
               </View>
             </View>
           </View>
@@ -254,48 +363,82 @@ export default function DeviceDetail() {
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(100)} style={styles.balanceHero}>
+        <Animated.View
+          entering={FadeInUp.delay(100)}
+          style={styles.balanceHero}
+        >
           <Text style={styles.balanceLabel}>Saldo Saat Ini</Text>
-          <Text style={styles.balanceValue}>Rp {balance.toLocaleString("id-ID")}</Text>
+          <Text style={styles.balanceValue}>
+            Rp {balance.toLocaleString("id-ID")}
+          </Text>
         </Animated.View>
 
         <Animated.View entering={FadeInUp.delay(150)} style={styles.summaryRow}>
           <TouchableOpacity
             activeOpacity={0.8}
-            style={[styles.summaryCard, isIncomeActive ? styles.cardActive : styles.cardInactive]}
+            style={[
+              styles.summaryCard,
+              isIncomeActive ? styles.cardActive : styles.cardInactive,
+            ]}
             onPress={() => {
               animateLayout();
               setMetricTab("income");
               setSelectedIndex(null);
             }}
           >
-            <Text style={[styles.summaryLabel, isIncomeActive ? styles.textWhite : styles.textDarkMuted]}>
+            <Text
+              style={[
+                styles.summaryLabel,
+                isIncomeActive ? styles.textWhite : styles.textDarkMuted,
+              ]}
+            >
               Pendapatan
             </Text>
-            <Text style={[styles.summaryValue, isIncomeActive ? styles.textWhite : styles.textDark]}>
+            <Text
+              style={[
+                styles.summaryValue,
+                isIncomeActive ? styles.textWhite : styles.textDark,
+              ]}
+            >
               Rp {totalIncome.toLocaleString("id-ID")}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.8}
-            style={[styles.summaryCard, isPaymentActive ? styles.cardActive : styles.cardInactive]}
+            style={[
+              styles.summaryCard,
+              isPaymentActive ? styles.cardActive : styles.cardInactive,
+            ]}
             onPress={() => {
               animateLayout();
               setMetricTab("payment");
               setSelectedIndex(null);
             }}
           >
-            <Text style={[styles.summaryLabel, isPaymentActive ? styles.textWhite : styles.textDarkMuted]}>
+            <Text
+              style={[
+                styles.summaryLabel,
+                isPaymentActive ? styles.textWhite : styles.textDarkMuted,
+              ]}
+            >
               Penarikan
             </Text>
-            <Text style={[styles.summaryValue, isPaymentActive ? styles.textWhite : styles.textDark]}>
+            <Text
+              style={[
+                styles.summaryValue,
+                isPaymentActive ? styles.textWhite : styles.textDark,
+              ]}
+            >
               Rp {totalPayment.toLocaleString("id-ID")}
             </Text>
           </TouchableOpacity>
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(200)} style={styles.chartSection}>
+        <Animated.View
+          entering={FadeInUp.delay(200)}
+          style={styles.chartSection}
+        >
           <View style={styles.chartFilterContainer}>
             {[
               { id: "7days", label: "7 Hari" },
@@ -304,14 +447,22 @@ export default function DeviceDetail() {
             ].map((item) => (
               <TouchableOpacity
                 key={item.id}
-                style={[styles.filterChip, periodFilter === item.id && styles.filterChipActive]}
+                style={[
+                  styles.filterChip,
+                  periodFilter === item.id && styles.filterChipActive,
+                ]}
                 onPress={() => {
                   animateLayout();
                   setPeriodFilter(item.id as any);
                   setSelectedIndex(null);
                 }}
               >
-                <Text style={[styles.filterChipText, periodFilter === item.id && styles.filterChipTextActive]}>
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    periodFilter === item.id && styles.filterChipTextActive,
+                  ]}
+                >
                   {item.label}
                 </Text>
               </TouchableOpacity>
@@ -338,16 +489,22 @@ export default function DeviceDetail() {
                 }}
               />
             ) : (
-              <EmptyState title="Belum Ada Data" subtitle="Belum ada transaksi pada periode ini" />
+              <EmptyState
+                title="Belum Ada Data"
+                subtitle="Belum ada transaksi pada periode ini"
+              />
             )}
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(250)} style={styles.activitySection}>
+        <Animated.View
+          entering={FadeInUp.delay(250)}
+          style={styles.activitySection}
+        >
           <View style={styles.activityHeaderContainer}>
             <View style={styles.activityHeader}>
               <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
-              
+
               <TouchableOpacity
                 style={styles.activityFilterBtn}
                 onPress={() => {
@@ -355,29 +512,70 @@ export default function DeviceDetail() {
                   setShowActivityMenu(!showActivityMenu);
                 }}
               >
-                <Filter size={18} color={activityFilter !== "all" ? COLORS.primary : COLORS.textMuted} />
+                <Filter
+                  size={18}
+                  color={
+                    activityFilter !== "all" ? COLORS.primary : COLORS.textMuted
+                  }
+                />
               </TouchableOpacity>
             </View>
 
             {showActivityMenu && (
-              <Animated.View entering={FadeInUp.duration(200)} style={styles.dropdownMenu}>
+              <Animated.View
+                entering={FadeInUp.duration(200)}
+                style={styles.dropdownMenu}
+              >
                 <TouchableOpacity
                   style={styles.dropdownItem}
-                  onPress={() => { animateLayout(); setActivityFilter("all"); setShowActivityMenu(false); }}
+                  onPress={() => {
+                    animateLayout();
+                    setActivityFilter("all");
+                    setShowActivityMenu(false);
+                  }}
                 >
-                  <Text style={[styles.dropdownText, activityFilter === "all" && styles.dropdownTextActive]}>Semua</Text>
+                  <Text
+                    style={[
+                      styles.dropdownText,
+                      activityFilter === "all" && styles.dropdownTextActive,
+                    ]}
+                  >
+                    Semua
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.dropdownItem}
-                  onPress={() => { animateLayout(); setActivityFilter("income"); setShowActivityMenu(false); }}
+                  onPress={() => {
+                    animateLayout();
+                    setActivityFilter("income");
+                    setShowActivityMenu(false);
+                  }}
                 >
-                  <Text style={[styles.dropdownText, activityFilter === "income" && styles.dropdownTextActive]}>Pemasukan</Text>
+                  <Text
+                    style={[
+                      styles.dropdownText,
+                      activityFilter === "income" && styles.dropdownTextActive,
+                    ]}
+                  >
+                    Pemasukan
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.dropdownItem, { borderBottomWidth: 0 }]}
-                  onPress={() => { animateLayout(); setActivityFilter("payment"); setShowActivityMenu(false); }}
+                  onPress={() => {
+                    animateLayout();
+                    setActivityFilter("payment");
+                    setShowActivityMenu(false);
+                  }}
                 >
-                  <Text style={[styles.dropdownText, activityFilter === "payment" && styles.dropdownTextActive]}>Penarikan</Text>
+                  <Text
+                    style={[
+                      styles.dropdownText,
+                      activityFilter === "payment" && styles.dropdownTextActive,
+                    ]}
+                  >
+                    Penarikan
+                  </Text>
                 </TouchableOpacity>
               </Animated.View>
             )}
@@ -387,13 +585,13 @@ export default function DeviceDetail() {
             <Animated.View entering={FadeIn.duration(300)}>
               <EmptyState
                 title="Belum Ada Aktivitas"
-                subtitle={`Tidak ada data ${activityFilter === 'income' ? 'pemasukan' : activityFilter === 'payment' ? 'penarikan' : 'transaksi'}`}
+                subtitle={`Tidak ada data ${activityFilter === "income" ? "pemasukan" : activityFilter === "payment" ? "penarikan" : "transaksi"}`}
               />
             </Animated.View>
           ) : (
             activities.map((item, index) => (
               <Animated.View
-                key={`${item.type}-${item.trx_date}-${index}`} 
+                key={`${item.type}-${item.trx_date}-${index}`}
                 entering={FadeInUp.duration(300).delay(index * 40)}
                 style={styles.activityItem}
               >
@@ -408,10 +606,16 @@ export default function DeviceDetail() {
                 <Text
                   style={[
                     styles.activityAmount,
-                    { color: item.type === "income" ? COLORS.success : COLORS.warning },
+                    {
+                      color:
+                        item.type === "income"
+                          ? COLORS.success
+                          : COLORS.warning,
+                    },
                   ]}
                 >
-                  {item.type === "income" ? "+" : "-"} Rp {item.amount.toLocaleString("id-ID")}
+                  {item.type === "income" ? "+" : "-"} Rp{" "}
+                  {item.amount.toLocaleString("id-ID")}
                 </Text>
               </Animated.View>
             ))
@@ -595,29 +799,29 @@ const styles = StyleSheet.create({
     ...SHADOW.card,
   },
   tooltipContainer: {
-    position: 'absolute',
-    bottom: 4,         
-    width: 70,         
-    left: -26,         
-    backgroundColor: '#1A1A1A',
+    position: "absolute",
+    bottom: 4,
+    width: 70,
+    left: -26,
+    backgroundColor: "#1A1A1A",
     paddingVertical: 5,
     borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 999,       
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 999,
   },
   tooltipText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 10,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: "700",
+    textAlign: "center",
   },
   activitySection: {
     marginHorizontal: 20,
     marginTop: 24,
   },
   activityHeaderContainer: {
-    zIndex: 99, 
+    zIndex: 99,
   },
   activityHeader: {
     flexDirection: "row",
@@ -634,20 +838,20 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   dropdownMenu: {
-    position: 'absolute',
+    position: "absolute",
     top: 36,
     right: 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     width: 130,
     ...SHADOW.card,
-    elevation: 5, 
+    elevation: 5,
   },
   dropdownItem: {
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: "#F0F0F0",
   },
   dropdownText: {
     fontSize: 14,

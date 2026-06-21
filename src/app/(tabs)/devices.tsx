@@ -58,7 +58,7 @@ export default function DevicesScreen() {
 
     if (search) {
       result = result.filter((item) =>
-        item.device_name?.toLowerCase().includes(search.toLowerCase())
+        item.device_name?.toLowerCase().includes(search.toLowerCase()),
       );
     }
 
@@ -132,7 +132,10 @@ export default function DevicesScreen() {
           <Text style={styles.title}>Daftar Perangkat</Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(100)} style={styles.searchRow}>
+        <Animated.View
+          entering={FadeInDown.delay(100)}
+          style={styles.searchRow}
+        >
           <View style={styles.searchBox}>
             <Search size={18} color={COLORS.textMuted} />
 
@@ -315,13 +318,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 12,
   },
-  
+
   totalLabel: {
     fontSize: 14,
     fontWeight: "600",
     color: COLORS.text,
   },
-  
+
   totalValue: {
     fontSize: 14,
     fontWeight: "800",

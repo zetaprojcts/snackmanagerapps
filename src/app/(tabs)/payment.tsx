@@ -90,10 +90,15 @@ export default function PaymentScreen() {
 
     return (
       <FadeInView>
-        <TouchableOpacity 
-          activeOpacity={0.85} 
+        <TouchableOpacity
+          activeOpacity={0.85}
           style={styles.card}
-          onPress={() => router.push({ pathname: "/payment-detail", params: { id: item.id } })}
+          onPress={() =>
+            router.push({
+              pathname: "/payment-detail",
+              params: { id: item.id },
+            })
+          }
         >
           <Image
             source={imageSource}
@@ -110,7 +115,7 @@ export default function PaymentScreen() {
           </View>
 
           <Text style={styles.amountText}>
-            Rp {Number(item.gross_amount).toLocaleString("id-ID")}
+            - Rp {Number(item.gross_amount).toLocaleString("id-ID")}
           </Text>
         </TouchableOpacity>
       </FadeInView>
@@ -303,6 +308,6 @@ const styles = StyleSheet.create({
   amountText: {
     fontSize: 15,
     fontWeight: "700",
-    color: COLORS.warning,
+    color: COLORS.danger,
   },
 });

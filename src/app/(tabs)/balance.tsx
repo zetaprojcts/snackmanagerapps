@@ -1,5 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDownToLine, ArrowUpToLine, Filter, Wallet } from "lucide-react-native";
+import {
+  ArrowDownToLine,
+  ArrowUpToLine,
+  Filter,
+  Wallet,
+} from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 
 import {
@@ -14,7 +19,11 @@ import {
   View,
 } from "react-native";
 
-import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+} from "react-native-reanimated";
 
 import {
   BalanceCardSkeleton,
@@ -34,7 +43,9 @@ if (Platform.OS === "android") {
 }
 
 export default function BalanceScreen() {
-  const [activityFilter, setActivityFilter] = useState<"all" | "income" | "payment">("all");
+  const [activityFilter, setActivityFilter] = useState<
+    "all" | "income" | "payment"
+  >("all");
   const [showActivityMenu, setShowActivityMenu] = useState(false);
 
   const {
@@ -62,13 +73,22 @@ export default function BalanceScreen() {
   };
 
   const totalIncome =
-    incomes?.reduce((total: number, item: any) => total + Number(item.amount), 0) || 0;
+    incomes?.reduce(
+      (total: number, item: any) => total + Number(item.amount),
+      0,
+    ) || 0;
 
   const totalGrossPayment =
-    payments?.reduce((total: number, item: any) => total + Number(item.gross_amount), 0) || 0;
+    payments?.reduce(
+      (total: number, item: any) => total + Number(item.gross_amount),
+      0,
+    ) || 0;
 
   const totalAdminFee =
-    payments?.reduce((total: number, item: any) => total + Number(item.admin_fee), 0) || 0;
+    payments?.reduce(
+      (total: number, item: any) => total + Number(item.admin_fee),
+      0,
+    ) || 0;
 
   // REVISI: Total Penarikan yang tampil adalah setelah dipotong biaya admin
   const totalNetPayment = totalGrossPayment - totalAdminFee;
@@ -103,11 +123,16 @@ export default function BalanceScreen() {
       merged = paymentActivities;
     }
 
-    return merged
-      // REVISI: Urutan menurun (terbaru di atas)
-      .sort((a, b) => new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime())
-      // REVISI: Maksimal 7 transaksi terakhir
-      .slice(0, 7);
+    return (
+      merged
+        // REVISI: Urutan menurun (terbaru di atas)
+        .sort(
+          (a, b) =>
+            new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime(),
+        )
+        // REVISI: Maksimal 7 transaksi terakhir
+        .slice(0, 7)
+    );
   }, [incomes, payments, activityFilter]);
 
   const onRefresh = () => {
@@ -136,8 +161,22 @@ export default function BalanceScreen() {
 
         <View style={styles.activitySectionSkeleton}>
           <View style={styles.activityHeader}>
-            <View style={{ width: 140, height: 20, backgroundColor: '#E5E7EB', borderRadius: 6 }} />
-            <View style={{ width: 24, height: 24, backgroundColor: '#E5E7EB', borderRadius: 6 }} />
+            <View
+              style={{
+                width: 140,
+                height: 20,
+                backgroundColor: "#E5E7EB",
+                borderRadius: 6,
+              }}
+            />
+            <View
+              style={{
+                width: 24,
+                height: 24,
+                backgroundColor: "#E5E7EB",
+                borderRadius: 6,
+              }}
+            />
           </View>
           <TransactionCardSkeleton />
           <TransactionCardSkeleton />
@@ -163,7 +202,7 @@ export default function BalanceScreen() {
             </Text>
           </View>
           <View style={styles.heroIconWrapper}>
-            <Wallet size={42} color="#FFFFFF" opacity={0.3} />
+            <Wallet size={42} color="#9bb3ff" />
           </View>
         </View>
       </Animated.View>
@@ -186,13 +225,16 @@ export default function BalanceScreen() {
           </View>
           <Text style={styles.cardLabel}>Penarikan</Text>
           <Text style={styles.cardValuePayment}>
-            {/* REVISI: Nominal yang tampil adalah setelah dipotong admin */}
-            - Rp {totalNetPayment.toLocaleString("id-ID")}
+            {/* REVISI: Nominal yang tampil adalah setelah dipotong admin */}-
+            Rp {totalNetPayment.toLocaleString("id-ID")}
           </Text>
         </View>
       </Animated.View>
 
-      <Animated.View entering={FadeInUp.delay(200)} style={styles.activitySection}>
+      <Animated.View
+        entering={FadeInUp.delay(200)}
+        style={styles.activitySection}
+      >
         {/* REVISI: Header Aktivitas & Tombol Filter Dropdown */}
         <View style={styles.activityHeaderContainer}>
           <View style={styles.activityHeader}>
@@ -205,30 +247,71 @@ export default function BalanceScreen() {
                 setShowActivityMenu(!showActivityMenu);
               }}
             >
-              <Filter size={18} color={activityFilter !== "all" ? COLORS.primary : COLORS.textMuted} />
+              <Filter
+                size={18}
+                color={
+                  activityFilter !== "all" ? COLORS.primary : COLORS.textMuted
+                }
+              />
             </TouchableOpacity>
           </View>
 
           {/* Efek FadeIn untuk Toast Menu */}
           {showActivityMenu && (
-            <Animated.View entering={FadeInUp.duration(200)} style={styles.dropdownMenu}>
+            <Animated.View
+              entering={FadeInUp.duration(200)}
+              style={styles.dropdownMenu}
+            >
               <TouchableOpacity
                 style={styles.dropdownItem}
-                onPress={() => { animateLayout(); setActivityFilter("all"); setShowActivityMenu(false); }}
+                onPress={() => {
+                  animateLayout();
+                  setActivityFilter("all");
+                  setShowActivityMenu(false);
+                }}
               >
-                <Text style={[styles.dropdownText, activityFilter === "all" && styles.dropdownTextActive]}>Semua</Text>
+                <Text
+                  style={[
+                    styles.dropdownText,
+                    activityFilter === "all" && styles.dropdownTextActive,
+                  ]}
+                >
+                  Semua
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.dropdownItem}
-                onPress={() => { animateLayout(); setActivityFilter("income"); setShowActivityMenu(false); }}
+                onPress={() => {
+                  animateLayout();
+                  setActivityFilter("income");
+                  setShowActivityMenu(false);
+                }}
               >
-                <Text style={[styles.dropdownText, activityFilter === "income" && styles.dropdownTextActive]}>Pemasukan</Text>
+                <Text
+                  style={[
+                    styles.dropdownText,
+                    activityFilter === "income" && styles.dropdownTextActive,
+                  ]}
+                >
+                  Pemasukan
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.dropdownItem, { borderBottomWidth: 0 }]}
-                onPress={() => { animateLayout(); setActivityFilter("payment"); setShowActivityMenu(false); }}
+                onPress={() => {
+                  animateLayout();
+                  setActivityFilter("payment");
+                  setShowActivityMenu(false);
+                }}
               >
-                <Text style={[styles.dropdownText, activityFilter === "payment" && styles.dropdownTextActive]}>Penarikan</Text>
+                <Text
+                  style={[
+                    styles.dropdownText,
+                    activityFilter === "payment" && styles.dropdownTextActive,
+                  ]}
+                >
+                  Penarikan
+                </Text>
               </TouchableOpacity>
             </Animated.View>
           )}
@@ -245,10 +328,18 @@ export default function BalanceScreen() {
           }
         >
           {recentActivities.length === 0 ? (
-            <Animated.View entering={FadeIn.duration(300)} style={styles.emptyState}>
+            <Animated.View
+              entering={FadeIn.duration(300)}
+              style={styles.emptyState}
+            >
               <Text style={styles.emptyTitle}>Belum Ada Aktivitas</Text>
               <Text style={styles.emptySubtitle}>
-                Tidak ada data {activityFilter === 'income' ? 'pemasukan' : activityFilter === 'payment' ? 'penarikan' : 'transaksi'}
+                Tidak ada data{" "}
+                {activityFilter === "income"
+                  ? "pemasukan"
+                  : activityFilter === "payment"
+                    ? "penarikan"
+                    : "transaksi"}
               </Text>
             </Animated.View>
           ) : (
@@ -262,7 +353,8 @@ export default function BalanceScreen() {
                   style={[
                     styles.activityIcon,
                     {
-                      backgroundColor: item.type === "income" ? "#D1FAE5" : "#ffd0d0",
+                      backgroundColor:
+                        item.type === "income" ? "#D1FAE5" : "#ffd0d0",
                     },
                   ]}
                 >
@@ -275,9 +367,7 @@ export default function BalanceScreen() {
                 </View>
 
                 <View style={styles.activityContent}>
-                  <Text style={styles.activityDevice}>
-                    {item.device_name}
-                  </Text>
+                  <Text style={styles.activityDevice}>{item.device_name}</Text>
                   <Text style={styles.activityDate}>
                     {new Date(item.trx_date).toLocaleDateString("id-ID", {
                       day: "2-digit",
@@ -291,7 +381,8 @@ export default function BalanceScreen() {
                   style={[
                     styles.activityAmount,
                     {
-                      color: item.type === "income" ? COLORS.success : COLORS.danger,
+                      color:
+                        item.type === "income" ? COLORS.success : COLORS.danger,
                     },
                   ]}
                 >
@@ -315,7 +406,7 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   pageTitle: {
     fontSize: 22,
@@ -328,7 +419,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 24,
     ...SHADOW.card,
-    elevation: 8,
   },
   heroContent: {
     flexDirection: "row",
@@ -336,18 +426,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   heroIconWrapper: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: "rgba(89, 133, 245, 0.81)",
     padding: 12,
     borderRadius: 18,
   },
   heroLabel: {
     color: "rgba(255,255,255,0.8)",
-    fontSize: 14,
-    marginBottom: 6,
+    fontSize: 13,
+    marginBottom: 4,
   },
   heroAmount: {
     color: "#FFFFFF",
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: "800",
   },
   cardRow: {
@@ -393,11 +483,11 @@ const styles = StyleSheet.create({
   },
   activitySection: {
     flex: 1,
-    paddingHorizontal: 20,
     marginTop: 24,
   },
   activityHeaderContainer: {
     zIndex: 99,
+    paddingHorizontal: 20,
   },
   activityHeader: {
     flexDirection: "row",
@@ -414,12 +504,13 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   dropdownMenu: {
-    position: 'absolute',
-    top: 36,
+    position: "absolute",
+    top: 34,
     right: 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     width: 130,
+    marginRight: 20,
     ...SHADOW.card,
     elevation: 5,
   },
@@ -427,7 +518,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: "#F0F0F0",
   },
   dropdownText: {
     fontSize: 14,
@@ -444,11 +535,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     flexDirection: "row",
     alignItems: "center",
+    marginHorizontal: 20,
     ...SHADOW.card,
   },
   activityIcon: {
-    width: 42,
-    height: 42,
+    width: 40,
+    height: 40,
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",

@@ -17,7 +17,11 @@ import { BarChart } from "react-native-gifted-charts";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 import EmptyState from "../components/ui/EmptyState";
-import { BalanceCardSkeleton, DeviceCardSkeleton, TransactionCardSkeleton } from "../components/ui/Skeleton";
+import {
+  BalanceCardSkeleton,
+  DeviceCardSkeleton,
+  TransactionCardSkeleton,
+} from "../components/ui/Skeleton";
 import { fetchPayments, getPaymentById } from "../features/payment/api";
 import { COLORS, SHADOW } from "../theme";
 
@@ -41,7 +45,9 @@ const DEFAULT_IMAGE = require("../../assets/devices/default.png");
 export default function PaymentDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const [periodFilter, setPeriodFilter] = useState<"7days" | "month" | "90days">("7days");
+  const [periodFilter, setPeriodFilter] = useState<
+    "7days" | "month" | "90days"
+  >("7days");
 
   const { data: paymentDetail, isLoading: loadingDetail } = useQuery({
     queryKey: ["payment-detail", id],
@@ -62,22 +68,37 @@ export default function PaymentDetail() {
 
   const devicePayments = useMemo(() => {
     if (!allPayments || !device) return [];
-    return allPayments.filter(
-      (item: any) => item.device_id === device.id || item.devices?.id === device.id
-    ).sort((a: any, b: any) => new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime());
+    return allPayments
+      .filter(
+        (item: any) =>
+          item.device_id === device.id || item.devices?.id === device.id,
+      )
+      .sort(
+        (a: any, b: any) =>
+          new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime(),
+      );
   }, [allPayments, device]);
 
   const totalDevicePayment = useMemo(() => {
-    return devicePayments.reduce((total: number, item: any) => total + Number(item.gross_amount || 0), 0);
+    return devicePayments.reduce(
+      (total: number, item: any) => total + Number(item.gross_amount || 0),
+      0,
+    );
   }, [devicePayments]);
 
   const filteredForChart = useMemo(() => {
     const now = new Date();
     return devicePayments.filter((item: any) => {
       const trxDate = new Date(item.trx_date);
-      const diffDays = Math.floor((now.getTime() - trxDate.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.floor(
+        (now.getTime() - trxDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
       if (periodFilter === "7days") return diffDays <= 7;
-      if (periodFilter === "month") return trxDate.getMonth() === now.getMonth() && trxDate.getFullYear() === now.getFullYear();
+      if (periodFilter === "month")
+        return (
+          trxDate.getMonth() === now.getMonth() &&
+          trxDate.getFullYear() === now.getFullYear()
+        );
       if (periodFilter === "90days") return diffDays <= 90;
       return true;
     });
@@ -86,25 +107,28 @@ export default function PaymentDetail() {
   const chartData = useMemo(() => {
     const grouped = filteredForChart.reduce((acc: any, curr: any) => {
       const date = new Date(curr.trx_date);
-      const dayStr = date.getDate().toString().padStart(2, '0');
-      const monthStr = (date.getMonth() + 1).toString().padStart(2, '0');
+      const dayStr = date.getDate().toString().padStart(2, "0");
+      const monthStr = (date.getMonth() + 1).toString().padStart(2, "0");
       const dateLabel = `${dayStr}/${monthStr}`;
-      
+
       if (!acc[dateLabel]) acc[dateLabel] = 0;
       acc[dateLabel] += Number(curr.gross_amount);
       return acc;
     }, {});
 
     const sortedDates = Object.keys(grouped).sort((a, b) => {
-      const [dayA, monthA] = a.split('/');
-      const [dayB, monthB] = b.split('/');
-      return new Date(2020, Number(monthA) - 1, Number(dayA)).getTime() - new Date(2020, Number(monthB) - 1, Number(dayB)).getTime();
+      const [dayA, monthA] = a.split("/");
+      const [dayB, monthB] = b.split("/");
+      return (
+        new Date(2020, Number(monthA) - 1, Number(dayA)).getTime() -
+        new Date(2020, Number(monthB) - 1, Number(dayB)).getTime()
+      );
     });
 
     return sortedDates.map((date) => ({
       value: grouped[date],
       label: date,
-      frontColor: COLORS.danger, // Warna Merah untuk Penarikan
+      frontColor: COLORS.primary, // Warna Biru untuk Penarikan
     }));
   }, [filteredForChart]);
 
@@ -114,7 +138,9 @@ export default function PaymentDetail() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}><ChevronLeft size={24} color={COLORS.text} /></TouchableOpacity>
+          <TouchableOpacity onPress={() => router.back()}>
+            <ChevronLeft size={24} color={COLORS.text} />
+          </TouchableOpacity>
           <Text style={styles.title}>Detail Penarikan</Text>
           <View style={{ width: 24 }} />
         </View>
@@ -129,7 +155,15 @@ export default function PaymentDetail() {
     );
   }
 
-  if (!paymentDetail) return <View style={styles.centerContainer}><EmptyState title="Data Tidak Ditemukan" subtitle="Payment tidak tersedia" /></View>;
+  if (!paymentDetail)
+    return (
+      <View style={styles.centerContainer}>
+        <EmptyState
+          title="Data Tidak Ditemukan"
+          subtitle="Payment tidak tersedia"
+        />
+      </View>
+    );
 
   return (
     <View style={styles.container}>
@@ -141,22 +175,46 @@ export default function PaymentDetail() {
         <View style={{ width: 28 }} />
       </Animated.View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         <Animated.View entering={FadeInUp} style={styles.deviceCard}>
-          <Image source={imageSource} style={styles.deviceImage} resizeMode="contain" />
+          <Image
+            source={imageSource}
+            style={styles.deviceImage}
+            resizeMode="contain"
+          />
           <View style={styles.deviceInfo}>
             <Text style={styles.deviceName}>{device?.device_name || "-"}</Text>
-            <Text style={styles.devicePhone}>{device?.phone_number || "-"}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: device?.is_active ? COLORS.success : COLORS.danger }]}>
-              <Text style={styles.statusText}>{device?.is_active ? "Aktif" : "Nonaktif"}</Text>
+            <Text style={styles.devicePhone}>
+              {device?.phone_number || "-"}
+            </Text>
+            <View
+              style={[
+                styles.statusBadge,
+                {
+                  backgroundColor: device?.is_active
+                    ? COLORS.success
+                    : COLORS.danger,
+                },
+              ]}
+            >
+              <Text style={styles.statusText}>
+                {device?.is_active ? "Aktif" : "Nonaktif"}
+              </Text>
             </View>
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(50)} style={[styles.totalCard, { backgroundColor: COLORS.danger }]}>
+        <Animated.View
+          entering={FadeInUp.delay(50)}
+          style={[styles.totalCard, { backgroundColor: COLORS.primary }]}
+        >
           <Text style={styles.totalLabel}>Total Penarikan</Text>
-          <Text style={styles.totalValue}>Rp {totalDevicePayment.toLocaleString("id-ID")}</Text>
+          <Text style={styles.totalValue}>
+            Rp {totalDevicePayment.toLocaleString("id-ID")}
+          </Text>
         </Animated.View>
 
         <Animated.View entering={FadeInUp.delay(100)}>
@@ -168,10 +226,24 @@ export default function PaymentDetail() {
             ].map((item) => (
               <TouchableOpacity
                 key={item.id}
-                style={[styles.filterChip, periodFilter === item.id && { backgroundColor: COLORS.danger, borderColor: COLORS.danger }]}
-                onPress={() => { animateLayout(); setPeriodFilter(item.id as any); }}
+                style={[
+                  styles.filterChip,
+                  periodFilter === item.id && {
+                    backgroundColor: COLORS.primary,
+                    borderColor: COLORS.primary,
+                  },
+                ]}
+                onPress={() => {
+                  animateLayout();
+                  setPeriodFilter(item.id as any);
+                }}
               >
-                <Text style={[styles.filterChipText, periodFilter === item.id && styles.filterChipTextActive]}>
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    periodFilter === item.id && styles.filterChipTextActive,
+                  ]}
+                >
                   {item.label}
                 </Text>
               </TouchableOpacity>
@@ -194,30 +266,42 @@ export default function PaymentDetail() {
                 isAnimated
               />
             ) : (
-              <EmptyState title="Belum Ada Data" subtitle="Tidak ada grafik pada periode ini" />
+              <EmptyState
+                title="Belum Ada Data"
+                subtitle="Tidak ada grafik pada periode ini"
+              />
             )}
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(150)} style={styles.historySection}>
+        <Animated.View
+          entering={FadeInUp.delay(150)}
+          style={styles.historySection}
+        >
           <Text style={styles.historyTitle}>Riwayat Penarikan</Text>
-          
+
           {devicePayments.length === 0 ? (
-            <EmptyState title="Belum Ada Aktivitas" subtitle="Tidak ada riwayat" />
+            <EmptyState
+              title="Belum Ada Aktivitas"
+              subtitle="Tidak ada riwayat"
+            />
           ) : (
             devicePayments.slice(0, 30).map((item: any, index: number) => (
               <View key={item.id || index} style={styles.historyItem}>
                 <Text style={styles.historyDate}>
                   {new Date(item.trx_date).toLocaleDateString("id-ID", {
-                    day: "numeric", month: "numeric", year: "numeric"
+                    day: "numeric",
+                    month: "numeric",
+                    year: "numeric",
                   })}
                 </Text>
-                <Text style={[styles.historyAmount, { color: COLORS.danger }]}>- Rp {Number(item.gross_amount).toLocaleString("id-ID")}</Text>
+                <Text style={[styles.historyAmount, { color: COLORS.danger }]}>
+                  - Rp {Number(item.gross_amount).toLocaleString("id-ID")}
+                </Text>
               </View>
             ))
           )}
         </Animated.View>
-
       </ScrollView>
     </View>
   );
@@ -226,32 +310,91 @@ export default function PaymentDetail() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, paddingTop: 50 },
   centerContainer: { flex: 1, justifyContent: "center", paddingHorizontal: 20 },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 16, zIndex: 10 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    zIndex: 10,
+  },
   backBtn: { padding: 4 },
   title: { fontSize: 18, fontWeight: "700", color: COLORS.text },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
-  
-  deviceCard: { backgroundColor: "#FFFFFF", borderRadius: 24, padding: 20, flexDirection: "row", alignItems: "center", ...SHADOW.card, marginBottom: 16 },
+
+  deviceCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    ...SHADOW.card,
+    marginBottom: 16,
+  },
   deviceImage: { width: 50, height: 80, marginRight: 20 },
   deviceInfo: { flex: 1 },
-  deviceName: { fontSize: 18, fontWeight: "800", color: COLORS.text, marginBottom: 4 },
+  deviceName: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: COLORS.text,
+    marginBottom: 4,
+  },
   devicePhone: { fontSize: 14, color: COLORS.textMuted, marginBottom: 8 },
-  statusBadge: { alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+  statusBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
   statusText: { color: "#FFFFFF", fontSize: 11, fontWeight: "700" },
 
-  totalCard: { borderRadius: 24, padding: 24, marginBottom: 16, ...SHADOW.card },
+  totalCard: {
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 16,
+    ...SHADOW.card,
+  },
   totalLabel: { color: "#FFFFFF", fontSize: 13, marginBottom: 6 },
   totalValue: { color: "#FFFFFF", fontSize: 32, fontWeight: "800" },
 
   filterContainer: { flexDirection: "row", gap: 10, marginBottom: 16 },
-  filterChip: { paddingHorizontal: 18, paddingVertical: 8, backgroundColor: "#FFFFFF", borderRadius: 20, borderWidth: 1, borderColor: "#E5E7EB" },
+  filterChip: {
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
   filterChipText: { fontSize: 12, fontWeight: "600", color: COLORS.textMuted },
   filterChipTextActive: { color: "#FFFFFF" },
-  chartCard: { backgroundColor: "#FFFFFF", borderRadius: 24, padding: 20, paddingTop: 30, ...SHADOW.card, marginBottom: 24 },
+  chartCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 20,
+    paddingTop: 30,
+    ...SHADOW.card,
+    marginBottom: 24,
+  },
 
   historySection: { marginTop: 8 },
-  historyTitle: { fontSize: 16, fontWeight: "700", color: COLORS.text, marginBottom: 16 },
-  historyItem: { backgroundColor: "#FFFFFF", borderRadius: 16, padding: 18, flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12, ...SHADOW.card, elevation: 2 },
+  historyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginBottom: 16,
+  },
+  historyItem: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 18,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+    ...SHADOW.card,
+    elevation: 2,
+  },
   historyDate: { fontSize: 14, color: COLORS.textMuted, fontWeight: "500" },
   historyAmount: { fontSize: 15, fontWeight: "700" },
 });
