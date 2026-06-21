@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   FlatList,
@@ -30,6 +31,7 @@ const BRAND_IMAGES: Record<string, any> = {
 const DEFAULT_IMAGE = require("../../../assets/devices/default.png");
 
 export default function PaymentScreen() {
+  const router = useRouter();
   const [filter, setFilter] = useState<"today" | "month" | "all">("today");
 
   const {
@@ -88,7 +90,11 @@ export default function PaymentScreen() {
 
     return (
       <FadeInView>
-        <TouchableOpacity activeOpacity={0.85} style={styles.card}>
+        <TouchableOpacity 
+          activeOpacity={0.85} 
+          style={styles.card}
+          onPress={() => router.push({ pathname: "/payment-detail", params: { id: item.id } })}
+        >
           <Image
             source={imageSource}
             resizeMode="contain"
@@ -214,18 +220,15 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     paddingTop: 60,
   },
-
   header: {
     paddingHorizontal: 20,
     marginBottom: 16,
   },
-
   title: {
     fontSize: 22,
     fontWeight: "800",
     color: COLORS.text,
   },
-
   summaryCard: {
     marginHorizontal: 20,
     backgroundColor: COLORS.primary,
@@ -233,19 +236,16 @@ const styles = StyleSheet.create({
     padding: 24,
     ...SHADOW.card,
   },
-
   summaryLabel: {
     color: "rgba(255,255,255,0.8)",
     fontSize: 13,
   },
-
   summaryValue: {
     color: "#FFFFFF",
     fontSize: 32,
     fontWeight: "800",
     marginTop: 4,
   },
-
   filterTabs: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -253,32 +253,26 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 20,
   },
-
   filterTab: {
     paddingBottom: 10,
   },
-
   activeTab: {
     borderBottomWidth: 2,
     borderBottomColor: COLORS.primary,
   },
-
   filterText: {
     color: COLORS.textMuted,
     fontSize: 14,
     fontWeight: "600",
   },
-
   activeText: {
     color: COLORS.primary,
     fontWeight: "700",
   },
-
   list: {
     paddingHorizontal: 20,
     paddingBottom: 120,
   },
-
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
@@ -288,29 +282,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     ...SHADOW.card,
   },
-
   deviceImage: {
     width: 42,
     height: 42,
     marginRight: 12,
   },
-
   cardContent: {
     flex: 1,
   },
-
   deviceName: {
     fontSize: 14,
     fontWeight: "700",
     color: COLORS.text,
   },
-
   dateText: {
     fontSize: 12,
     color: COLORS.textMuted,
     marginTop: 3,
   },
-
   amountText: {
     fontSize: 15,
     fontWeight: "700",
