@@ -7,7 +7,9 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Modal,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -17,11 +19,8 @@ import {
 
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
-import BrandFilterSheet from "../../components/bottom-sheet/BrandFilterSheet";
 import EmptyState from "../../components/ui/EmptyState";
-
 import { getDevicesWithBalance } from "../../features/devices/api";
-
 import { COLORS } from "../../theme";
 
 const BRAND_IMAGES: Record<string, any> = {
@@ -35,11 +34,24 @@ const BRAND_IMAGES: Record<string, any> = {
 
 const DEFAULT_IMAGE = require("../../../assets/devices/default.png");
 
+const FILTER_OPTIONS = [
+  { label: "Semua", value: "Semua" },
+  { label: "Pendapatan Tertinggi", value: "Pendapatan Tertinggi" },
+  { label: "Aktif", value: "Aktif" },
+  { label: "Nonaktif", value: "Nonaktif" },
+  { label: "Samsung", value: "Samsung" },
+  { label: "Oppo", value: "Oppo" },
+  { label: "Vivo", value: "Vivo" },
+  { label: "Xiaomi", value: "Xiaomi" },
+  { label: "Realme", value: "Realme" },
+  { label: "Infinix", value: "Infinix" },
+];
+
 export default function DevicesScreen() {
   const router = useRouter();
 
   const [search, setSearch] = useState("");
-  const [selectedBrand, setSelectedBrand] = useState("Semua");
+  const [activeFilter, setActiveFilter] = useState("Semua");
   const [showFilter, setShowFilter] = useState(false);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
@@ -50,20 +62,35 @@ export default function DevicesScreen() {
   const devices = data || [];
 
   const filteredDevices = useMemo(() => {
-    let result = devices;
+    let result = [...devices]; // Copy array agar tidak merusak data asli saat di-sort
 
-    if (selectedBrand !== "Semua") {
-      result = result.filter((item) => item.brand === selectedBrand);
+    // 1. Terapkan logika berdasarkan filter yang dipilih
+    if (activeFilter === "Aktif") {
+      result = result.filter((item) => item.is_active === true);
+    } else if (activeFilter === "Nonaktif") {
+      result = result.filter((item) => item.is_active === false);
+    } else if (
+      ["Samsung", "Oppo", "Vivo", "Xiaomi", "Realme", "Infinix"].includes(
+        activeFilter
+      )
+    ) {
+      result = result.filter((item) => item.brand === activeFilter);
     }
 
+    // 2. Sort untuk Pendapatan Tertinggi
+    if (activeFilter === "Pendapatan Tertinggi") {
+      result.sort((a, b) => Number(b.balance || 0) - Number(a.balance || 0));
+    }
+
+    // 3. Terapkan Pencarian Teks
     if (search) {
       result = result.filter((item) =>
-        item.device_name?.toLowerCase().includes(search.toLowerCase()),
+        item.device_name?.toLowerCase().includes(search.toLowerCase())
       );
     }
 
     return result;
-  }, [devices, search, selectedBrand]);
+  }, [devices, search, activeFilter]);
 
   const renderItem = ({ item, index }: any) => {
     const imageSource = BRAND_IMAGES[item.brand] || DEFAULT_IMAGE;
@@ -148,15 +175,15 @@ export default function DevicesScreen() {
             />
           </View>
 
+          {/* Tombol Filter yang sudah dihapus background birunya */}
           <TouchableOpacity
             style={styles.filterBtn}
             onPress={() => setShowFilter(true)}
           >
-            <Filter size={20} color="#FFF" />
+            <Filter size={24} color={COLORS.primary} />
           </TouchableOpacity>
         </Animated.View>
 
-        {/* --- Bagian Total Perangkat --- */}
         <Animated.View entering={FadeInUp.delay(120)} style={styles.totalRow}>
           <Text style={styles.totalLabel}>Total perangkat</Text>
           <Text style={styles.totalValue}>{filteredDevices.length}</Text>
@@ -174,7 +201,7 @@ export default function DevicesScreen() {
           >
             <EmptyState
               title="Belum Ada Perangkat"
-              subtitle="Tambahkan perangkat pertama Anda"
+              subtitle="Data tidak ditemukan atau filter kosong"
             />
           </Animated.View>
         ) : (
@@ -191,15 +218,46 @@ export default function DevicesScreen() {
         )}
       </View>
 
-      <BrandFilterSheet
-        visible={showFilter}
-        selectedBrand={selectedBrand}
-        onClose={() => setShowFilter(false)}
-        onSelect={(brand) => {
-          setSelectedBrand(brand);
-          setShowFilter(false);
-        }}
-      />
+      {/* --- MENU DROPDOWN FILTER MELAYANG --- */}
+      <Modal visible={showFilter} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowFilter(false)} // Klik di luar akan menutup filter
+        >
+          <View style={styles.dropdownMenu}>
+            <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+              {FILTER_OPTIONS.map((option, index) => {
+                const isActive = activeFilter === option.value;
+                return (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.dropdownItem,
+                      index !== FILTER_OPTIONS.length - 1 && styles.dropdownItemBorder
+                    ]}
+                    onPress={() => {
+                      setActiveFilter(option.value);
+                      setShowFilter(false); // Tutup setelah memilih
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        isActive && styles.dropdownItemTextActive,
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                    {/* Jika aktif, munculkan titik warna */}
+                    {isActive && <View style={styles.activeDot} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </>
   );
 }
@@ -229,42 +287,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  statsRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-
-  statCard: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
-    elevation: 3,
-    borderRadius: 20,
-    padding: 18,
-  },
-
-  statsLabel: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-    marginBottom: 6,
-  },
-
-  statsValue: {
-    fontSize: 24,
-    fontWeight: "800",
-  },
-
   searchRow: {
     flexDirection: "row",
     paddingHorizontal: 20,
     marginBottom: 16,
     gap: 10,
+    alignItems: "center",
   },
 
   searchBox: {
@@ -278,10 +306,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e8e8e8",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 15,
     elevation: 3,
@@ -293,25 +318,15 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
 
+  // --- Style Baru untuk Filter (Tanpa Lingkaran Biru) ---
   filterBtn: {
-    width: 54,
+    width: 50,
     height: 54,
-    borderRadius: 30,
-    backgroundColor: COLORS.primary,
-    borderColor: "#e8e8e8",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
-    elevation: 3,
     justifyContent: "center",
     alignItems: "center",
   },
+  // -----------------------------------------------------
 
-  // --- Style Baru untuk Total Perangkat ---
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -330,7 +345,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: COLORS.primary,
   },
-  // ----------------------------------------
 
   list: {
     paddingHorizontal: 20,
@@ -345,10 +359,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 15,
     elevation: 3,
@@ -395,5 +406,59 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 999,
+  },
+
+  // --- STYLE UNTUK DROPDOWN MELAYANG ---
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "transparent",
+  },
+
+  dropdownMenu: {
+    position: "absolute",
+    top: 165, // Letak persis di bawah search bar
+    right: 20,
+    width: 220,
+    maxHeight: 350, // Agar tidak kepanjangan dan bisa di-scroll
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingVertical: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 100,
+  },
+
+  dropdownItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+
+  dropdownItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+
+  dropdownItemText: {
+    fontSize: 14,
+    color: COLORS.text,
+    fontWeight: "500",
+  },
+
+  dropdownItemTextActive: {
+    color: COLORS.primary,
+    fontWeight: "800",
+  },
+
+  activeDot: {
+    width: 8,
+    height: 8,
+    backgroundColor: COLORS.primary,
+    borderRadius: 4,
   },
 });
