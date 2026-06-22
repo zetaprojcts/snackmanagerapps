@@ -149,7 +149,7 @@ export default function DeviceDetail() {
       value: totalValue,
       label: label,
       frontColor: totalValue === 0 ? "#E2E8F0" : activeColor,
-      topLabelComponent = () => {
+      topLabelComponent: () => { // PERBAIKAN TYPO DI SINI: "=" diganti ":"
         if (!isSelected || totalValue === 0) return null;
         return (
           <View style={{ width: 120, marginLeft: -60 + (currentBarWidth / 2), alignItems: 'center', paddingBottom: 6 }}>
@@ -677,6 +677,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: { fontSize: 12, fontWeight: "600", color: COLORS.textMuted },
   filterChipTextActive: { color: "#FFFFFF" },
+  
   chartContainer: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
@@ -707,6 +708,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textAlign: "center",
   },
+  
   activitySection: { marginHorizontal: 20, marginTop: 24 },
   activityHeader: {
     flexDirection: "row",
