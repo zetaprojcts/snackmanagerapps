@@ -151,14 +151,17 @@ export default function DeviceDetail() {
       topLabelComponent: () => {
         if (!isSelected || totalValue === 0) return null;
         return (
-          <Animated.View
-            entering={FadeIn.duration(200)}
-            style={styles.tooltipContainer}
-          >
-            <Text style={styles.tooltipText}>
-              {totalValue.toLocaleString("id-ID")}
-            </Text>
-          </Animated.View>
+          // Wrapper ini menjaga posisi Tooltip agar pas di tengah batang secara dinamis
+          <View style={{ width: periodFilter === "7days" ? 22 : 16, alignItems: 'center', overflow: 'visible' }}>
+            <Animated.View
+              entering={FadeIn.duration(200)}
+              style={styles.floatingTooltip}
+            >
+              <Text style={styles.floatingTooltipText}>
+                Rp {totalValue.toLocaleString("id-ID")}
+              </Text>
+            </Animated.View>
+          </View>
         );
       },
       opacity: selectedIndex === null || isSelected ? 1 : 0.4,
@@ -438,6 +441,7 @@ export default function DeviceDetail() {
                 height={160}
                 barWidth={periodFilter === "7days" ? 22 : 16}
                 spacing={periodFilter === "7days" ? 20 : 12}
+                endSpacing={30} // Mencegah batas sumbu/batang terpotong kaku di ujung kanan (Solusi Gambar 4)
                 noOfSections={5}
                 maxValue={chartMaxValue}
                 yAxisLabelTexts={yAxisLabelTexts}
@@ -447,6 +451,7 @@ export default function DeviceDetail() {
                 xAxisColor="#E2E8F0"
                 isAnimated
                 animationDuration={800}
+                topLabelContainerHeight={50} // Ruang napas langit-langit agar tooltip melayang utuh (Solusi Gambar 1-3)
                 xAxisLabelTextStyle={{
                   color: COLORS.textMuted,
                   fontSize: 10,
@@ -671,32 +676,44 @@ const styles = StyleSheet.create({
   },
   filterChipText: { fontSize: 12, fontWeight: "600", color: COLORS.textMuted },
   filterChipTextActive: { color: "#FFFFFF" },
+  
+  // Style Chart Container Diperbarui
   chartContainer: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
-    padding: 20,
+    paddingLeft: 20,
+    paddingRight: 10,
+    paddingBottom: 20,
     paddingTop: 32,
     marginHorizontal: 20,
+    overflow: "hidden", // Mencegah kebocoran sumbu ke sudut lengkung Card
     ...SHADOW.card,
   },
-  tooltipContainer: {
-    position: "absolute",
-    bottom: 4,
-    width: 80,
-    left: -30,
-    backgroundColor: "#1A1A1A",
-    paddingVertical: 5,
-    borderRadius: 6,
-    alignItems: "center",
+  
+  // Style Tooltip Melayang Baru
+  floatingTooltip: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 12, // Padding fleksibel mengisi panjang teks
+    paddingVertical: 6,
+    borderRadius: 8,
     justifyContent: "center",
-    zIndex: 999,
+    alignItems: "center",
+    marginBottom: 6, // Jarak sedikit dari kepala batang
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
   },
-  tooltipText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "700",
+  floatingTooltipText: {
+    color: COLORS.text,
+    fontSize: 11,
+    fontWeight: "800",
     textAlign: "center",
   },
+
   activitySection: { marginHorizontal: 20, marginTop: 24 },
   activityHeader: {
     flexDirection: "row",
