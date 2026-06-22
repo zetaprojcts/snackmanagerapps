@@ -136,7 +136,7 @@ export default function PaymentDetail() {
     else if (periodFilter === "custom" && datesArray.length <= 7) label = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"][date.getDay()];
 
     const isSelected = selectedIndex === index;
-    const activeColor = COLORS.warning; // Konsisten menggunakan COLORS.warning
+    const activeColor = COLORS.warning;
 
     return {
       value: totalValue,
@@ -228,13 +228,12 @@ export default function PaymentDetail() {
                 noOfSections={5}
                 maxValue={chartMaxValue}
                 yAxisLabelTexts={yAxisLabelTexts}
-                yAxisLabelWidth={70}
+                yAxisLabelWidth={65}
                 yAxisThickness={0}
                 xAxisThickness={1}
                 xAxisColor="#E2E8F0"
                 isAnimated
                 animationDuration={800}
-                topLabelContainerHeight={60}
                 xAxisLabelTextStyle={{ color: COLORS.textMuted, fontSize: 10, textAlign: "center" }}
                 yAxisTextStyle={{ color: COLORS.textMuted, fontSize: 11 }}
                 onPress={(item: any, index: number) => { animateLayout(); setSelectedIndex(selectedIndex === index ? null : index); }}
@@ -280,7 +279,6 @@ export default function PaymentDetail() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, paddingTop: 50 },
-  centerContainer: { flex: 1, justifyContent: "center", paddingHorizontal: 20 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 16, zIndex: 10 },
   backBtn: { padding: 4 },
   title: { fontSize: 18, fontWeight: "700", color: COLORS.text },
@@ -300,7 +298,7 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   filterChipText: { fontSize: 12, fontWeight: "600", color: COLORS.textMuted },
   filterChipTextActive: { color: "#FFFFFF" },
-  chartContainer: { backgroundColor: "#FFFFFF", borderRadius: 24, paddingHorizontal: 20, paddingBottom: 20, paddingTop: 32, marginHorizontal: 20, marginBottom: 24, ...SHADOW.card },
+  chartContainer: { backgroundColor: "#FFFFFF", borderRadius: 24, paddingHorizontal: 20, paddingBottom: 20, paddingTop: 60, marginHorizontal: 20, marginBottom: 24, ...SHADOW.card },
   floatingTooltip: { backgroundColor: "#FFFFFF", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, justifyContent: "center", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 6, borderWidth: 1, borderColor: "#F1F5F9" },
   floatingTooltipText: { color: COLORS.text, fontSize: 11, fontWeight: "800", textAlign: "center" },
   historySection: { marginTop: 8, marginHorizontal: 20 },
