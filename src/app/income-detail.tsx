@@ -19,11 +19,7 @@ import { BarChart } from "react-native-gifted-charts";
 import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 
 import EmptyState from "../components/ui/EmptyState";
-import {
-  BalanceCardSkeleton,
-  DeviceCardSkeleton,
-  TransactionCardSkeleton,
-} from "../components/ui/Skeleton";
+import { DeviceCardSkeleton } from "../components/ui/Skeleton";
 import { fetchIncomes, getIncomeById } from "../features/income/api";
 import { COLORS, SHADOW } from "../theme";
 
@@ -131,7 +127,6 @@ export default function IncomeDetail() {
     });
 
     const totalValue = itemsForDate.reduce((sum: number, item: any) => sum + Number(item.amount), 0);
-
     let label = date.getDate().toString();
     if (periodFilter === "7days") label = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"][index];
     else if (periodFilter === "custom" && datesArray.length <= 7) label = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"][date.getDay()];
@@ -149,9 +144,7 @@ export default function IncomeDetail() {
           <View style={{ width: currentBarWidth, alignItems: 'center', overflow: 'visible' }}>
             <View style={{ position: "absolute", bottom: 4, width: 150, alignItems: "center", zIndex: 999 }}>
               <Animated.View entering={FadeIn.duration(200)} style={styles.floatingTooltip}>
-                <Text style={styles.floatingTooltipText} numberOfLines={1}>
-                  Rp {totalValue.toLocaleString("id-ID")}
-                </Text>
+                <Text style={styles.floatingTooltipText} numberOfLines={1}>Rp {totalValue.toLocaleString("id-ID")}</Text>
               </Animated.View>
             </View>
           </View>
@@ -180,21 +173,7 @@ export default function IncomeDetail() {
 
   const isLoading = loadingDetail || loadingAll;
 
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}><ChevronLeft size={24} color={COLORS.text} /></TouchableOpacity>
-          <Text style={styles.title}>Detail Pendapatan</Text>
-          <View style={{ width: 24 }} />
-        </View>
-        <ScrollView style={{ paddingHorizontal: 20 }}>
-          <DeviceCardSkeleton /><View style={{ height: 16 }} /><BalanceCardSkeleton /><View style={{ height: 16 }} /><TransactionCardSkeleton />
-        </ScrollView>
-      </View>
-    );
-  }
-
+  if (isLoading) return <View style={styles.container}><DeviceCardSkeleton /></View>;
   if (!incomeDetail) return <View style={styles.centerContainer}><EmptyState title="Data Tidak Ditemukan" subtitle="Income tidak tersedia" /></View>;
 
   return (
@@ -223,9 +202,7 @@ export default function IncomeDetail() {
 
           <Animated.View entering={FadeInUp.delay(100)}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterContainer}>
-              {[
-                { id: "7days", label: "7 Hari" }, { id: "this_month", label: "Bulan Ini" }, { id: "last_month", label: "Bulan Lalu" }, { id: "custom", label: "Tanggal...", isCustom: true },
-              ].map((item) => (
+              {[ { id: "7days", label: "7 Hari" }, { id: "this_month", label: "Bulan Ini" }, { id: "last_month", label: "Bulan Lalu" }, { id: "custom", label: "Tanggal...", isCustom: true }, ].map((item) => (
                 <TouchableOpacity key={item.id} style={[styles.filterChip, periodFilter === item.id && styles.filterChipActive]} onPress={() => { animateLayout(); if (item.isCustom) setShowCustomDateModal(true); else setPeriodFilter(item.id as any); setSelectedIndex(null); }}>
                   {item.isCustom && <Calendar size={12} color={periodFilter === item.id ? "#FFF" : COLORS.textMuted} style={{ marginRight: 6 }} />}
                   <Text style={[styles.filterChipText, periodFilter === item.id && styles.filterChipTextActive]}>{item.label}</Text>
@@ -251,7 +228,6 @@ export default function IncomeDetail() {
                 xAxisColor="#E2E8F0"
                 isAnimated
                 animationDuration={800}
-                topLabelContainerHeight={60}
                 xAxisLabelTextStyle={{ color: COLORS.textMuted, fontSize: 10, textAlign: "center" }}
                 yAxisTextStyle={{ color: COLORS.textMuted, fontSize: 11 }}
                 onPress={(item: any, index: number) => { animateLayout(); setSelectedIndex(selectedIndex === index ? null : index); }}
@@ -297,7 +273,6 @@ export default function IncomeDetail() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, paddingTop: 50 },
-  centerContainer: { flex: 1, justifyContent: "center", paddingHorizontal: 20 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 16, zIndex: 10 },
   backBtn: { padding: 4 },
   title: { fontSize: 18, fontWeight: "700", color: COLORS.text },
@@ -317,7 +292,7 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   filterChipText: { fontSize: 12, fontWeight: "600", color: COLORS.textMuted },
   filterChipTextActive: { color: "#FFFFFF" },
-  chartContainer: { backgroundColor: "#FFFFFF", borderRadius: 24, paddingHorizontal: 20, paddingBottom: 20, paddingTop: 32, marginHorizontal: 20, marginBottom: 24, ...SHADOW.card },
+  chartContainer: { backgroundColor: "#FFFFFF", borderRadius: 24, paddingHorizontal: 20, paddingBottom: 20, paddingTop: 60, marginHorizontal: 20, marginBottom: 24, ...SHADOW.card },
   floatingTooltip: { backgroundColor: "#FFFFFF", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, justifyContent: "center", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 6, borderWidth: 1, borderColor: "#F1F5F9" },
   floatingTooltipText: { color: COLORS.text, fontSize: 11, fontWeight: "800", textAlign: "center" },
   historySection: { marginTop: 8, marginHorizontal: 20 },
