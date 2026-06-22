@@ -120,6 +120,7 @@ export default function PaymentDetail() {
   }, [devicePayments]);
 
   const datesArray = getDatesArray();
+  const currentBarWidth = periodFilter === "7days" ? 22 : 16;
 
   const chartData = datesArray.map((date, index) => {
     const dateString = date.toLocaleDateString("en-CA");
@@ -135,7 +136,7 @@ export default function PaymentDetail() {
     else if (periodFilter === "custom" && datesArray.length <= 7) label = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"][date.getDay()];
 
     const isSelected = selectedIndex === index;
-    const activeColor = COLORS.warning; // Menggunakan COLORS.warning
+    const activeColor = COLORS.warning; // Konsisten menggunakan COLORS.warning
 
     return {
       value: totalValue,
@@ -144,9 +145,9 @@ export default function PaymentDetail() {
       topLabelComponent: () => {
         if (!isSelected || totalValue === 0) return null;
         return (
-          <View style={{ width: periodFilter === "7days" ? 22 : 16, alignItems: 'center', overflow: 'visible' }}>
+          <View style={{ width: 120, marginLeft: -60 + (currentBarWidth / 2), alignItems: 'center', paddingBottom: 6 }}>
             <Animated.View entering={FadeIn.duration(200)} style={styles.floatingTooltip}>
-              <Text style={styles.floatingTooltipText}>Rp {totalValue.toLocaleString("id-ID")}</Text>
+              <Text style={styles.floatingTooltipText} numberOfLines={1}>Rp {totalValue.toLocaleString("id-ID")}</Text>
             </Animated.View>
           </View>
         );
@@ -218,19 +219,20 @@ export default function PaymentDetail() {
                 key={`chart-payment-${periodFilter}-${chartData.length}`}
                 data={chartData}
                 height={160}
-                barWidth={periodFilter === "7days" ? 22 : 16}
+                barWidth={currentBarWidth}
                 spacing={periodFilter === "7days" ? 20 : 12}
-                endSpacing={30}
+                initialSpacing={20}
+                endSpacing={20}
                 noOfSections={5}
                 maxValue={chartMaxValue}
                 yAxisLabelTexts={yAxisLabelTexts}
-                yAxisLabelWidth={70}
+                yAxisLabelWidth={65}
                 yAxisThickness={0}
                 xAxisThickness={1}
                 xAxisColor="#E2E8F0"
                 isAnimated
                 animationDuration={800}
-                topLabelContainerHeight={50}
+                topLabelContainerHeight={60}
                 xAxisLabelTextStyle={{ color: COLORS.textMuted, fontSize: 10, textAlign: "center" }}
                 yAxisTextStyle={{ color: COLORS.textMuted, fontSize: 11 }}
                 onPress={(item: any, index: number) => { animateLayout(); setSelectedIndex(selectedIndex === index ? null : index); }}
@@ -296,14 +298,14 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   filterChipText: { fontSize: 12, fontWeight: "600", color: COLORS.textMuted },
   filterChipTextActive: { color: "#FFFFFF" },
-  chartContainer: { backgroundColor: "#FFFFFF", borderRadius: 24, paddingLeft: 20, paddingRight: 10, paddingBottom: 20, paddingTop: 32, marginHorizontal: 20, marginBottom: 24, overflow: "hidden", ...SHADOW.card },
-  floatingTooltip: { backgroundColor: "#FFFFFF", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, justifyContent: "center", alignItems: "center", marginBottom: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 6, borderWidth: 1, borderColor: "#F1F5F9" },
+  chartContainer: { backgroundColor: "#FFFFFF", borderRadius: 24, paddingHorizontal: 20, paddingBottom: 20, paddingTop: 32, marginHorizontal: 20, marginBottom: 24, ...SHADOW.card },
+  floatingTooltip: { backgroundColor: "#FFFFFF", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, justifyContent: "center", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 6, borderWidth: 1, borderColor: "#F1F5F9" },
   floatingTooltipText: { color: COLORS.text, fontSize: 11, fontWeight: "800", textAlign: "center" },
   historySection: { marginTop: 8, marginHorizontal: 20 },
   historyTitle: { fontSize: 16, fontWeight: "700", color: COLORS.text, marginBottom: 16 },
   historyItem: { backgroundColor: "#FFFFFF", borderRadius: 16, padding: 18, flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12, ...SHADOW.card },
   historyDate: { fontSize: 14, color: COLORS.textMuted, fontWeight: "500" },
-  historyAmount: { fontSize: 15, fontWeight: "700", color: COLORS.warning }, // Menggunakan COLORS.warning
+  historyAmount: { fontSize: 15, fontWeight: "700", color: COLORS.warning }, 
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: 20 },
   modalContent: { width: "100%", backgroundColor: "#FFFFFF", borderRadius: 24, padding: 24, ...SHADOW.card },
   modalTitle: { fontSize: 18, fontWeight: "800", color: COLORS.text, marginBottom: 20 },
