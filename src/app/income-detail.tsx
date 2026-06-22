@@ -48,10 +48,8 @@ export default function IncomeDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
 
-  // State Filter Periode
   const [periodFilter, setPeriodFilter] = useState<"7days" | "this_month" | "last_month" | "custom">("7days");
   
-  // State Custom Date
   const [showCustomDateModal, setShowCustomDateModal] = useState(false);
   const [customStartDate, setCustomStartDate] = useState<Date>(new Date());
   const [customEndDate, setCustomEndDate] = useState<Date>(new Date());
@@ -77,7 +75,6 @@ export default function IncomeDetail() {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   };
 
-  // 1. Ambil semua income khusus perangkat ini
   const deviceIncomes = useMemo(() => {
     if (!allIncomes || !device) return [];
     return allIncomes
@@ -85,12 +82,10 @@ export default function IncomeDetail() {
       .sort((a: any, b: any) => new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime());
   }, [allIncomes, device]);
 
-  // 2. Hitung Total Keseluruhan
   const totalDeviceIncome = useMemo(() => {
     return deviceIncomes.reduce((total: number, item: any) => total + Number(item.amount || 0), 0);
   }, [deviceIncomes]);
 
-  // 3. Logika Slot Tanggal Chart
   const getDatesArray = () => {
     const dates = [];
     const now = new Date();
@@ -127,6 +122,9 @@ export default function IncomeDetail() {
   };
 
   const datesArray = getDatesArray();
+  
+  // Variabel lebar batang disiapkan di luar untuk kalkulasi Tooltip
+  const currentBarWidth = periodFilter === "7days" ? 22 : 16;
 
   const chartData = datesArray.map((date, index) => {
     const dateString = date.toLocaleDateString("en-CA");
@@ -143,7 +141,7 @@ export default function IncomeDetail() {
     else if (periodFilter === "custom" && datesArray.length <= 7) label = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"][date.getDay()];
 
     const isSelected = selectedIndex === index;
-    const activeColor = COLORS.primary; // Warna Biru khusus Pendapatan
+    const activeColor = COLORS.primary; 
 
     return {
       value: totalValue,
@@ -152,9 +150,10 @@ export default function IncomeDetail() {
       topLabelComponent: () => {
         if (!isSelected || totalValue === 0) return null;
         return (
-          <View style={{ width: periodFilter === "7days" ? 22 : 16, alignItems: 'center', overflow: 'visible' }}>
+          // PERBAIKAN TOOLTIP: Lebar 120px dengan posisi margin negatif agar presisi di tengah batang
+          <View style={{ width: 120, marginLeft: -60 + (currentBarWidth / 2), alignItems: 'center', paddingBottom: 6 }}>
             <Animated.View entering={FadeIn.duration(200)} style={styles.floatingTooltip}>
-              <Text style={styles.floatingTooltipText}>
+              <Text style={styles.floatingTooltipText} numberOfLines={1}>
                 Rp {totalValue.toLocaleString("id-ID")}
               </Text>
             </Animated.View>
@@ -286,19 +285,20 @@ export default function IncomeDetail() {
                 key={`chart-income-${periodFilter}-${chartData.length}`}
                 data={chartData}
                 height={160}
-                barWidth={periodFilter === "7days" ? 22 : 16}
+                barWidth={currentBarWidth}
                 spacing={periodFilter === "7days" ? 20 : 12}
-                endSpacing={30} // Mencegah batas terpotong di ujung kanan
+                initialSpacing={20} // PERBAIKAN: Spacing awal agar tidak mentok kiri
+                endSpacing={20} // PERBAIKAN: Spacing akhir agar tidak mentok kanan
                 noOfSections={5}
                 maxValue={chartMaxValue}
                 yAxisLabelTexts={yAxisLabelTexts}
-                yAxisLabelWidth={70}
+                yAxisLabelWidth={65}
                 yAxisThickness={0}
                 xAxisThickness={1}
                 xAxisColor="#E2E8F0"
                 isAnimated
                 animationDuration={800}
-                topLabelContainerHeight={50} // Ruang napas langit-langit agar tooltip utuh
+                topLabelContainerHeight={60} // PERBAIKAN: Ruang napas di atas batang
                 xAxisLabelTextStyle={{ color: COLORS.textMuted, fontSize: 10, textAlign: "center" }}
                 yAxisTextStyle={{ color: COLORS.textMuted, fontSize: 11 }}
                 onPress={(item: any, index: number) => {
@@ -323,7 +323,6 @@ export default function IncomeDetail() {
                       day: "numeric", month: "numeric", year: "numeric",
                     })}
                   </Text>
-                  {/* Teks Hijau untuk Pendapatan */}
                   <Text style={styles.historyAmount}>
                     + Rp {Number(item.amount).toLocaleString("id-ID")}
                   </Text>
@@ -394,29 +393,26 @@ const styles = StyleSheet.create({
   filterChipText: { fontSize: 12, fontWeight: "600", color: COLORS.textMuted },
   filterChipTextActive: { color: "#FFFFFF" },
   
-  // CHART CONTAINER
+  // CHART CONTAINER (Simetris & Tanpa Overflow Hidden)
   chartContainer: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
-    paddingLeft: 20,
-    paddingRight: 10,
+    paddingHorizontal: 20, // Kiri Kanan Simetris
     paddingBottom: 20,
     paddingTop: 32,
     marginHorizontal: 20,
     marginBottom: 24,
-    overflow: "hidden", // Mencegah kebocoran sumbu ke sudut lengkung Card
     ...SHADOW.card,
   },
 
-  // TOOLTIP MELAYANG
+  // TOOLTIP MELAYANG (Fleksibel)
   floatingTooltip: {
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 12, // Padding fleksibel mengisi panjang teks
-    paddingVertical: 6,
+    paddingHorizontal: 14, 
+    paddingVertical: 8,
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 6, 
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
