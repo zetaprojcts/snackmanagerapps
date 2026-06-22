@@ -119,6 +119,7 @@ export default function DeviceDetail() {
 
   const chartSourceRaw = metricTab === "income" ? incomes : payments;
   const datesArray = getDatesArray();
+  const currentBarWidth = periodFilter === "7days" ? 22 : 16;
 
   const chartData = datesArray.map((date, index) => {
     const dateString = date.toLocaleDateString("en-CA");
@@ -148,16 +149,15 @@ export default function DeviceDetail() {
       value: totalValue,
       label: label,
       frontColor: totalValue === 0 ? "#E2E8F0" : activeColor,
-      topLabelComponent: () => {
+      topLabelComponent = () => {
         if (!isSelected || totalValue === 0) return null;
         return (
-          // Wrapper ini menjaga posisi Tooltip agar pas di tengah batang secara dinamis
-          <View style={{ width: periodFilter === "7days" ? 22 : 16, alignItems: 'center', overflow: 'visible' }}>
+          <View style={{ width: 120, marginLeft: -60 + (currentBarWidth / 2), alignItems: 'center', paddingBottom: 6 }}>
             <Animated.View
               entering={FadeIn.duration(200)}
               style={styles.floatingTooltip}
             >
-              <Text style={styles.floatingTooltipText}>
+              <Text style={styles.floatingTooltipText} numberOfLines={1}>
                 Rp {totalValue.toLocaleString("id-ID")}
               </Text>
             </Animated.View>
@@ -439,19 +439,20 @@ export default function DeviceDetail() {
                 key={`chart-${metricTab}-${periodFilter}-${chartData.length}`}
                 data={chartData}
                 height={160}
-                barWidth={periodFilter === "7days" ? 22 : 16}
+                barWidth={currentBarWidth}
                 spacing={periodFilter === "7days" ? 20 : 12}
-                endSpacing={30} // Mencegah batas sumbu/batang terpotong kaku di ujung kanan (Solusi Gambar 4)
+                initialSpacing={20}
+                endSpacing={20}
                 noOfSections={5}
                 maxValue={chartMaxValue}
                 yAxisLabelTexts={yAxisLabelTexts}
-                yAxisLabelWidth={70}
+                yAxisLabelWidth={65}
                 yAxisThickness={0}
                 xAxisThickness={1}
                 xAxisColor="#E2E8F0"
                 isAnimated
                 animationDuration={800}
-                topLabelContainerHeight={50} // Ruang napas langit-langit agar tooltip melayang utuh (Solusi Gambar 1-3)
+                topLabelContainerHeight={60}
                 xAxisLabelTextStyle={{
                   color: COLORS.textMuted,
                   fontSize: 10,
@@ -676,29 +677,22 @@ const styles = StyleSheet.create({
   },
   filterChipText: { fontSize: 12, fontWeight: "600", color: COLORS.textMuted },
   filterChipTextActive: { color: "#FFFFFF" },
-  
-  // Style Chart Container Diperbarui
   chartContainer: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
-    paddingLeft: 20,
-    paddingRight: 10,
+    paddingHorizontal: 20,
     paddingBottom: 20,
     paddingTop: 32,
     marginHorizontal: 20,
-    overflow: "hidden", // Mencegah kebocoran sumbu ke sudut lengkung Card
     ...SHADOW.card,
   },
-  
-  // Style Tooltip Melayang Baru
   floatingTooltip: {
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 12, // Padding fleksibel mengisi panjang teks
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 6, // Jarak sedikit dari kepala batang
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -713,7 +707,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textAlign: "center",
   },
-
   activitySection: { marginHorizontal: 20, marginTop: 24 },
   activityHeader: {
     flexDirection: "row",
