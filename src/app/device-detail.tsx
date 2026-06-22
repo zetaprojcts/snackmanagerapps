@@ -149,18 +149,20 @@ export default function DeviceDetail() {
       value: totalValue,
       label: label,
       frontColor: totalValue === 0 ? "#E2E8F0" : activeColor,
-      topLabelComponent: () => { // PERBAIKAN TYPO DI SINI: "=" diganti ":"
+      topLabelComponent: () => {
         if (!isSelected || totalValue === 0) return null;
         return (
-          <View style={{ width: 120, marginLeft: -60 + (currentBarWidth / 2), alignItems: 'center', paddingBottom: 6 }}>
-            <Animated.View
-              entering={FadeIn.duration(200)}
-              style={styles.floatingTooltip}
-            >
-              <Text style={styles.floatingTooltipText} numberOfLines={1}>
-                Rp {totalValue.toLocaleString("id-ID")}
-              </Text>
-            </Animated.View>
+          <View style={{ width: currentBarWidth, alignItems: 'center', overflow: 'visible' }}>
+            <View style={{ position: "absolute", bottom: 4, width: 150, alignItems: "center", zIndex: 999 }}>
+              <Animated.View
+                entering={FadeIn.duration(200)}
+                style={styles.floatingTooltip}
+              >
+                <Text style={styles.floatingTooltipText} numberOfLines={1}>
+                  Rp {totalValue.toLocaleString("id-ID")}
+                </Text>
+              </Animated.View>
+            </View>
           </View>
         );
       },
@@ -441,8 +443,8 @@ export default function DeviceDetail() {
                 height={160}
                 barWidth={currentBarWidth}
                 spacing={periodFilter === "7days" ? 20 : 12}
-                initialSpacing={20}
-                endSpacing={20}
+                initialSpacing={35} // FIX: Ruang aman di sebelah kiri
+                endSpacing={35}     // FIX: Ruang aman di sebelah kanan
                 noOfSections={5}
                 maxValue={chartMaxValue}
                 yAxisLabelTexts={yAxisLabelTexts}
