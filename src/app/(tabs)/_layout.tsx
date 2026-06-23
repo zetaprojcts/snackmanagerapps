@@ -7,29 +7,38 @@ import {
   Wallet,
 } from "lucide-react-native";
 import React from "react";
-import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+// 1. Import hook Safe Area
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { COLORS } from "@/src/theme";
 
 export default function TabLayout() {
   const router = useRouter();
 
+  // 2. Ambil nilai insets (area aman HP)
+  const insets = useSafeAreaInsets();
+
+  // 3. Kalkulasi tinggi dan padding dinamis
+  // Jika insets.bottom 0 (HP lama), gunakan minimal 10px.
+  // Jika HP modern (gesture bar), gunakan insets dari sistem.
+  const dynamicPaddingBottom = Math.max(insets.bottom, 10);
+  const dynamicHeight = 60 + dynamicPaddingBottom; // 60 adalah tinggi dasar area icon & text
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
-
         tabBarActiveTintColor: COLORS.primary,
-
         tabBarInactiveTintColor: COLORS.textMuted,
-
         tabBarStyle: {
           backgroundColor: "#FFFFFF",
           borderTopColor: COLORS.border,
           borderTopWidth: 1,
-          height: Platform.OS === "ios" ? 85 : 70,
-          paddingBottom: Platform.OS === "ios" ? 25 : 10,
+          // 4. Terapkan nilai dinamis di sini:
+          height: dynamicHeight,
+          paddingBottom: dynamicPaddingBottom,
           paddingTop: 10,
         },
       }}
@@ -38,7 +47,6 @@ export default function TabLayout() {
         name="devices"
         options={{
           title: "Perangkat",
-
           tabBarIcon: ({ color }) => <Smartphone size={22} color={color} />,
         }}
       />
@@ -47,7 +55,6 @@ export default function TabLayout() {
         name="income"
         options={{
           title: "Pendapatan",
-
           tabBarIcon: ({ color }) => (
             <ArrowDownToLine size={22} color={color} />
           ),
@@ -58,7 +65,6 @@ export default function TabLayout() {
         name="action"
         options={{
           title: "",
-
           tabBarButton: () => (
             <TouchableOpacity
               activeOpacity={0.8}
@@ -77,7 +83,6 @@ export default function TabLayout() {
         name="payment"
         options={{
           title: "Penarikan",
-
           tabBarIcon: ({ color }) => <Wallet size={22} color={color} />,
         }}
       />
@@ -86,7 +91,6 @@ export default function TabLayout() {
         name="balance"
         options={{
           title: "Saldo",
-
           tabBarIcon: ({ color }) => <Activity size={22} color={color} />,
         }}
       />
@@ -106,7 +110,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   fab: {
     width: 60,
     height: 60,

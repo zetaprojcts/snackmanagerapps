@@ -3,6 +3,8 @@ import {
   ArrowDownToLine,
   ArrowUpToLine,
   Filter,
+  TrendingDown,
+  TrendingUp,
   Wallet,
 } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
@@ -72,6 +74,7 @@ export default function BalanceScreen() {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   };
 
+  // Kalkulasi Saldo Utama
   const totalIncome =
     incomes?.reduce(
       (total: number, item: any) => total + Number(item.amount),
@@ -90,12 +93,65 @@ export default function BalanceScreen() {
       0,
     ) || 0;
 
-  // REVISI: Total Penarikan yang tampil adalah setelah dipotong biaya admin
   const totalNetPayment = totalGrossPayment - totalAdminFee;
-
-  // Total saldo utama tetap menggunakan gross payment sebagai pengurang
   const netBalance = totalIncome - totalGrossPayment;
 
+  // FITUR BARU: Kalkulasi Bulan Ini & Komparasi
+  const monthlyStats = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
+    const lastMonth = lastMonthDate.getMonth();
+    const lastMonthYear = lastMonthDate.getFullYear();
+
+    let incomeThisMonth = 0;
+    let incomeLastMonth = 0;
+    let paymentThisMonth = 0;
+    let paymentLastMonth = 0;
+
+    incomes?.forEach((item: any) => {
+      const amt = Number(item.amount || 0);
+      if (item.trx_date) {
+        const d = new Date(item.trx_date);
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear)
+          incomeThisMonth += amt;
+        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear)
+          incomeLastMonth += amt;
+      }
+    });
+
+    payments?.forEach((item: any) => {
+      // Menggunakan Net Amount (Gross - Admin) untuk perhitungan bulanan
+      const netAmt =
+        Number(item.gross_amount || 0) - Number(item.admin_fee || 0);
+      if (item.trx_date) {
+        const d = new Date(item.trx_date);
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear)
+          paymentThisMonth += netAmt;
+        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear)
+          paymentLastMonth += netAmt;
+      }
+    });
+
+    const calculatePercentage = (thisMonth: number, lastMonth: number) => {
+      if (lastMonth === 0) return thisMonth > 0 ? 100 : 0;
+      return ((thisMonth - lastMonth) / lastMonth) * 100;
+    };
+
+    return {
+      incomeThisMonth,
+      paymentThisMonth,
+      incomePercentage: calculatePercentage(incomeThisMonth, incomeLastMonth),
+      paymentPercentage: calculatePercentage(
+        paymentThisMonth,
+        paymentLastMonth,
+      ),
+    };
+  }, [incomes, payments]);
+
+  // Kalkulasi Aktivitas Terbaru
   const recentActivities = useMemo(() => {
     const incomeActivities =
       incomes?.map((item: any) => ({
@@ -115,24 +171,15 @@ export default function BalanceScreen() {
 
     let merged = [...incomeActivities, ...paymentActivities];
 
-    if (activityFilter === "income") {
-      merged = incomeActivities;
-    }
+    if (activityFilter === "income") merged = incomeActivities;
+    if (activityFilter === "payment") merged = paymentActivities;
 
-    if (activityFilter === "payment") {
-      merged = paymentActivities;
-    }
-
-    return (
-      merged
-        // REVISI: Urutan menurun (terbaru di atas)
-        .sort(
-          (a, b) =>
-            new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime(),
-        )
-        // REVISI: Maksimal 7 transaksi terakhir
-        .slice(0, 7)
-    );
+    return merged
+      .sort(
+        (a, b) =>
+          new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime(),
+      )
+      .slice(0, 10);
   }, [incomes, payments, activityFilter]);
 
   const onRefresh = () => {
@@ -148,17 +195,13 @@ export default function BalanceScreen() {
         <View style={styles.header}>
           <Text style={styles.pageTitle}>Dashboard Saldo</Text>
         </View>
-
         <View style={{ marginHorizontal: 20 }}>
           <BalanceCardSkeleton />
         </View>
-
         <View style={{ height: 16 }} />
-
         <View style={{ marginHorizontal: 20 }}>
           <BalanceCardSkeleton />
         </View>
-
         <View style={styles.activitySectionSkeleton}>
           <View style={styles.activityHeader}>
             <View
@@ -193,7 +236,6 @@ export default function BalanceScreen() {
       </Animated.View>
 
       <Animated.View entering={FadeInUp.delay(100)} style={styles.heroCard}>
-        {/* REVISI: Icon e-wallet pada Hero Card (Kanan) */}
         <View style={styles.heroContent}>
           <View>
             <Text style={styles.heroLabel}>Total Saldo</Text>
@@ -207,29 +249,96 @@ export default function BalanceScreen() {
         </View>
       </Animated.View>
 
-      <Animated.View entering={FadeInUp.delay(150)} style={styles.cardRow}>
-        <View style={styles.statCard}>
-          <View style={[styles.iconBox, { backgroundColor: COLORS.softGreen }]}>
-            <ArrowDownToLine size={16} color={COLORS.success} />
+      {/* REVISI: Tata Letak Card Sejajar Kiri-Kanan & Persentase */}
+      <Animated.View entering={FadeInUp.delay(150)} style={styles.gridColumn}>
+        {/* CARD PENDAPATAN */}
+        <View style={styles.summaryCard}>
+          <View style={styles.cardFlexRow}>
+            <View style={styles.iconBox}>
+              <ArrowDownToLine size={26} color={COLORS.success} />
+            </View>
+            <View style={styles.textFlexContainer}>
+              <Text style={styles.cardLabel}>Pendapatan</Text>
+              <Text style={styles.cardValueIncome}>
+                + Rp {monthlyStats.incomeThisMonth.toLocaleString("id-ID")}
+              </Text>
+              <View style={styles.comparisonRow}>
+                {monthlyStats.incomePercentage >= 0 ? (
+                  <TrendingUp
+                    size={12}
+                    color={COLORS.success}
+                    style={{ marginRight: 4 }}
+                  />
+                ) : (
+                  <TrendingDown
+                    size={12}
+                    color={COLORS.danger}
+                    style={{ marginRight: 4 }}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.comparisonText,
+                    {
+                      color:
+                        monthlyStats.incomePercentage >= 0
+                          ? COLORS.success
+                          : COLORS.danger,
+                    },
+                  ]}
+                >
+                  {monthlyStats.incomePercentage > 0 ? "+" : ""}
+                  {monthlyStats.incomePercentage.toFixed(1)}%
+                </Text>
+                <Text style={styles.comparisonLabel}> Bulan lalu</Text>
+              </View>
+            </View>
           </View>
-          <Text style={styles.cardLabel}>Pendapatan</Text>
-          <Text style={styles.cardValueIncome}>
-            + Rp {totalIncome.toLocaleString("id-ID")}
-          </Text>
         </View>
 
-        <View style={styles.statCard}>
-          <View
-            style={[styles.iconBox, { backgroundColor: COLORS.softYellow }]}
-          >
-            {/* REVISI: Mengubah Icon menjadi ArrowUpToLine (Panah ke Atas) */}
-            <ArrowUpToLine size={16} color={COLORS.warning} />
+        {/* CARD PENARIKAN */}
+        <View style={styles.summaryCard}>
+          <View style={styles.cardFlexRow}>
+            <View style={styles.iconBox}>
+              <ArrowUpToLine size={26} color={COLORS.warning} />
+            </View>
+            <View style={styles.textFlexContainer}>
+              <Text style={styles.cardLabel}>Penarikan</Text>
+              <Text style={styles.cardValuePayment}>
+                - Rp {monthlyStats.paymentThisMonth.toLocaleString("id-ID")}
+              </Text>
+              <View style={styles.comparisonRow}>
+                {monthlyStats.paymentPercentage <= 0 ? (
+                  <TrendingDown
+                    size={12}
+                    color={COLORS.success}
+                    style={{ marginRight: 4 }}
+                  />
+                ) : (
+                  <TrendingUp
+                    size={12}
+                    color={COLORS.danger}
+                    style={{ marginRight: 4 }}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.comparisonText,
+                    {
+                      color:
+                        monthlyStats.paymentPercentage <= 0
+                          ? COLORS.success
+                          : COLORS.danger,
+                    },
+                  ]}
+                >
+                  {monthlyStats.paymentPercentage > 0 ? "+" : ""}
+                  {monthlyStats.paymentPercentage.toFixed(1)}%
+                </Text>
+                <Text style={styles.comparisonLabel}> Bulan lalu</Text>
+              </View>
+            </View>
           </View>
-          <Text style={styles.cardLabel}>Penarikan</Text>
-          <Text style={styles.cardValuePayment}>
-            {/* REVISI: Nominal yang tampil adalah setelah dipotong admin */}-
-            Rp {totalNetPayment.toLocaleString("id-ID")}
-          </Text>
         </View>
       </Animated.View>
 
@@ -237,7 +346,6 @@ export default function BalanceScreen() {
         entering={FadeInUp.delay(200)}
         style={styles.activitySection}
       >
-        {/* REVISI: Header Aktivitas & Tombol Filter Dropdown */}
         <View style={styles.activityHeaderContainer}>
           <View style={styles.activityHeader}>
             <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
@@ -258,7 +366,6 @@ export default function BalanceScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Efek FadeIn untuk Toast Menu */}
           {showActivityMenu && (
             <Animated.View
               entering={FadeInUp.duration(200)}
@@ -362,7 +469,6 @@ export default function BalanceScreen() {
                     },
                   ]}
                 >
-                  {/* REVISI: Icon Aktivitas Penarikan diubah menjadi ArrowUpToLine dan diselaraskan warnanya */}
                   {item.type === "income" ? (
                     <ArrowDownToLine size={18} color={COLORS.success} />
                   ) : (
@@ -446,42 +552,63 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "800",
   },
-  cardRow: {
+  // STYLES BARU UNTUK KARTU PENDAPATAN & PENARIKAN BULAN INI
+  gridColumn: {
     flexDirection: "row",
     gap: 12,
     paddingHorizontal: 20,
     marginTop: 16,
   },
-  statCard: {
+  summaryCard: {
     flex: 1,
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 16,
     ...SHADOW.card,
   },
+  cardFlexRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
   iconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
+    marginVertical: "auto",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 12,
+  },
+  textFlexContainer: {
+    flex: 1,
+    justifyContent: "center",
   },
   cardLabel: {
     fontSize: 12,
+    fontWeight: "600",
     color: COLORS.textMuted,
-    marginBottom: 4,
+    marginBottom: 5,
   },
   cardValueIncome: {
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 14,
+    fontWeight: "800",
     color: COLORS.success,
   },
   cardValuePayment: {
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 14,
+    fontWeight: "800",
     color: COLORS.warning,
   },
+  comparisonRow: {
+    flexDirection: "row",
+  },
+  comparisonText: {
+    fontSize: 8,
+    marginVertical: "auto",
+    fontWeight: "700",
+  },
+  comparisonLabel: {
+    fontSize: 8,
+    marginVertical: "auto",
+    color: COLORS.textMuted,
+  },
+  // AKHIR STYLES BARU
   activitySectionSkeleton: {
     paddingHorizontal: 20,
     marginTop: 24,
