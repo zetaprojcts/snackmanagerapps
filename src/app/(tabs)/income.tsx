@@ -1,327 +1,248 @@
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "expo-router"; // <-- Ditambahkan untuk navigasi
+import { useRouter } from "expo-router";
+import { Calendar } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
-  FlatList,
   Image,
-  RefreshControl,
+  Modal,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
 
-import FadeInView from "../../components/animated/FadeInView";
-import EmptyState from "../../components/ui/EmptyState";
-import { TransactionCardSkeleton } from "../../components/ui/Skeleton";
-
-import { fetchIncomes } from "../../features/income/api";
-
-import { COLORS, SHADOW } from "../../theme";
+import EmptyState from "../components/ui/EmptyState";
+import { fetchIncomes } from "../features/income/api";
+import { COLORS, SHADOW } from "../theme";
 
 const BRAND_IMAGES: Record<string, any> = {
-  Samsung: require("../../../assets/devices/samsung.png"),
-  Oppo: require("../../../assets/devices/oppo.png"),
-  Vivo: require("../../../assets/devices/vivo.png"),
-  Xiaomi: require("../../../assets/devices/xiaomi.png"),
-  Realme: require("../../../assets/devices/realme.png"),
-  Infinix: require("../../../assets/devices/infinix.png"),
+  Samsung: require("../../assets/devices/samsung.png"),
+  Oppo: require("../../assets/devices/oppo.png"),
+  Vivo: require("../../assets/devices/vivo.png"),
+  Xiaomi: require("../../assets/devices/xiaomi.png"),
+  Realme: require("../../assets/devices/realme.png"),
+  Infinix: require("../../assets/devices/infinix.png"),
 };
 
-const DEFAULT_IMAGE = require("../../../assets/devices/default.png");
+const DEFAULT_IMAGE = require("../../assets/devices/default.png");
 
 export default function IncomeScreen() {
-  const router = useRouter(); // <-- Inisialisasi router
-  const [filter, setFilter] = useState<"today" | "month" | "all">("today");
+  const router = useRouter();
 
-  const {
-    data: incomes,
-    isLoading,
-    refetch,
-    isRefetching,
-  } = useQuery({
+  // State Filter
+  const [filter, setFilter] = useState<"this_month" | "last_month" | "all" | "custom">("this_month");
+  
+  // State Custom Date
+  const [showCustomDateModal, setShowCustomDateModal] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState<Date>(new Date());
+  const [customEndDate, setCustomEndDate] = useState<Date>(new Date());
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+
+  const { data: allIncomes, isLoading } = useQuery({
     queryKey: ["income"],
     queryFn: fetchIncomes,
   });
 
+  // Logika Filter Data
   const filteredIncomes = useMemo(() => {
-    if (!incomes) return [];
-
+    if (!allIncomes) return [];
     const now = new Date();
 
-    return incomes.filter((item: any) => {
-      const trxDate = new Date(item.trx_date);
+    return allIncomes
+      .filter((item: any) => {
+        if (!item.trx_date) return false;
+        const itemDate = new Date(item.trx_date);
 
-      if (filter === "today") {
-        return (
-          trxDate.getDate() === now.getDate() &&
-          trxDate.getMonth() === now.getMonth() &&
-          trxDate.getFullYear() === now.getFullYear()
-        );
-      }
+        if (filter === "all") return true;
+        
+        if (filter === "this_month") {
+          return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
+        }
+        
+        if (filter === "last_month") {
+          const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          return itemDate.getMonth() === lastMonth.getMonth() && itemDate.getFullYear() === lastMonth.getFullYear();
+        }
+        
+        if (filter === "custom") {
+          const start = new Date(customStartDate);
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(customEndDate);
+          end.setHours(23, 59, 59, 999); // Akhir hari
+          return itemDate >= start && itemDate <= end;
+        }
 
-      if (filter === "month") {
-        return (
-          trxDate.getMonth() === now.getMonth() &&
-          trxDate.getFullYear() === now.getFullYear()
-        );
-      }
+        return true;
+      })
+      .sort((a: any, b: any) => new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime());
+  }, [allIncomes, filter, customStartDate, customEndDate]);
 
-      return true;
-    });
-  }, [incomes, filter]);
+  const totalIncome = useMemo(() => {
+    return filteredIncomes.reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
+  }, [filteredIncomes]);
 
-  const totalIncome = filteredIncomes.reduce(
-    (total: number, item: any) => total + Number(item.amount),
-    0,
-  );
+  // Format Tanggal
+  const formatFullDate = (date: Date) => date.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  const formatShortDate = (date: Date) => date.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+  const getCustomLabel = () => {
+    if (filter === "custom") return `${formatShortDate(customStartDate)} - ${formatShortDate(customEndDate)}`;
+    return "Tanggal...";
   };
-
-  const renderItem = ({ item }: any) => {
-    const imageSource =
-      BRAND_IMAGES[item.devices?.brand || ""] || DEFAULT_IMAGE;
-
-    return (
-      <FadeInView>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.card}
-          onPress={() =>
-            router.push({ pathname: "/income-detail", params: { id: item.id } })
-          } // <-- Penambahan navigasi
-        >
-          <Image
-            source={imageSource}
-            resizeMode="contain"
-            style={styles.deviceImage}
-          />
-
-          <View style={styles.cardContent}>
-            <Text style={styles.deviceName}>
-              {item.devices?.device_name || "Perangkat"}
-            </Text>
-
-            <Text style={styles.dateText}>{formatDate(item.trx_date)}</Text>
-          </View>
-
-          <Text style={styles.amountText}>
-            + Rp {Number(item.amount).toLocaleString("id-ID")}
-          </Text>
-        </TouchableOpacity>
-      </FadeInView>
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Riwayat Pendapatan</Text>
-        </View>
-
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Total Pendapatan</Text>
-
-          <Text style={styles.summaryValue}>Rp ...</Text>
-        </View>
-
-        <View style={styles.list}>
-          <TransactionCardSkeleton />
-          <TransactionCardSkeleton />
-          <TransactionCardSkeleton />
-          <TransactionCardSkeleton />
-          <TransactionCardSkeleton />
-        </View>
-      </View>
-    );
-  }
 
   return (
-    <View style={styles.container}>
-      <FadeInView>
-        <View style={styles.header}>
-          <Text style={styles.title}>Riwayat Pendapatan</Text>
-        </View>
-      </FadeInView>
+    <>
+      <View style={styles.container}>
+        <Text style={styles.screenTitle}>Riwayat Pendapatan</Text>
 
-      <FadeInView>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Total Pendapatan</Text>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          {/* Card Total */}
+          <View style={styles.totalCard}>
+            <Text style={styles.totalLabel}>Total Pendapatan</Text>
+            <Text style={styles.totalValue}>Rp {totalIncome.toLocaleString("id-ID")}</Text>
+          </View>
 
-          <Text style={styles.summaryValue}>
-            Rp {totalIncome.toLocaleString("id-ID")}
-          </Text>
-        </View>
-      </FadeInView>
+          {/* Filter Tab Horizontal */}
+          <View style={styles.filterWrapper}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+              {[
+                { id: "this_month", label: "Bulan Ini" },
+                { id: "last_month", label: "Bulan Lalu" },
+                { id: "all", label: "Semua" },
+                { id: "custom", label: getCustomLabel(), isCustom: true },
+              ].map((item) => {
+                const isActive = filter === item.id;
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[styles.filterTab, isActive && styles.filterTabActive]}
+                    onPress={() => {
+                      if (item.isCustom) {
+                        setShowCustomDateModal(true);
+                      } else {
+                        setFilter(item.id as any);
+                      }
+                    }}
+                  >
+                    {item.isCustom && <Calendar size={14} color={isActive ? COLORS.primary : COLORS.textMuted} style={{ marginRight: 6 }} />}
+                    <Text style={[styles.filterTabText, isActive && styles.filterTabTextActive]}>
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
 
-      <View style={styles.filterTabs}>
-        <TouchableOpacity
-          style={[styles.filterTab, filter === "today" && styles.activeTab]}
-          onPress={() => setFilter("today")}
-        >
-          <Text
-            style={[styles.filterText, filter === "today" && styles.activeText]}
-          >
-            Hari Ini
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.filterTab, filter === "month" && styles.activeTab]}
-          onPress={() => setFilter("month")}
-        >
-          <Text
-            style={[styles.filterText, filter === "month" && styles.activeText]}
-          >
-            Bulan Ini
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.filterTab, filter === "all" && styles.activeTab]}
-          onPress={() => setFilter("all")}
-        >
-          <Text
-            style={[styles.filterText, filter === "all" && styles.activeText]}
-          >
-            Semua
-          </Text>
-        </TouchableOpacity>
+          {/* List Data */}
+          <View style={styles.listContainer}>
+            {filteredIncomes.length === 0 && !isLoading ? (
+              <EmptyState title="Tidak Ada Data" subtitle="Belum ada riwayat pendapatan di periode ini." />
+            ) : (
+              filteredIncomes.map((item: any, index: number) => {
+                const device = item.devices;
+                const imageSource = BRAND_IMAGES[device?.brand || ""] || DEFAULT_IMAGE;
+                
+                return (
+                  <Animated.View key={item.id || index} entering={FadeInUp.delay(index * 50)} style={styles.listItem}>
+                    <Image source={imageSource} style={styles.deviceImage} resizeMode="contain" />
+                    <View style={styles.itemInfo}>
+                      <Text style={styles.deviceName}>{device?.device_name || "Unknown Device"}</Text>
+                      <Text style={styles.itemDate}>
+                        {new Date(item.trx_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                      </Text>
+                    </View>
+                    <Text style={styles.itemAmount}>+ Rp {Number(item.amount).toLocaleString("id-ID")}</Text>
+                  </Animated.View>
+                );
+              })
+            )}
+          </View>
+        </ScrollView>
       </View>
 
-      <FlatList
-        data={filteredIncomes}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
-        }
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          <EmptyState
-            title="Belum Ada Pendapatan"
-            subtitle="Data pemasukan akan muncul di sini"
-          />
-        }
-      />
-    </View>
+      {/* Modal Custom Date */}
+      <Modal visible={showCustomDateModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Pilih Rentang Tanggal</Text>
+            
+            <Text style={styles.modalLabel}>Dari Tanggal</Text>
+            <TouchableOpacity style={styles.modalInputBox} onPress={() => setShowStartPicker(true)}>
+              <Text style={styles.modalInputText}>{formatFullDate(customStartDate)}</Text>
+            </TouchableOpacity>
+            
+            <Text style={styles.modalLabel}>Sampai Tanggal</Text>
+            <TouchableOpacity style={styles.modalInputBox} onPress={() => setShowEndPicker(true)}>
+              <Text style={styles.modalInputText}>{formatFullDate(customEndDate)}</Text>
+            </TouchableOpacity>
+
+            <View style={styles.modalActionRow}>
+              <TouchableOpacity style={styles.modalBtnCancel} onPress={() => setShowCustomDateModal(false)}>
+                <Text style={styles.modalBtnCancelText}>Batal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.modalBtnSave} 
+                onPress={() => { 
+                  setFilter("custom"); 
+                  setShowCustomDateModal(false); 
+                }}
+              >
+                <Text style={styles.modalBtnSaveText}>Terapkan</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {showStartPicker && (
+        <DateTimePicker value={customStartDate} mode="date" display="default" onChange={(e, date) => { setShowStartPicker(false); if(date) setCustomStartDate(date); }} />
+      )}
+      {showEndPicker && (
+        <DateTimePicker value={customEndDate} mode="date" display="default" onChange={(e, date) => { setShowEndPicker(false); if(date) setCustomEndDate(date); }} />
+      )}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    paddingTop: 60,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background, paddingTop: 50 },
+  screenTitle: { fontSize: 24, fontWeight: "800", color: COLORS.text, paddingHorizontal: 20, marginBottom: 16 },
+  scrollContent: { paddingBottom: 100 },
+  
+  totalCard: { backgroundColor: COLORS.primary, marginHorizontal: 20, padding: 24, borderRadius: 24, ...SHADOW.card },
+  totalLabel: { color: "rgba(255,255,255,0.8)", fontSize: 14, marginBottom: 6 },
+  totalValue: { color: "#FFFFFF", fontSize: 32, fontWeight: "800" },
 
-  header: {
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
+  filterWrapper: { marginTop: 20, marginBottom: 10 },
+  filterScroll: { paddingHorizontal: 20, gap: 12, alignItems: 'center' },
+  filterTab: { flexDirection: "row", alignItems: "center", paddingVertical: 10, paddingHorizontal: 16, borderBottomWidth: 2, borderBottomColor: "transparent" },
+  filterTabActive: { borderBottomColor: COLORS.primary },
+  filterTabText: { fontSize: 14, fontWeight: "600", color: COLORS.textMuted },
+  filterTabTextActive: { color: COLORS.primary, fontWeight: "700" },
 
-  title: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: COLORS.text,
-  },
+  listContainer: { paddingHorizontal: 20, marginTop: 10 },
+  listItem: { flexDirection: "row", alignItems: "center", backgroundColor: "#FFFFFF", padding: 16, borderRadius: 20, marginBottom: 12, ...SHADOW.card },
+  deviceImage: { width: 32, height: 48, marginRight: 16 },
+  itemInfo: { flex: 1 },
+  deviceName: { fontSize: 15, fontWeight: "700", color: COLORS.text, marginBottom: 4 },
+  itemDate: { fontSize: 12, color: COLORS.textMuted },
+  itemAmount: { fontSize: 15, fontWeight: "700", color: COLORS.success },
 
-  summaryCard: {
-    marginHorizontal: 20,
-    backgroundColor: COLORS.primary,
-    borderRadius: 24,
-    padding: 24,
-    ...SHADOW.card,
-  },
-
-  summaryLabel: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 13,
-  },
-
-  summaryValue: {
-    color: "#FFFFFF",
-    fontSize: 32,
-    fontWeight: "800",
-    marginTop: 4,
-  },
-
-  filterTabs: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 18,
-    marginBottom: 16,
-    paddingHorizontal: 20,
-  },
-
-  filterTab: {
-    paddingBottom: 10,
-  },
-
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: COLORS.primary,
-  },
-
-  filterText: {
-    color: COLORS.textMuted,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-
-  activeText: {
-    color: COLORS.primary,
-    fontWeight: "700",
-  },
-
-  list: {
-    paddingHorizontal: 20,
-    paddingBottom: 120,
-  },
-
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    ...SHADOW.card,
-  },
-
-  deviceImage: {
-    width: 42,
-    height: 42,
-    marginRight: 12,
-  },
-
-  cardContent: {
-    flex: 1,
-  },
-
-  deviceName: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.text,
-  },
-
-  dateText: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginTop: 3,
-  },
-
-  amountText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: COLORS.success,
-  },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: 20 },
+  modalContent: { width: "100%", backgroundColor: "#FFFFFF", borderRadius: 24, padding: 24, ...SHADOW.card },
+  modalTitle: { fontSize: 18, fontWeight: "800", color: COLORS.text, marginBottom: 20 },
+  modalLabel: { fontSize: 13, fontWeight: "600", color: COLORS.textMuted, marginBottom: 8 },
+  modalInputBox: { height: 50, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 16, marginBottom: 16, justifyContent: "center", backgroundColor: "#F8FAFC" },
+  modalInputText: { color: COLORS.text, fontSize: 14, fontWeight: "500" },
+  modalActionRow: { flexDirection: "row", justifyContent: "flex-end", gap: 12, marginTop: 10 },
+  modalBtnCancel: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 12, backgroundColor: "#F1F5F9" },
+  modalBtnCancelText: { color: COLORS.textMuted, fontWeight: "700" },
+  modalBtnSave: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 12, backgroundColor: COLORS.primary },
+  modalBtnSaveText: { color: "#FFFFFF", fontWeight: "700" },
 });
