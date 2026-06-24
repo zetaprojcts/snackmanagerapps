@@ -115,17 +115,22 @@ export default function BalanceScreen() {
       const amt = Number(item.amount || 0);
       if (item.trx_date) {
         const d = new Date(item.trx_date);
-        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) incomeThisMonth += amt;
-        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear) incomeLastMonth += amt;
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear)
+          incomeThisMonth += amt;
+        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear)
+          incomeLastMonth += amt;
       }
     });
 
     payments?.forEach((item: any) => {
-      const netAmt = Number(item.gross_amount || 0) - Number(item.admin_fee || 0);
+      const netAmt =
+        Number(item.gross_amount || 0) - Number(item.admin_fee || 0);
       if (item.trx_date) {
         const d = new Date(item.trx_date);
-        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) paymentThisMonth += netAmt;
-        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear) paymentLastMonth += netAmt;
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear)
+          paymentThisMonth += netAmt;
+        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear)
+          paymentLastMonth += netAmt;
       }
     });
 
@@ -138,7 +143,10 @@ export default function BalanceScreen() {
       incomeThisMonth,
       paymentThisMonth,
       incomePercentage: calculatePercentage(incomeThisMonth, incomeLastMonth),
-      paymentPercentage: calculatePercentage(paymentThisMonth, paymentLastMonth),
+      paymentPercentage: calculatePercentage(
+        paymentThisMonth,
+        paymentLastMonth,
+      ),
     };
   }, [incomes, payments]);
 
@@ -150,7 +158,7 @@ export default function BalanceScreen() {
         amount: Number(item.amount),
         trx_date: item.trx_date,
         // Fallback ke created_at jika tersedia agar waktu urutan sangat akurat (jam & menit)
-        sort_time: new Date(item.created_at || item.trx_date).getTime(), 
+        sort_time: new Date(item.created_at || item.trx_date).getTime(),
         device_name: item.devices?.device_name ?? "Perangkat",
       })) || [];
 
@@ -208,10 +216,20 @@ export default function BalanceScreen() {
         <View style={styles.activitySectionSkeleton}>
           <View style={styles.activityHeader}>
             <View
-              style={{ width: 140, height: 20, backgroundColor: "#E5E7EB", borderRadius: 6 }}
+              style={{
+                width: 140,
+                height: 20,
+                backgroundColor: "#E5E7EB",
+                borderRadius: 6,
+              }}
             />
             <View
-              style={{ width: 24, height: 24, backgroundColor: "#E5E7EB", borderRadius: 6 }}
+              style={{
+                width: 24,
+                height: 24,
+                backgroundColor: "#E5E7EB",
+                borderRadius: 6,
+              }}
             />
           </View>
           <TransactionCardSkeleton />
@@ -244,61 +262,93 @@ export default function BalanceScreen() {
 
       {/* Baris CardView Pendapatan & Pengeluaran */}
       <Animated.View entering={FadeInUp.delay(150)} style={styles.cardRow}>
-        
         {/* KARTU PENDAPATAN BULAN INI */}
         <View style={styles.statCard}>
           <View style={styles.statCardTopRow}>
-            <View style={[styles.iconBox, { backgroundColor: COLORS.softGreen }]}>
+            <View
+              style={[styles.iconBox, { backgroundColor: COLORS.softGreen }]}
+            >
               <ArrowDownToLine size={18} color={COLORS.success} />
             </View>
             <View style={styles.statCardTextWrapper}>
               <Text style={styles.cardLabel}>Pendapatan</Text>
-              <Text style={styles.cardValueIncome} numberOfLines={1} adjustsFontSizeToFit>
+              <Text
+                style={styles.cardValueIncome}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
                 + Rp {monthlyStats.incomeThisMonth.toLocaleString("id-ID")}
               </Text>
             </View>
           </View>
-          
+
           <View style={styles.statCardBottomRow}>
             {monthlyStats.incomePercentage >= 0 ? (
               <TrendingUp size={12} color={COLORS.success} />
             ) : (
               <TrendingDown size={12} color={COLORS.danger} />
             )}
-            <Text style={[styles.percentageText, { color: monthlyStats.incomePercentage >= 0 ? COLORS.success : COLORS.danger }]}>
-              {monthlyStats.incomePercentage > 0 ? "+" : ""}{monthlyStats.incomePercentage.toFixed(1)}%
+            <Text
+              style={[
+                styles.percentageText,
+                {
+                  color:
+                    monthlyStats.incomePercentage >= 0
+                      ? COLORS.success
+                      : COLORS.danger,
+                },
+              ]}
+            >
+              {monthlyStats.incomePercentage > 0 ? "+" : ""}
+              {monthlyStats.incomePercentage.toFixed(1)}%
             </Text>
-            <Text style={styles.percentageLabel}> bln lalu</Text>
+            <Text style={styles.percentageLabel}> vs Bulan Berlalu</Text>
           </View>
         </View>
 
         {/* KARTU PENARIKAN BULAN INI */}
         <View style={styles.statCard}>
           <View style={styles.statCardTopRow}>
-            <View style={[styles.iconBox, { backgroundColor: COLORS.softYellow }]}>
+            <View
+              style={[styles.iconBox, { backgroundColor: COLORS.softYellow }]}
+            >
               <ArrowUpToLine size={18} color={COLORS.warning} />
             </View>
             <View style={styles.statCardTextWrapper}>
               <Text style={styles.cardLabel}>Penarikan</Text>
-              <Text style={styles.cardValuePayment} numberOfLines={1} adjustsFontSizeToFit>
+              <Text
+                style={styles.cardValuePayment}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
                 - Rp {monthlyStats.paymentThisMonth.toLocaleString("id-ID")}
               </Text>
             </View>
           </View>
-          
+
           <View style={styles.statCardBottomRow}>
             {monthlyStats.paymentPercentage <= 0 ? (
               <TrendingDown size={12} color={COLORS.success} />
             ) : (
               <TrendingUp size={12} color={COLORS.danger} />
             )}
-            <Text style={[styles.percentageText, { color: monthlyStats.paymentPercentage <= 0 ? COLORS.success : COLORS.danger }]}>
-              {monthlyStats.paymentPercentage > 0 ? "+" : ""}{monthlyStats.paymentPercentage.toFixed(1)}%
+            <Text
+              style={[
+                styles.percentageText,
+                {
+                  color:
+                    monthlyStats.paymentPercentage <= 0
+                      ? COLORS.success
+                      : COLORS.danger,
+                },
+              ]}
+            >
+              {monthlyStats.paymentPercentage > 0 ? "+" : ""}
+              {monthlyStats.paymentPercentage.toFixed(1)}%
             </Text>
-            <Text style={styles.percentageLabel}> bln lalu</Text>
+            <Text style={styles.percentageLabel}> vs Bulan Berlalu</Text>
           </View>
         </View>
-
       </Animated.View>
 
       <Animated.View
@@ -511,7 +561,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "800",
   },
-  
+
   // Layout StatCard
   cardRow: {
     flexDirection: "row",
@@ -523,7 +573,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    padding: 14, 
+    padding: 14,
     ...SHADOW.card,
   },
   statCardTopRow: {

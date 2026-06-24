@@ -10,9 +10,9 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
-import Animated, { FadeInUp } from "react-native-reanimated";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 import EmptyState from "../../components/ui/EmptyState";
 import { fetchPayments } from "../../features/payment/api";
@@ -120,7 +120,9 @@ export default function PaymentScreen() {
   return (
     <>
       <View style={styles.container}>
-        <Text style={styles.screenTitle}>Riwayat Penarikan</Text>
+        <Animated.View entering={FadeInDown} style={styles.header}>
+          <Text style={styles.screenTitle}>Riwayat Penarikan</Text>
+        </Animated.View>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -305,13 +307,16 @@ export default function PaymentScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background, paddingTop: 50 },
-  screenTitle: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: COLORS.text,
+  container: { flex: 1, backgroundColor: COLORS.background },
+  header: {
+    paddingTop: 60,
     paddingHorizontal: 20,
     marginBottom: 16,
+  },
+  screenTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: COLORS.text,
   },
   scrollContent: { paddingBottom: 100 },
 
