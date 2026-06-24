@@ -19,7 +19,7 @@ import {
   TouchableOpacity,
   UIManager,
   View,
-  Pressable, // REVISI 2: Import Pressable untuk close dropdown ketika click outside
+  Pressable,
 } from "react-native";
 
 import Animated, {
@@ -51,7 +51,6 @@ export default function BalanceScreen() {
   >("all");
   const [showActivityMenu, setShowActivityMenu] = useState(false);
   
-  // REVISI 3: State untuk mengontrol Toggle Penarikan <-> Biaya Admin
   const [showAdminFee, setShowAdminFee] = useState(false);
 
   const {
@@ -78,7 +77,6 @@ export default function BalanceScreen() {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   };
 
-  // Kalkulasi Saldo Utama
   const totalIncome =
     incomes?.reduce(
       (total: number, item: any) => total + Number(item.amount),
@@ -100,7 +98,6 @@ export default function BalanceScreen() {
   const totalNetPayment = totalGrossPayment - totalAdminFee;
   const netBalance = totalIncome - totalGrossPayment;
 
-  // Kalkulasi Bulan Ini & Komparasi Persentase
   const monthlyStats = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -114,7 +111,6 @@ export default function BalanceScreen() {
     let incomeLastMonth = 0;
     let paymentThisMonth = 0;
     let paymentLastMonth = 0;
-    // REVISI 3: Tambahan state perbandingan untuk biaya Admin Fee
     let adminFeeThisMonth = 0;
     let adminFeeLastMonth = 0;
 
@@ -168,14 +164,12 @@ export default function BalanceScreen() {
     };
   }, [incomes, payments]);
 
-  // Kalkulasi Aktivitas Terbaru (Dengan Sort Realtime yang presisi)
   const recentActivities = useMemo(() => {
     const incomeActivities =
       incomes?.map((item: any) => ({
         type: "income",
         amount: Number(item.amount),
         trx_date: item.trx_date,
-        // Fallback ke created_at jika tersedia agar waktu urutan sangat akurat (jam & menit)
         sort_time: new Date(item.created_at || item.trx_date).getTime(),
         device_name: item.devices?.device_name ?? "Perangkat",
       })) || [];
@@ -201,9 +195,8 @@ export default function BalanceScreen() {
 
     return (
       merged
-        // Sort akan secara akurat meletakkan transaksi terbaru (waktu terbesar) di urutan index 0
         .sort((a, b) => b.sort_time - a.sort_time)
-        .slice(0, 10) // Menampilkan 10 riwayat terbaru
+        .slice(0, 10)
     );
   }, [incomes, payments, activityFilter]);
 
@@ -260,17 +253,8 @@ export default function BalanceScreen() {
 
   return (
     <View style={styles.container}>
-      {/* REVISI 2: Overlay transparan di belakang menu agar close saat click outside */}
-      {showActivityMenu && (
-        <Pressable
-          style={[StyleSheet.absoluteFill, { zIndex: 98, elevation: 98 }]}
-          onPress={() => {
-            animateLayout();
-            setShowActivityMenu(false);
-          }}
-        />
-      )}
-
+      {/* Overlay telah dipindahkan ke bagian activityHeaderContainer */}
+      
       <Animated.View entering={FadeInDown} style={styles.header}>
         <Text style={styles.pageTitle}>Dashboard Saldo</Text>
       </Animated.View>
@@ -289,9 +273,7 @@ export default function BalanceScreen() {
         </View>
       </Animated.View>
 
-      {/* Baris CardView Pendapatan & Pengeluaran */}
       <Animated.View entering={FadeInUp.delay(150)} style={styles.cardRow}>
-        {/* KARTU PENDAPATAN BULAN INI */}
         <View style={styles.statCard}>
           <View style={styles.statCardTopRow}>
             <View
@@ -335,7 +317,6 @@ export default function BalanceScreen() {
           </View>
         </View>
 
-        {/* REVISI 3: KARTU TOGGLE PENARIKAN <-> ADMIN FEE */}
         <TouchableOpacity 
           activeOpacity={0.8} 
           style={styles.statCard} 
@@ -391,7 +372,7 @@ export default function BalanceScreen() {
             <View>
               <View style={styles.statCardTopRow}>
                 <View
-                  style={[styles.iconBox, { backgroundColor: "#FCE8E8" }]} // Soft Red background
+                  style={[styles.iconBox, { backgroundColor: "#FCE8E8" }]}
                 >
                   <ArrowUpToLine size={18} color={COLORS.danger} />
                 </View>
@@ -432,7 +413,6 @@ export default function BalanceScreen() {
             </View>
           )}
         </TouchableOpacity>
-
       </Animated.View>
 
       <Animated.View
@@ -440,6 +420,26 @@ export default function BalanceScreen() {
         style={styles.activitySection}
       >
         <View style={styles.activityHeaderContainer}>
+          {/* FIX: Memindahkan overlay ke dalam wadah yang sama dengan Dropdown */}
+          {showActivityMenu && (
+            <Pressable
+              style={{
+                position: "absolute",
+                top: -2000,
+                bottom: -2000,
+                left: -2000,
+                right: -2000,
+                zIndex: 1,
+                elevation: 1,
+                backgroundColor: "transparent",
+              }}
+              onPress={() => {
+                animateLayout();
+                setShowActivityMenu(false);
+              }}
+            />
+          )}
+
           <View style={styles.activityHeader}>
             <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
 
@@ -646,7 +646,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 
-  // Layout StatCard
   cardRow: {
     flexDirection: "row",
     gap: 12,
@@ -717,6 +716,7 @@ const styles = StyleSheet.create({
   },
   activityHeaderContainer: {
     zIndex: 99,
+    elevation: 10, // FIX: Memberikan elevation agar tumpukan (stack) aman di Android
     paddingHorizontal: 20,
   },
   activityHeader: {
@@ -742,7 +742,8 @@ const styles = StyleSheet.create({
     width: 130,
     marginRight: 20,
     ...SHADOW.card,
-    elevation: 5,
+    elevation: 11, // FIX: Memastikan dropdown selalu di atas overlay transparan
+    zIndex: 11,    // FIX: Memastikan dropdown selalu di atas overlay transparan
   },
   dropdownItem: {
     paddingVertical: 12,
