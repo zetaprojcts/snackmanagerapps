@@ -1,36 +1,36 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  ArrowDownToLine,
-  ArrowUpToLine,
-  Filter,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
+    ArrowDownToLine,
+    ArrowUpToLine,
+    Filter,
+    TrendingDown,
+    TrendingUp,
+    Wallet,
 } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 
 import {
-  LayoutAnimation,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  UIManager,
-  View,
-  Pressable,
+    LayoutAnimation,
+    Platform,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    UIManager,
+    View,
 } from "react-native";
 
 import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeInUp,
+    FadeIn,
+    FadeInDown,
+    FadeInUp,
 } from "react-native-reanimated";
 
 import {
-  BalanceCardSkeleton,
-  TransactionCardSkeleton,
+    BalanceCardSkeleton,
+    TransactionCardSkeleton,
 } from "../../components/ui/Skeleton";
 
 import { fetchIncomes } from "../../features/income/api";
@@ -50,7 +50,7 @@ export default function BalanceScreen() {
     "all" | "income" | "payment"
   >("all");
   const [showActivityMenu, setShowActivityMenu] = useState(false);
-  
+
   const [showAdminFee, setShowAdminFee] = useState(false);
 
   const {
@@ -193,11 +193,7 @@ export default function BalanceScreen() {
       merged = paymentActivities;
     }
 
-    return (
-      merged
-        .sort((a, b) => b.sort_time - a.sort_time)
-        .slice(0, 10)
-    );
+    return merged.sort((a, b) => b.sort_time - a.sort_time).slice(0, 10);
   }, [incomes, payments, activityFilter]);
 
   const onRefresh = () => {
@@ -266,7 +262,7 @@ export default function BalanceScreen() {
           }}
         />
       )}
-      
+
       <Animated.View entering={FadeInDown} style={styles.header}>
         <Text style={styles.pageTitle}>Dashboard Saldo</Text>
       </Animated.View>
@@ -329,9 +325,9 @@ export default function BalanceScreen() {
           </View>
         </View>
 
-        <TouchableOpacity 
-          activeOpacity={0.8} 
-          style={styles.statCard} 
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.statCard}
           onPress={() => {
             animateLayout();
             setShowAdminFee(!showAdminFee);
@@ -341,7 +337,10 @@ export default function BalanceScreen() {
             <View>
               <View style={styles.statCardTopRow}>
                 <View
-                  style={[styles.iconBox, { backgroundColor: COLORS.softYellow }]}
+                  style={[
+                    styles.iconBox,
+                    { backgroundColor: COLORS.softYellow },
+                  ]}
                 >
                   <ArrowUpToLine size={18} color={COLORS.warning} />
                 </View>
@@ -383,9 +382,7 @@ export default function BalanceScreen() {
           ) : (
             <View>
               <View style={styles.statCardTopRow}>
-                <View
-                  style={[styles.iconBox, { backgroundColor: "#FCE8E8" }]}
-                >
+                <View style={[styles.iconBox, { backgroundColor: "#FCE8E8" }]}>
                   <ArrowUpToLine size={18} color={COLORS.danger} />
                 </View>
                 <View style={styles.statCardTextWrapper}>
@@ -395,7 +392,8 @@ export default function BalanceScreen() {
                     numberOfLines={1}
                     adjustsFontSizeToFit
                   >
-                    - Rp {monthlyStats.adminFeeThisMonth.toLocaleString("id-ID")}
+                    - Rp{" "}
+                    {monthlyStats.adminFeeThisMonth.toLocaleString("id-ID")}
                   </Text>
                 </View>
               </View>
@@ -430,7 +428,10 @@ export default function BalanceScreen() {
       {/* REVISI 2: Menaikkan zIndex activitySection secara dinamis agar berada di atas Root Backdrop saat filter terbuka */}
       <Animated.View
         entering={FadeInUp.delay(200)}
-        style={[styles.activitySection, showActivityMenu && { zIndex: 10, elevation: 10 }]}
+        style={[
+          styles.activitySection,
+          showActivityMenu && { zIndex: 10, elevation: 10 },
+        ]}
       >
         {/* REVISI 3: Backdrop tingkat lokal untuk meng-cover area bawah (mengunci guliran ScrollView) */}
         {showActivityMenu && (
@@ -451,7 +452,9 @@ export default function BalanceScreen() {
         )}
 
         {/* Wadah header dinaikkan zIndex-nya ke level 2 agar berada di atas penutup lokal (level 1) */}
-        <View style={[styles.activityHeaderContainer, { zIndex: 2, elevation: 2 }]}>
+        <View
+          style={[styles.activityHeaderContainer, { zIndex: 2, elevation: 2 }]}
+        >
           <View style={styles.activityHeader}>
             <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
 

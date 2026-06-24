@@ -1,10 +1,10 @@
 import { Tabs, useRouter } from "expo-router";
 import {
-  Activity,
-  ArrowDownToLine,
-  Plus,
-  Smartphone,
-  Wallet,
+    Activity,
+    ArrowDownToLine,
+    Plus,
+    Smartphone,
+    Wallet,
 } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
