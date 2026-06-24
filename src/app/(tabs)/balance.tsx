@@ -19,6 +19,7 @@ import {
   TouchableOpacity,
   UIManager,
   View,
+  Pressable, // REVISI 2: Import Pressable untuk close dropdown ketika click outside
 } from "react-native";
 
 import Animated, {
@@ -49,6 +50,9 @@ export default function BalanceScreen() {
     "all" | "income" | "payment"
   >("all");
   const [showActivityMenu, setShowActivityMenu] = useState(false);
+  
+  // REVISI 3: State untuk mengontrol Toggle Penarikan <-> Biaya Admin
+  const [showAdminFee, setShowAdminFee] = useState(false);
 
   const {
     data: incomes,
@@ -110,6 +114,9 @@ export default function BalanceScreen() {
     let incomeLastMonth = 0;
     let paymentThisMonth = 0;
     let paymentLastMonth = 0;
+    // REVISI 3: Tambahan state perbandingan untuk biaya Admin Fee
+    let adminFeeThisMonth = 0;
+    let adminFeeLastMonth = 0;
 
     incomes?.forEach((item: any) => {
       const amt = Number(item.amount || 0);
@@ -125,12 +132,18 @@ export default function BalanceScreen() {
     payments?.forEach((item: any) => {
       const netAmt =
         Number(item.gross_amount || 0) - Number(item.admin_fee || 0);
+      const feeAmt = Number(item.admin_fee || 0);
+
       if (item.trx_date) {
         const d = new Date(item.trx_date);
-        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear)
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
           paymentThisMonth += netAmt;
-        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear)
+          adminFeeThisMonth += feeAmt;
+        }
+        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear) {
           paymentLastMonth += netAmt;
+          adminFeeLastMonth += feeAmt;
+        }
       }
     });
 
@@ -142,10 +155,15 @@ export default function BalanceScreen() {
     return {
       incomeThisMonth,
       paymentThisMonth,
+      adminFeeThisMonth,
       incomePercentage: calculatePercentage(incomeThisMonth, incomeLastMonth),
       paymentPercentage: calculatePercentage(
         paymentThisMonth,
         paymentLastMonth,
+      ),
+      adminFeePercentage: calculatePercentage(
+        adminFeeThisMonth,
+        adminFeeLastMonth,
       ),
     };
   }, [incomes, payments]);
@@ -242,6 +260,17 @@ export default function BalanceScreen() {
 
   return (
     <View style={styles.container}>
+      {/* REVISI 2: Overlay transparan di belakang menu agar close saat click outside */}
+      {showActivityMenu && (
+        <Pressable
+          style={[StyleSheet.absoluteFill, { zIndex: 98, elevation: 98 }]}
+          onPress={() => {
+            animateLayout();
+            setShowActivityMenu(false);
+          }}
+        />
+      )}
+
       <Animated.View entering={FadeInDown} style={styles.header}>
         <Text style={styles.pageTitle}>Dashboard Saldo</Text>
       </Animated.View>
@@ -306,49 +335,104 @@ export default function BalanceScreen() {
           </View>
         </View>
 
-        {/* KARTU PENARIKAN BULAN INI */}
-        <View style={styles.statCard}>
-          <View style={styles.statCardTopRow}>
-            <View
-              style={[styles.iconBox, { backgroundColor: COLORS.softYellow }]}
-            >
-              <ArrowUpToLine size={18} color={COLORS.warning} />
-            </View>
-            <View style={styles.statCardTextWrapper}>
-              <Text style={styles.cardLabel}>Penarikan</Text>
-              <Text
-                style={styles.cardValuePayment}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
-                - Rp {monthlyStats.paymentThisMonth.toLocaleString("id-ID")}
-              </Text>
-            </View>
-          </View>
+        {/* REVISI 3: KARTU TOGGLE PENARIKAN <-> ADMIN FEE */}
+        <TouchableOpacity 
+          activeOpacity={0.8} 
+          style={styles.statCard} 
+          onPress={() => {
+            animateLayout();
+            setShowAdminFee(!showAdminFee);
+          }}
+        >
+          {!showAdminFee ? (
+            <View>
+              <View style={styles.statCardTopRow}>
+                <View
+                  style={[styles.iconBox, { backgroundColor: COLORS.softYellow }]}
+                >
+                  <ArrowUpToLine size={18} color={COLORS.warning} />
+                </View>
+                <View style={styles.statCardTextWrapper}>
+                  <Text style={styles.cardLabel}>Penarikan</Text>
+                  <Text
+                    style={styles.cardValuePayment}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    - Rp {monthlyStats.paymentThisMonth.toLocaleString("id-ID")}
+                  </Text>
+                </View>
+              </View>
 
-          <View style={styles.statCardBottomRow}>
-            {monthlyStats.paymentPercentage <= 0 ? (
-              <TrendingDown size={12} color={COLORS.success} />
-            ) : (
-              <TrendingUp size={12} color={COLORS.danger} />
-            )}
-            <Text
-              style={[
-                styles.percentageText,
-                {
-                  color:
-                    monthlyStats.paymentPercentage <= 0
-                      ? COLORS.success
-                      : COLORS.danger,
-                },
-              ]}
-            >
-              {monthlyStats.paymentPercentage > 0 ? "+" : ""}
-              {monthlyStats.paymentPercentage.toFixed(1)}%
-            </Text>
-            <Text style={styles.percentageLabel}> vs Bulan Berlalu</Text>
-          </View>
-        </View>
+              <View style={styles.statCardBottomRow}>
+                {monthlyStats.paymentPercentage <= 0 ? (
+                  <TrendingDown size={12} color={COLORS.success} />
+                ) : (
+                  <TrendingUp size={12} color={COLORS.danger} />
+                )}
+                <Text
+                  style={[
+                    styles.percentageText,
+                    {
+                      color:
+                        monthlyStats.paymentPercentage <= 0
+                          ? COLORS.success
+                          : COLORS.danger,
+                    },
+                  ]}
+                >
+                  {monthlyStats.paymentPercentage > 0 ? "+" : ""}
+                  {monthlyStats.paymentPercentage.toFixed(1)}%
+                </Text>
+                <Text style={styles.percentageLabel}> vs Bulan Berlalu</Text>
+              </View>
+            </View>
+          ) : (
+            <View>
+              <View style={styles.statCardTopRow}>
+                <View
+                  style={[styles.iconBox, { backgroundColor: "#FCE8E8" }]} // Soft Red background
+                >
+                  <ArrowUpToLine size={18} color={COLORS.danger} />
+                </View>
+                <View style={styles.statCardTextWrapper}>
+                  <Text style={styles.cardLabel}>Biaya Admin</Text>
+                  <Text
+                    style={[styles.cardValuePayment, { color: COLORS.danger }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    - Rp {monthlyStats.adminFeeThisMonth.toLocaleString("id-ID")}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.statCardBottomRow}>
+                {monthlyStats.adminFeePercentage <= 0 ? (
+                  <TrendingDown size={12} color={COLORS.success} />
+                ) : (
+                  <TrendingUp size={12} color={COLORS.danger} />
+                )}
+                <Text
+                  style={[
+                    styles.percentageText,
+                    {
+                      color:
+                        monthlyStats.adminFeePercentage <= 0
+                          ? COLORS.success
+                          : COLORS.danger,
+                    },
+                  ]}
+                >
+                  {monthlyStats.adminFeePercentage > 0 ? "+" : ""}
+                  {monthlyStats.adminFeePercentage.toFixed(1)}%
+                </Text>
+                <Text style={styles.percentageLabel}> vs Bulan Berlalu</Text>
+              </View>
+            </View>
+          )}
+        </TouchableOpacity>
+
       </Animated.View>
 
       <Animated.View
