@@ -96,7 +96,7 @@ export default function BalanceScreen() {
   const totalNetPayment = totalGrossPayment - totalAdminFee;
   const netBalance = totalIncome - totalGrossPayment;
 
-  // FITUR BARU: Kalkulasi Bulan Ini & Komparasi
+  // Kalkulasi Bulan Ini & Komparasi Persentase
   const monthlyStats = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -115,23 +115,17 @@ export default function BalanceScreen() {
       const amt = Number(item.amount || 0);
       if (item.trx_date) {
         const d = new Date(item.trx_date);
-        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear)
-          incomeThisMonth += amt;
-        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear)
-          incomeLastMonth += amt;
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) incomeThisMonth += amt;
+        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear) incomeLastMonth += amt;
       }
     });
 
     payments?.forEach((item: any) => {
-      // Menggunakan Net Amount (Gross - Admin) untuk perhitungan bulanan
-      const netAmt =
-        Number(item.gross_amount || 0) - Number(item.admin_fee || 0);
+      const netAmt = Number(item.gross_amount || 0) - Number(item.admin_fee || 0);
       if (item.trx_date) {
         const d = new Date(item.trx_date);
-        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear)
-          paymentThisMonth += netAmt;
-        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear)
-          paymentLastMonth += netAmt;
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) paymentThisMonth += netAmt;
+        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear) paymentLastMonth += netAmt;
       }
     });
 
@@ -144,20 +138,19 @@ export default function BalanceScreen() {
       incomeThisMonth,
       paymentThisMonth,
       incomePercentage: calculatePercentage(incomeThisMonth, incomeLastMonth),
-      paymentPercentage: calculatePercentage(
-        paymentThisMonth,
-        paymentLastMonth,
-      ),
+      paymentPercentage: calculatePercentage(paymentThisMonth, paymentLastMonth),
     };
   }, [incomes, payments]);
 
-  // Kalkulasi Aktivitas Terbaru
+  // Kalkulasi Aktivitas Terbaru (Dengan Sort Realtime yang presisi)
   const recentActivities = useMemo(() => {
     const incomeActivities =
       incomes?.map((item: any) => ({
         type: "income",
         amount: Number(item.amount),
         trx_date: item.trx_date,
+        // Fallback ke created_at jika tersedia agar waktu urutan sangat akurat (jam & menit)
+        sort_time: new Date(item.created_at || item.trx_date).getTime(), 
         device_name: item.devices?.device_name ?? "Perangkat",
       })) || [];
 
@@ -166,20 +159,26 @@ export default function BalanceScreen() {
         type: "payment",
         amount: Number(item.gross_amount),
         trx_date: item.trx_date,
+        sort_time: new Date(item.created_at || item.trx_date).getTime(),
         device_name: item.devices?.device_name ?? "Perangkat",
       })) || [];
 
     let merged = [...incomeActivities, ...paymentActivities];
 
-    if (activityFilter === "income") merged = incomeActivities;
-    if (activityFilter === "payment") merged = paymentActivities;
+    if (activityFilter === "income") {
+      merged = incomeActivities;
+    }
 
-    return merged
-      .sort(
-        (a, b) =>
-          new Date(b.trx_date).getTime() - new Date(a.trx_date).getTime(),
-      )
-      .slice(0, 10);
+    if (activityFilter === "payment") {
+      merged = paymentActivities;
+    }
+
+    return (
+      merged
+        // Sort akan secara akurat meletakkan transaksi terbaru (waktu terbesar) di urutan index 0
+        .sort((a, b) => b.sort_time - a.sort_time)
+        .slice(0, 10) // Menampilkan 10 riwayat terbaru
+    );
   }, [incomes, payments, activityFilter]);
 
   const onRefresh = () => {
@@ -195,30 +194,24 @@ export default function BalanceScreen() {
         <View style={styles.header}>
           <Text style={styles.pageTitle}>Dashboard Saldo</Text>
         </View>
+
         <View style={{ marginHorizontal: 20 }}>
           <BalanceCardSkeleton />
         </View>
+
         <View style={{ height: 16 }} />
+
         <View style={{ marginHorizontal: 20 }}>
           <BalanceCardSkeleton />
         </View>
+
         <View style={styles.activitySectionSkeleton}>
           <View style={styles.activityHeader}>
             <View
-              style={{
-                width: 140,
-                height: 20,
-                backgroundColor: "#E5E7EB",
-                borderRadius: 6,
-              }}
+              style={{ width: 140, height: 20, backgroundColor: "#E5E7EB", borderRadius: 6 }}
             />
             <View
-              style={{
-                width: 24,
-                height: 24,
-                backgroundColor: "#E5E7EB",
-                borderRadius: 6,
-              }}
+              style={{ width: 24, height: 24, backgroundColor: "#E5E7EB", borderRadius: 6 }}
             />
           </View>
           <TransactionCardSkeleton />
@@ -249,97 +242,63 @@ export default function BalanceScreen() {
         </View>
       </Animated.View>
 
-      {/* REVISI: Tata Letak Card Sejajar Kiri-Kanan & Persentase */}
-      <Animated.View entering={FadeInUp.delay(150)} style={styles.gridColumn}>
-        {/* CARD PENDAPATAN */}
-        <View style={styles.summaryCard}>
-          <View style={styles.cardFlexRow}>
-            <View style={styles.iconBox}>
-              <ArrowDownToLine size={26} color={COLORS.success} />
+      {/* Baris CardView Pendapatan & Pengeluaran */}
+      <Animated.View entering={FadeInUp.delay(150)} style={styles.cardRow}>
+        
+        {/* KARTU PENDAPATAN BULAN INI */}
+        <View style={styles.statCard}>
+          <View style={styles.statCardTopRow}>
+            <View style={[styles.iconBox, { backgroundColor: COLORS.softGreen }]}>
+              <ArrowDownToLine size={18} color={COLORS.success} />
             </View>
-            <View style={styles.textFlexContainer}>
+            <View style={styles.statCardTextWrapper}>
               <Text style={styles.cardLabel}>Pendapatan</Text>
-              <Text style={styles.cardValueIncome}>
+              <Text style={styles.cardValueIncome} numberOfLines={1} adjustsFontSizeToFit>
                 + Rp {monthlyStats.incomeThisMonth.toLocaleString("id-ID")}
               </Text>
-              <View style={styles.comparisonRow}>
-                {monthlyStats.incomePercentage >= 0 ? (
-                  <TrendingUp
-                    size={12}
-                    color={COLORS.success}
-                    style={{ marginRight: 4 }}
-                  />
-                ) : (
-                  <TrendingDown
-                    size={12}
-                    color={COLORS.danger}
-                    style={{ marginRight: 4 }}
-                  />
-                )}
-                <Text
-                  style={[
-                    styles.comparisonText,
-                    {
-                      color:
-                        monthlyStats.incomePercentage >= 0
-                          ? COLORS.success
-                          : COLORS.danger,
-                    },
-                  ]}
-                >
-                  {monthlyStats.incomePercentage > 0 ? "+" : ""}
-                  {monthlyStats.incomePercentage.toFixed(1)}%
-                </Text>
-                <Text style={styles.comparisonLabel}> Bulan lalu</Text>
-              </View>
             </View>
+          </View>
+          
+          <View style={styles.statCardBottomRow}>
+            {monthlyStats.incomePercentage >= 0 ? (
+              <TrendingUp size={12} color={COLORS.success} />
+            ) : (
+              <TrendingDown size={12} color={COLORS.danger} />
+            )}
+            <Text style={[styles.percentageText, { color: monthlyStats.incomePercentage >= 0 ? COLORS.success : COLORS.danger }]}>
+              {monthlyStats.incomePercentage > 0 ? "+" : ""}{monthlyStats.incomePercentage.toFixed(1)}%
+            </Text>
+            <Text style={styles.percentageLabel}> bln lalu</Text>
           </View>
         </View>
 
-        {/* CARD PENARIKAN */}
-        <View style={styles.summaryCard}>
-          <View style={styles.cardFlexRow}>
-            <View style={styles.iconBox}>
-              <ArrowUpToLine size={26} color={COLORS.warning} />
+        {/* KARTU PENARIKAN BULAN INI */}
+        <View style={styles.statCard}>
+          <View style={styles.statCardTopRow}>
+            <View style={[styles.iconBox, { backgroundColor: COLORS.softYellow }]}>
+              <ArrowUpToLine size={18} color={COLORS.warning} />
             </View>
-            <View style={styles.textFlexContainer}>
+            <View style={styles.statCardTextWrapper}>
               <Text style={styles.cardLabel}>Penarikan</Text>
-              <Text style={styles.cardValuePayment}>
+              <Text style={styles.cardValuePayment} numberOfLines={1} adjustsFontSizeToFit>
                 - Rp {monthlyStats.paymentThisMonth.toLocaleString("id-ID")}
               </Text>
-              <View style={styles.comparisonRow}>
-                {monthlyStats.paymentPercentage <= 0 ? (
-                  <TrendingDown
-                    size={12}
-                    color={COLORS.success}
-                    style={{ marginRight: 4 }}
-                  />
-                ) : (
-                  <TrendingUp
-                    size={12}
-                    color={COLORS.danger}
-                    style={{ marginRight: 4 }}
-                  />
-                )}
-                <Text
-                  style={[
-                    styles.comparisonText,
-                    {
-                      color:
-                        monthlyStats.paymentPercentage <= 0
-                          ? COLORS.success
-                          : COLORS.danger,
-                    },
-                  ]}
-                >
-                  {monthlyStats.paymentPercentage > 0 ? "+" : ""}
-                  {monthlyStats.paymentPercentage.toFixed(1)}%
-                </Text>
-                <Text style={styles.comparisonLabel}> Bulan lalu</Text>
-              </View>
             </View>
           </View>
+          
+          <View style={styles.statCardBottomRow}>
+            {monthlyStats.paymentPercentage <= 0 ? (
+              <TrendingDown size={12} color={COLORS.success} />
+            ) : (
+              <TrendingUp size={12} color={COLORS.danger} />
+            )}
+            <Text style={[styles.percentageText, { color: monthlyStats.paymentPercentage <= 0 ? COLORS.success : COLORS.danger }]}>
+              {monthlyStats.paymentPercentage > 0 ? "+" : ""}{monthlyStats.paymentPercentage.toFixed(1)}%
+            </Text>
+            <Text style={styles.percentageLabel}> bln lalu</Text>
+          </View>
         </View>
+
       </Animated.View>
 
       <Animated.View
@@ -552,63 +511,67 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "800",
   },
-  // STYLES BARU UNTUK KARTU PENDAPATAN & PENARIKAN BULAN INI
-  gridColumn: {
+  
+  // Layout StatCard
+  cardRow: {
     flexDirection: "row",
     gap: 12,
     paddingHorizontal: 20,
     marginTop: 16,
   },
-  summaryCard: {
+  statCard: {
     flex: 1,
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    padding: 16,
+    padding: 14, 
     ...SHADOW.card,
   },
-  cardFlexRow: {
+  statCardTopRow: {
     flexDirection: "row",
-    gap: 12,
+    alignItems: "center",
   },
   iconBox: {
-    marginVertical: "auto",
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
   },
-  textFlexContainer: {
+  statCardTextWrapper: {
     flex: 1,
+    marginLeft: 10,
     justifyContent: "center",
   },
   cardLabel: {
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 11,
     color: COLORS.textMuted,
-    marginBottom: 5,
+    marginBottom: 2,
   },
   cardValueIncome: {
     fontSize: 14,
-    fontWeight: "800",
+    fontWeight: "700",
     color: COLORS.success,
   },
   cardValuePayment: {
     fontSize: 14,
-    fontWeight: "800",
+    fontWeight: "700",
     color: COLORS.warning,
   },
-  comparisonRow: {
+  statCardBottomRow: {
     flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
   },
-  comparisonText: {
-    fontSize: 8,
-    marginVertical: "auto",
+  percentageText: {
+    fontSize: 11,
     fontWeight: "700",
+    marginLeft: 4,
   },
-  comparisonLabel: {
-    fontSize: 8,
-    marginVertical: "auto",
+  percentageLabel: {
+    fontSize: 10,
     color: COLORS.textMuted,
   },
-  // AKHIR STYLES BARU
+
   activitySectionSkeleton: {
     paddingHorizontal: 20,
     marginTop: 24,
