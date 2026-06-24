@@ -253,6 +253,20 @@ export default function BalanceScreen() {
 
   return (
     <View style={styles.container}>
+      {/* REVISI 1: Backdrop tingkat Root untuk meng-cover area atas layar (Header & Hero Card) */}
+      {showActivityMenu && (
+        <Pressable
+          style={[
+            StyleSheet.absoluteFill,
+            { zIndex: 5, elevation: 5, backgroundColor: "transparent" },
+          ]}
+          onPress={() => {
+            animateLayout();
+            setShowActivityMenu(false);
+          }}
+        />
+      )}
+      
       <Animated.View entering={FadeInDown} style={styles.header}>
         <Text style={styles.pageTitle}>Dashboard Saldo</Text>
       </Animated.View>
@@ -413,11 +427,12 @@ export default function BalanceScreen() {
         </TouchableOpacity>
       </Animated.View>
 
+      {/* REVISI 2: Menaikkan zIndex activitySection secara dinamis agar berada di atas Root Backdrop saat filter terbuka */}
       <Animated.View
         entering={FadeInUp.delay(200)}
-        style={styles.activitySection}
+        style={[styles.activitySection, showActivityMenu && { zIndex: 10, elevation: 10 }]}
       >
-        {/* REVISI UTAMA: Backdrop lokal yang aman tanpa mengganggu scrollEnabled bawaan */}
+        {/* REVISI 3: Backdrop tingkat lokal untuk meng-cover area bawah (mengunci guliran ScrollView) */}
         {showActivityMenu && (
           <Pressable
             style={[
@@ -435,7 +450,7 @@ export default function BalanceScreen() {
           />
         )}
 
-        {/* Tingkat zIndex wadah header dinaikkan agar dropdown selalu di atas backdrop */}
+        {/* Wadah header dinaikkan zIndex-nya ke level 2 agar berada di atas penutup lokal (level 1) */}
         <View style={[styles.activityHeaderContainer, { zIndex: 2, elevation: 2 }]}>
           <View style={styles.activityHeader}>
             <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
@@ -737,6 +752,8 @@ const styles = StyleSheet.create({
     width: 130,
     marginRight: 20,
     ...SHADOW.card,
+    zIndex: 3,
+    elevation: 3,
   },
   dropdownItem: {
     paddingVertical: 12,
