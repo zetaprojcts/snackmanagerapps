@@ -108,14 +108,6 @@ export default function IncomeScreen() {
       month: "long",
       year: "numeric",
     });
-  const formatShortDate = (date: Date) =>
-    date.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
-
-  const getCustomLabel = () => {
-    if (filter === "custom")
-      return `${formatShortDate(customStartDate)} - ${formatShortDate(customEndDate)}`;
-    return "Tanggal...";
-  };
 
   return (
     <>
@@ -147,7 +139,7 @@ export default function IncomeScreen() {
                 { id: "this_month", label: "Bulan Ini" },
                 { id: "last_month", label: "Bulan Lalu" },
                 { id: "all", label: "Semua" },
-                { id: "custom", label: getCustomLabel(), isCustom: true },
+                { id: "custom", label: "Custom", isCustom: true },
               ].map((item) => {
                 const isActive = filter === item.id;
                 return (
@@ -165,21 +157,22 @@ export default function IncomeScreen() {
                       }
                     }}
                   >
-                    {item.isCustom && (
+                    {/* REVISI 1: Jika ini tab custom (tanggal), tampilkan hanya icon */}
+                    {item.isCustom ? (
                       <Calendar
-                        size={14}
+                        size={20}
                         color={isActive ? COLORS.primary : COLORS.textMuted}
-                        style={{ marginRight: 6 }}
                       />
+                    ) : (
+                      <Text
+                        style={[
+                          styles.filterTabText,
+                          isActive && styles.filterTabTextActive,
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
                     )}
-                    <Text
-                      style={[
-                        styles.filterTabText,
-                        isActive && styles.filterTabTextActive,
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
                   </TouchableOpacity>
                 );
               })}
