@@ -253,7 +253,6 @@ export default function BalanceScreen() {
 
   return (
     <View style={styles.container}>
-      
       <Animated.View entering={FadeInDown} style={styles.header}>
         <Text style={styles.pageTitle}>Dashboard Saldo</Text>
       </Animated.View>
@@ -378,4 +377,430 @@ export default function BalanceScreen() {
                 <View style={styles.statCardTextWrapper}>
                   <Text style={styles.cardLabel}>Biaya Admin</Text>
                   <Text
-                    style={[styles.cardValuePayment, { color: COLORS.
+                    style={[styles.cardValuePayment, { color: COLORS.danger }]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    - Rp {monthlyStats.adminFeeThisMonth.toLocaleString("id-ID")}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.statCardBottomRow}>
+                {monthlyStats.adminFeePercentage <= 0 ? (
+                  <TrendingDown size={12} color={COLORS.success} />
+                ) : (
+                  <TrendingUp size={12} color={COLORS.danger} />
+                )}
+                <Text
+                  style={[
+                    styles.percentageText,
+                    {
+                      color:
+                        monthlyStats.adminFeePercentage <= 0
+                          ? COLORS.success
+                          : COLORS.danger,
+                    },
+                  ]}
+                >
+                  {monthlyStats.adminFeePercentage > 0 ? "+" : ""}
+                  {monthlyStats.adminFeePercentage.toFixed(1)}%
+                </Text>
+                <Text style={styles.percentageLabel}> vs Bulan Berlalu</Text>
+              </View>
+            </View>
+          )}
+        </TouchableOpacity>
+      </Animated.View>
+
+      <Animated.View
+        entering={FadeInUp.delay(200)}
+        style={styles.activitySection}
+      >
+        {/* REVISI UTAMA: Backdrop lokal yang aman tanpa mengganggu scrollEnabled bawaan */}
+        {showActivityMenu && (
+          <Pressable
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                zIndex: 1,
+                elevation: 1,
+                backgroundColor: "transparent",
+              },
+            ]}
+            onPress={() => {
+              animateLayout();
+              setShowActivityMenu(false);
+            }}
+          />
+        )}
+
+        {/* Tingkat zIndex wadah header dinaikkan agar dropdown selalu di atas backdrop */}
+        <View style={[styles.activityHeaderContainer, { zIndex: 2, elevation: 2 }]}>
+          <View style={styles.activityHeader}>
+            <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
+
+            <TouchableOpacity
+              style={styles.activityFilterBtn}
+              onPress={() => {
+                animateLayout();
+                setShowActivityMenu(!showActivityMenu);
+              }}
+            >
+              <Filter
+                size={18}
+                color={
+                  activityFilter !== "all" ? COLORS.primary : COLORS.textMuted
+                }
+              />
+            </TouchableOpacity>
+          </View>
+
+          {showActivityMenu && (
+            <Animated.View
+              entering={FadeInUp.duration(200)}
+              style={styles.dropdownMenu}
+            >
+              <TouchableOpacity
+                style={styles.dropdownItem}
+                onPress={() => {
+                  animateLayout();
+                  setActivityFilter("all");
+                  setShowActivityMenu(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.dropdownText,
+                    activityFilter === "all" && styles.dropdownTextActive,
+                  ]}
+                >
+                  Semua
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.dropdownItem}
+                onPress={() => {
+                  animateLayout();
+                  setActivityFilter("income");
+                  setShowActivityMenu(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.dropdownText,
+                    activityFilter === "income" && styles.dropdownTextActive,
+                  ]}
+                >
+                  Pemasukan
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.dropdownItem, { borderBottomWidth: 0 }]}
+                onPress={() => {
+                  animateLayout();
+                  setActivityFilter("payment");
+                  setShowActivityMenu(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.dropdownText,
+                    activityFilter === "payment" && styles.dropdownTextActive,
+                  ]}
+                >
+                  Penarikan
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+          )}
+        </View>
+
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 120 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetchingIncome || isRefetchingPayment}
+              onRefresh={onRefresh}
+            />
+          }
+        >
+          {recentActivities.length === 0 ? (
+            <Animated.View
+              entering={FadeIn.duration(300)}
+              style={styles.emptyState}
+            >
+              <Text style={styles.emptyTitle}>Belum Ada Aktivitas</Text>
+              <Text style={styles.emptySubtitle}>
+                Tidak ada data{" "}
+                {activityFilter === "income"
+                  ? "pemasukan"
+                  : activityFilter === "payment"
+                    ? "penarikan"
+                    : "transaksi"}
+              </Text>
+            </Animated.View>
+          ) : (
+            recentActivities.map((item, index) => (
+              <Animated.View
+                key={`${item.type}-${item.trx_date}-${index}`}
+                entering={FadeInUp.duration(300).delay(index * 40)}
+                style={styles.activityCard}
+              >
+                <View
+                  style={[
+                    styles.activityIcon,
+                    {
+                      backgroundColor:
+                        item.type === "income"
+                          ? COLORS.softGreen
+                          : COLORS.softYellow,
+                    },
+                  ]}
+                >
+                  {item.type === "income" ? (
+                    <ArrowDownToLine size={18} color={COLORS.success} />
+                  ) : (
+                    <ArrowUpToLine size={18} color={COLORS.warning} />
+                  )}
+                </View>
+
+                <View style={styles.activityContent}>
+                  <Text style={styles.activityDevice}>{item.device_name}</Text>
+                  <Text style={styles.activityDate}>
+                    {new Date(item.trx_date).toLocaleDateString("id-ID", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </Text>
+                </View>
+
+                <Text
+                  style={[
+                    styles.activityAmount,
+                    {
+                      color:
+                        item.type === "income"
+                          ? COLORS.success
+                          : COLORS.warning,
+                    },
+                  ]}
+                >
+                  {item.type === "income" ? "+" : "-"} Rp{" "}
+                  {item.amount.toLocaleString("id-ID")}
+                </Text>
+              </Animated.View>
+            ))
+          )}
+        </ScrollView>
+      </Animated.View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  pageTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: COLORS.text,
+  },
+  heroCard: {
+    marginHorizontal: 20,
+    backgroundColor: COLORS.primary,
+    borderRadius: 24,
+    padding: 24,
+    ...SHADOW.card,
+  },
+  heroContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  heroIconWrapper: {
+    backgroundColor: "rgba(89, 133, 245, 0.81)",
+    padding: 12,
+    borderRadius: 18,
+  },
+  heroLabel: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  heroAmount: {
+    color: "#FFFFFF",
+    fontSize: 32,
+    fontWeight: "800",
+  },
+
+  cardRow: {
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 20,
+    marginTop: 16,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 14,
+    ...SHADOW.card,
+  },
+  statCardTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  statCardTextWrapper: {
+    flex: 1,
+    marginLeft: 10,
+    justifyContent: "center",
+  },
+  cardLabel: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+    marginBottom: 2,
+  },
+  cardValueIncome: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.success,
+  },
+  cardValuePayment: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.warning,
+  },
+  statCardBottomRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  percentageText: {
+    fontSize: 11,
+    fontWeight: "700",
+    marginLeft: 4,
+  },
+  percentageLabel: {
+    fontSize: 10,
+    color: COLORS.textMuted,
+  },
+
+  activitySectionSkeleton: {
+    paddingHorizontal: 20,
+    marginTop: 24,
+    flex: 1,
+  },
+  activitySection: {
+    flex: 1,
+    marginTop: 24,
+  },
+  activityHeaderContainer: {
+    paddingHorizontal: 20,
+  },
+  activityHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
+  activityFilterBtn: {
+    padding: 6,
+  },
+  dropdownMenu: {
+    position: "absolute",
+    top: 34,
+    right: 0,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    width: 130,
+    marginRight: 20,
+    ...SHADOW.card,
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: COLORS.text,
+  },
+  dropdownTextActive: {
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+  activityCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 20,
+    ...SHADOW.card,
+  },
+  activityIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  activityContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  activityDevice: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
+  activityDate: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 3,
+  },
+  activityAmount: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  emptyState: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 40,
+    alignItems: "center",
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: COLORS.text,
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+  },
+});
