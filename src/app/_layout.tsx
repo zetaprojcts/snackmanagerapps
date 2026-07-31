@@ -2,12 +2,10 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import {
   QueryClient,
   QueryClientProvider,
-  useQueryClient,
 } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -25,12 +23,6 @@ const queryClient = new QueryClient();
 
 function AppNavigator() {
   const { session, loading } = useAuth();
-  const currentQueryClient = useQueryClient();
-  const userId = session?.user.id ?? null;
-
-  useEffect(() => {
-    currentQueryClient.clear();
-  }, [userId, currentQueryClient]);
 
   if (loading) {
     return (

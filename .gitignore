@@ -48,3 +48,6 @@ database-backups/
 # Environment Supabase
 .env.snack-dev
 .env.snack-pub
+
+#Supabase Folder
+supabase/
