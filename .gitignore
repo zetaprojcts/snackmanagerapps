@@ -41,3 +41,10 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Database backup
+database-backups/
+
+# Environment Supabase
+.env.snack-dev
+.env.snack-pub

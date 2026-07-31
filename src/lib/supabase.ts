@@ -2,16 +2,37 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 import "react-native-url-polyfill/auto";
 
-// TODO: Ganti dengan URL dan ANON KEY dari dashboard Supabase Anda (Settings -> API)
-const supabaseUrl = "https://ezotuwmvpzoulmyvyaqg.supabase.co";
-const supabaseAnonKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6b3R1d212cHpvdWxteXZ5YXFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MjI1MjMsImV4cCI6MjA5Njk5ODUyM30.gGQwOs6_xDmBHEWLnZlgixw4vURMhnOxZws1uUWeVrA";
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage: AsyncStorage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
+export const appEnvironment =
+  process.env.EXPO_PUBLIC_APP_ENV ?? "unknown";
+
+if (!supabaseUrl) {
+  throw new Error(
+    "EXPO_PUBLIC_SUPABASE_URL belum tersedia. Periksa file environment.",
+  );
+}
+
+if (!supabaseAnonKey) {
+  throw new Error(
+    "EXPO_PUBLIC_SUPABASE_ANON_KEY belum tersedia. Periksa file environment.",
+  );
+}
+
+export const supabase = createClient(
+  supabaseUrl,
+  supabaseAnonKey,
+  {
+    auth: {
+      storage: AsyncStorage,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+    },
   },
-});
+);
+
+if (__DEV__) {
+  console.log(`Database aktif: ${appEnvironment}`);
+}
