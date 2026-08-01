@@ -8,21 +8,28 @@ Dokumen ini mencatat baseline yang digunakan untuk merancang migration multi-use
 
 | Target | Sumber | Tanggal sumber | Tingkat keyakinan |
 | --- | --- | --- | --- |
-| Development | Enam migration lokal pada `supabase/migrations` dan metadata link lokal | 31 Juli 2026 | Provisional sampai dibandingkan dengan schema live development |
+| Development | Sembilan migration pada `supabase/migrations`, migration history linked, schema lint, dan pgTAP | 2 Agustus 2026 | Terverifikasi pada live development dan replay lokal kosong |
 | Production | Backup lokal `snack-pub-2026-08-01` | 1 Agustus 2026 | Snapshot, bukan verifikasi live production |
 
 Nilai environment, project reference, credential, UUID user, dan data pribadi tidak dicatat di dokumen ini.
 
-## Baseline Development
+## Histori Migration Development
 
-Migration lokal yang tersedia:
+Migration yang tersedia dan telah direplay berurutan:
 
 1. `001_initial_schema`
 2. `002_create_profiles`
-3. `003_add_devices_user_id`
-4. `004_create_indexes`
-5. `005_enable_rls`
-6. `006_migrate_existing_data`
+3. `002b_backfill_profiles`
+4. `003_add_devices_user_id`
+5. `004_create_indexes`
+6. `005_enable_rls`
+7. `006_migrate_existing_data`
+8. `007_harden_multi_tenant_schema`
+9. `008_reject_cross_tenant_device_owner`
+
+Migration 001-006 adalah histori awal dan tidak diubah. Migration 002b, 007, dan 008 merupakan corrective migration forward-only yang membuat replay aman serta memperketat boundary tenant.
+
+## Baseline Development Sebelum Sprint 1
 
 Struktur yang dinyatakan oleh rangkaian migration:
 
@@ -38,6 +45,21 @@ Struktur yang dinyatakan oleh rangkaian migration:
 | Transaksi | Unique per perangkat dan tanggal tersedia; constraint nilai belum lengkap |
 
 Catatan: migration lokal adalah histori yang harus dipertahankan. Kekurangan di atas diperbaiki melalui corrective migration baru pada Sprint 1, bukan dengan mengubah file yang sudah ada.
+
+## Kondisi Development Setelah Sprint 1
+
+| Area | Kondisi terverifikasi |
+| --- | --- |
+| Ownership | `devices.user_id` mengarah ke `auth.users(id)`, cascade delete, default `auth.uid()`, dan trigger menolak owner asing |
+| RLS | Aktif pada `profiles`, `devices`, `income`, dan `payment` dengan policy per-user |
+| Anon | Tidak memiliki akses CRUD pada tabel tenant |
+| Device code | Unique `(user_id, code)` dan dihasilkan atomik oleh database; setiap user dapat memiliki `HP001` |
+| Signup | Trigger profile memakai fixed `search_path`, referensi fully qualified, dan privilege minimum |
+| Transaksi | Write baru menjaga income positif serta konsistensi payment; constraint belum divalidasi terhadap seluruh row historis |
+| Pengujian | pgTAP User A/B/C lulus 19/19 pada linked development dan migration replay dari database lokal kosong lulus |
+| Production | Tidak diakses atau diubah selama Sprint 1 |
+
+Audit data menemukan row development historis dengan `income.amount <= 0`. Constraint dipasang `NOT VALID`, sehingga write baru tetap diperiksa tanpa menggagalkan migration karena data lama. Rekonsiliasi row historis dan `VALIDATE CONSTRAINT` dijadwalkan pada Sprint 5.
 
 ## Baseline Production
 
@@ -67,8 +89,8 @@ Jumlah ini menjadi baseline minimum untuk rehearsal. Rekonsiliasi production tet
 
 1. Production belum memiliki `profiles` dan ownership perangkat.
 2. Policy production memungkinkan CRUD tanpa boundary user.
-3. Development sudah memiliki rancangan ownership, tetapi profile RLS dan insert owner aplikasi belum lengkap.
-4. Strategi device code kedua environment masih menggunakan uniqueness global.
+3. Development sudah memiliki ownership, profile RLS, dan generator kode per-user; production belum menerima perubahan ini.
+4. Production masih memakai sequence dan uniqueness global sampai rehearsal serta rollout disetujui.
 5. Backup tidak membawa auth user yang dapat langsung menjadi owner legacy.
 6. Migration backfill development tidak portabel karena mengikat satu UUID environment.
 
@@ -84,17 +106,17 @@ Jumlah ini menjadi baseline minimum untuk rehearsal. Rekonsiliasi production tet
 
 Folder backup sudah diabaikan Git. Audit lokal menemukan satu catatan koneksi yang memuat indikator credential serta dump data yang dapat memuat data autentikasi dan pribadi. Nilainya tidak dibaca ke dokumentasi dan tidak boleh di-commit.
 
-Tindakan yang tetap memerlukan user:
+Status tindakan keamanan user:
 
-1. Rotasi credential yang pernah disimpan plaintext.
-2. Pindahkan credential ke password manager.
-3. Enkripsi atau pindahkan backup ke penyimpanan terbatas.
+1. [x] Rotasi credential yang pernah disimpan plaintext.
+2. [x] Pindahkan credential ke password manager.
+3. [x] Enkripsi atau pindahkan backup ke penyimpanan terbatas.
 
 ## Verifikasi Lanjutan
 
-Baseline ini menjadi final setelah:
+Status verifikasi baseline:
 
-1. Schema live development dibandingkan dengan migration lokal menggunakan akses read-only.
-2. Backup production direstore pada rehearsal terisolasi.
-3. Migration dapat direplay dan seluruh query rekonsiliasi lulus.
-4. Tidak ada koneksi atau perubahan production tanpa approval eksplisit user.
+1. [x] Schema live development dibandingkan dengan migration lokal.
+2. [ ] Backup production direstore pada rehearsal terisolasi pada Sprint 6.
+3. [x] Migration development dapat direplay dari kosong dan test boundary tenant lulus.
+4. [x] Tidak ada koneksi atau perubahan production tanpa approval eksplisit user.

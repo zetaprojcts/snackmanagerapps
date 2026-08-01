@@ -4,7 +4,7 @@
 
 Konsep perubahan sudah benar: satu user memiliki banyak perangkat, dan setiap pemasukan serta penarikan dimiliki secara tidak langsung melalui perangkat tersebut. Implementasi saat ini baru mencapai tahap autentikasi dan policy dasar. Sistem belum aman untuk pergantian akun atau penggunaan bersamaan oleh beberapa user.
 
-Status keseluruhan: **partially aligned, not multi-user ready**.
+Status keseluruhan setelah Sprint 1: **database development multi-tenant ready; aplikasi belum aman untuk account switching sampai Sprint 2 selesai**.
 
 ## Temuan P0 - Blocker
 
@@ -15,6 +15,8 @@ Status keseluruhan: **partially aligned, not multi-user ready**.
 - Database: `devices.user_id` bersifat `NOT NULL` dan policy mensyaratkan `user_id = auth.uid()`.
 - Dampak: user yang sudah login dapat gagal membuat perangkat.
 - Keputusan target: database menetapkan owner dari `auth.uid()` dan policy tetap memvalidasi owner.
+
+Status Sprint 1: ditangani. Client tidak lagi mengirim kode atau owner, sedangkan database menetapkan `user_id` dari session dan menolak owner lintas tenant.
 
 ### A-002: Cache tidak terisolasi per session
 
@@ -30,6 +32,8 @@ Status keseluruhan: **partially aligned, not multi-user ready**.
 - Dampak: data profil berpotensi dapat dibaca atau dimodifikasi tidak sesuai ownership, tergantung grant live database.
 - Keputusan target: enable RLS, cabut akses anon yang tidak dibutuhkan, dan izinkan user membaca/memperbarui profilnya sendiri.
 
+Status Sprint 1: ditangani dan terverifikasi melalui test User A/B/C serta pemeriksaan akses anon.
+
 ### A-004: Device code bentrok antar-user
 
 - Lokasi: `generateNextDeviceCode` dan constraint unik `devices.code`.
@@ -37,21 +41,27 @@ Status keseluruhan: **partially aligned, not multi-user ready**.
 - Dampak: perangkat pertama user kedua dapat berbenturan dengan `HP001` milik user pertama.
 - Keputusan target: uniqueness menjadi `(user_id, code)` dan kode dibuat secara atomik di database.
 
+Status Sprint 1: ditangani. Generator database memakai lock transaksi per-user dan pgTAP membuktikan user berbeda dapat memperoleh `HP001`.
+
 ## Temuan P1 - Risiko Tinggi
 
 ### A-005: Migration tidak dilacak Git
 
 Folder `supabase/` seluruhnya masuk `.gitignore`. Schema tidak dapat direproduksi oleh CI atau mesin lain. Targetnya adalah melacak `supabase/migrations/**` dan mengabaikan hanya `.temp`, backup, serta state lokal.
 
-Status Sprint 0: ditangani. `supabase/migrations/**` kini dapat dilacak, sedangkan `.temp`, environment lokal, dan backup tetap diabaikan. Histori migration belum dinyatakan benar sampai corrective migration dan replay Sprint 1 lulus.
+Status Sprint 1: ditangani. `supabase/migrations/**` dapat dilacak, corrective migration tersedia, dan histori lengkap berhasil direplay dari database kosong.
 
 ### A-006: Migrasi data lama memakai UUID hard-coded
 
 Migration `006_migrate_existing_data.sql` mengikat data ke satu UUID environment. Proses ini tidak portabel dan tidak aman untuk production. Migrasi production harus menerima owner yang sudah diverifikasi dan menjalankan rekonsiliasi sebelum `NOT NULL` diterapkan.
 
+Status Sprint 1: dimitigasi untuk development melalui migration `002b` yang menghentikan replay bila ownership belum lengkap. File 006 dipertahankan sebagai histori; migration production tetap wajib memakai owner yang diverifikasi pada rehearsal.
+
 ### A-007: Trigger profil belum di-hardening
 
 Fungsi `handle_new_user` menggunakan `SECURITY DEFINER` tanpa fixed `search_path`. Fungsi perlu memakai `SET search_path = ''`, referensi fully qualified, privilege minimum, dan tes signup karena kegagalan trigger dapat memblokir registrasi.
+
+Status Sprint 1: ditangani. Function di-hardening, grant dipersempit, dan pembuatan tepat satu profile dibuktikan dalam pgTAP.
 
 ### A-008: Environment build belum eksplisit
 
@@ -70,9 +80,9 @@ File backup lokal berisi informasi koneksi. Folder tidak dilacak Git, tetapi pas
 ## Temuan P2 - Kualitas dan Skalabilitas
 
 - Supabase generated types belum tersedia dan banyak jalur data menggunakan `any`.
-- Belum ada test otomatis untuk RLS, auth switching, migration, atau data layer.
+- Test otomatis RLS dan migration sudah tersedia; auth switching dan data layer tetap belum tercakup.
 - Riwayat diambil seluruhnya dan agregasi dilakukan di client tanpa pagination.
-- Constraint database belum menjaga nilai positif dan konsistensi nilai pembayaran.
+- Constraint write baru menjaga nilai income positif dan konsistensi pembayaran; row historis development perlu direkonsiliasi sebelum validasi penuh.
 - `payment-detail.tsx` memakai `maxValue={7}` walaupun skala uang telah dihitung.
 - Plugin Reanimated masih dikonfigurasi manual walaupun Expo SDK 54 menanganinya melalui preset.
 - README masih berupa dokumentasi starter Expo dan belum menjelaskan proyek ini.
@@ -95,8 +105,8 @@ File backup lokal berisi informasi koneksi. Folder tidak dilacak Git, tetapi pas
 - Expo Doctor baseline: 17 dari 18 pemeriksaan lulus karena patch Expo tidak sesuai.
 - Expo Doctor setelah remediasi Sprint 0: 18 dari 18 pemeriksaan lulus dengan Expo `~54.0.36`.
 - `npm audit --omit=dev`: mendeteksi 17 advisory transitif, terdiri dari 13 moderate dan 4 high. Perbaikan paksa meminta upgrade Expo SDK 57 sehingga tidak diterapkan pada project SDK 54; risiko dicatat untuk pemantauan dependency.
-- Git worktree sebelum audit: bersih. Perubahan setelahnya adalah pekerjaan Sprint 0 yang belum di-commit sampai pengujian user lulus.
+- Sprint 0 telah di-commit dan di-push pada `025e4db`; perubahan Sprint 1 menunggu pengujian user sebelum commit berikutnya.
 
 ## Batas Audit
 
-Audit ini memeriksa source, konfigurasi, migration lokal, backup, dan toolchain. Policy pada live development database belum diuji menggunakan akun A/B/C dan migration belum di-replay dari database kosong. Keduanya menjadi gate wajib Sprint 1.
+Audit awal memeriksa source, konfigurasi, migration lokal, backup, dan toolchain. Verifikasi Sprint 1 kemudian membuktikan policy pada live development menggunakan User A/B/C (19/19 assertion), schema lint, akses anon, dan replay migration dari database kosong. Production tetap hanya mengacu pada snapshot dan belum diverifikasi live.

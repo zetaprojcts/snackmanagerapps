@@ -1,6 +1,6 @@
 # 009-STATUS-PROYEK
 
-**Version:** 1.6.0 (Sprint 0 Locked, Sprint 1 Active)<br>
+**Version:** 1.8.0 (Sprint 1 Locked, Sprint 2 Active)<br>
 **Status:** LOCKED & ACTIVE<br>
 **Target Readers:** Developer dan Autonomous AI Development Agents<br>
 **Single Source of Truth (SSOT):** Status eksekusi, checklist, dan gate refactor multi-user Snack Manager<br>
@@ -27,7 +27,7 @@ Pengembangan Snack Manager mempertahankan seluruh fungsi single-user yang sudah 
 - Mencatat baseline schema development dan production.
 - Memastikan default workflow tidak dapat mengarah ke production secara tidak sengaja.
 
-[CURRENT] SPRINT 1: Database Multi-Tenant
+[LOCKED] SPRINT 1: Database Multi-Tenant
 
 - Memperbaiki ownership `devices`.
 - Melindungi `profiles` dengan RLS.
@@ -35,7 +35,7 @@ Pengembangan Snack Manager mempertahankan seluruh fungsi single-user yang sudah 
 - Merapikan policy, grant, function, index, dan constraint.
 - Membuktikan isolasi dengan User A, B, dan C.
 
-[PENDING] SPRINT 2: Auth dan Session Isolation
+[CURRENT] SPRINT 2: Auth dan Session Isolation
 
 - Membersihkan cache saat session berubah.
 - Membuat query key berbasis user.
@@ -75,15 +75,15 @@ Pengembangan Snack Manager mempertahankan seluruh fungsi single-user yang sudah 
 
 ## BAB 2: Objektif Sprint Aktif
 
-Sprint 0 belum mengubah fitur aplikasi maupun schema database. Fokusnya adalah memastikan pekerjaan selanjutnya dapat dilakukan dengan aman, dapat direproduksi, dan tidak memengaruhi production.
+Sprint 1 telah lulus pengujian otomatis dan regression test Expo Go, kemudian dikunci. Sprint 2 berfokus memastikan perpindahan session tidak pernah menampilkan cache atau data milik user sebelumnya.
 
-Fokus Sprint 0:
+Fokus Sprint 2:
 
-1. Dokumentasi menjadi SSOT dan saling terhubung.
-2. Migration dapat dilacak Git, sedangkan `.temp`, `.env`, dan backup tetap diabaikan.
-3. Credential plaintext dirotasi dan dipindahkan ke penyimpanan aman.
-4. Baseline schema development dan production tercatat tanpa credential.
-5. Target environment selalu eksplisit sebelum command development, build, atau migration dijalankan.
+1. Menambahkan user aktif pada kontrak auth aplikasi.
+2. Membatalkan request dan membersihkan cache ketika session berubah.
+3. Membuat query key tenant berbasis `user.id`.
+4. Menyediakan halaman akun dan logout.
+5. Menguji login A, logout, login B, lalu kembali ke A.
 
 Dokumen acuan:
 
@@ -128,20 +128,20 @@ Developer atau AI Agent wajib mengubah `[ ]` menjadi `[x]` hanya setelah impleme
 
 ### 3.2 Sprint 1: Database Multi-Tenant
 
-1. [ ] Membandingkan schema live development dengan migration lokal.
-2. [ ] Membuat corrective migration forward-only.
-3. [ ] Mengaktifkan RLS pada `profiles`.
-4. [ ] Membuat policy own-profile untuk SELECT dan UPDATE.
-5. [ ] Mengamankan `handle_new_user` dengan fixed `search_path`.
-6. [ ] Mengarahkan `devices.user_id` ke `auth.users(id)` dengan cascade yang benar.
-7. [ ] Menetapkan owner perangkat dari session database.
-8. [ ] Mengubah unique device code menjadi `(user_id, code)`.
-9. [ ] Membuat generator device code atomik per-user.
-10. [ ] Menghapus duplicate constraint dan database object mati.
-11. [ ] Memperketat grant function, sequence, dan table.
-12. [ ] Menambahkan constraint integritas income dan payment.
-13. [ ] Membuat test RLS User A, B, dan C.
-14. [ ] Replay migration dari database kosong.
+1. [x] Membandingkan schema live development dengan migration lokal.
+2. [x] Membuat corrective migration forward-only.
+3. [x] Mengaktifkan RLS pada `profiles`.
+4. [x] Membuat policy own-profile untuk SELECT dan UPDATE.
+5. [x] Mengamankan `handle_new_user` dengan fixed `search_path`.
+6. [x] Mengarahkan `devices.user_id` ke `auth.users(id)` dengan cascade yang benar.
+7. [x] Menetapkan owner perangkat dari session database.
+8. [x] Mengubah unique device code menjadi `(user_id, code)`.
+9. [x] Membuat generator device code atomik per-user.
+10. [x] Menghapus duplicate constraint dan database object mati.
+11. [x] Memperketat grant function, sequence, dan table.
+12. [x] Menambahkan constraint integritas income dan payment untuk write baru; validasi row historis dijadwalkan pada Sprint 5.
+13. [x] Membuat test RLS User A, B, dan C.
+14. [x] Replay migration dari database kosong.
 
 ### 3.3 Sprint 2: Auth dan Session Isolation
 
@@ -243,14 +243,14 @@ Sprint 0 baru dapat ditandai `[LOCKED]` ketika seluruh checklist di atas bernila
 
 ### 4.2 Multi-User Database Exit Gate
 
-[ ] User A, B, dan C dapat membuat perangkat sendiri.<br>
-[ ] User A, B, dan C dapat memiliki kode `HP001` masing-masing.<br>
-[ ] Cross-user SELECT tidak mengembalikan row.<br>
-[ ] Cross-user INSERT, UPDATE, dan DELETE ditolak.<br>
-[ ] Anon tidak memiliki akses CRUD ke data tenant.<br>
-[ ] Signup membuat tepat satu profile.<br>
-[ ] Migration replay dari database kosong lulus.<br>
-[ ] Schema lint dan privilege test lulus.
+[x] User A, B, dan C dapat membuat perangkat sendiri.<br>
+[x] User A, B, dan C dapat memiliki kode `HP001` masing-masing.<br>
+[x] Cross-user SELECT tidak mengembalikan row.<br>
+[x] Cross-user INSERT, UPDATE, dan DELETE ditolak atau difilter oleh RLS.<br>
+[x] Anon tidak memiliki akses CRUD ke data tenant.<br>
+[x] Signup membuat tepat satu profile.<br>
+[x] Migration replay dari database kosong lulus.<br>
+[x] Schema lint dan privilege test lulus.
 
 ### 4.3 Application Exit Gate
 
@@ -261,9 +261,9 @@ Sprint 0 baru dapat ditandai `[LOCKED]` ketika seluruh checklist di atas bernila
 [ ] TypeScript lulus tanpa error.<br>
 [ ] Lint lulus tanpa warning yang tidak disetujui.<br>
 [ ] Expo Doctor lulus seluruh check.<br>
-[ ] User menyelesaikan regression test fitur existing melalui Expo Go.<br>
-[ ] User memberikan konfirmasi eksplisit `PASS`.<br>
-[ ] Commit yang diuji telah di-push ke branch aktif dan `master`.
+[x] User menyelesaikan regression test fitur existing melalui Expo Go.<br>
+[x] User memberikan konfirmasi hasil tanpa error sebagai `PASS SPRINT 1`.<br>
+[x] Commit yang diuji telah di-push ke branch aktif dan `master`.
 
 ### 4.4 Production Rollout Gate
 
@@ -336,7 +336,7 @@ Sprint 0 baru dapat ditandai `[LOCKED]` ketika seluruh checklist di atas bernila
 | Account | Profile/account page | MISSING |
 | Auth | Forgot password | MISSING, non-blocking refactor awal |
 | Devices | List dan filter | IMPLEMENTED |
-| Devices | Add dan edit | IMPLEMENTED, ownership belum benar |
+| Devices | Add dan edit | IMPLEMENTED, ownership ditetapkan database |
 | Income | Add dan overwrite | IMPLEMENTED |
 | Payment | Add dan overwrite | IMPLEMENTED |
 | Balance | Dashboard dan activity | IMPLEMENTED |
@@ -347,23 +347,23 @@ Sprint 0 baru dapat ditandai `[LOCKED]` ketika seluruh checklist di atas bernila
 
 | Area | Kondisi Saat Ini | Status |
 | --- | --- | --- |
-| `devices.user_id` | Ada pada migration, tidak diisi oleh app | BLOCKER |
-| `profiles` RLS | Belum ada | BLOCKER |
-| Income/payment RLS | Mengikuti owner device | PARTIAL, perlu test |
-| Device code | Unique global dan client-generated | BLOCKER |
-| Migration tracking | Folder Supabase diabaikan Git | MISSING |
+| `devices.user_id` | Default dan trigger memakai `auth.uid()` | IMPLEMENTED |
+| `profiles` RLS | Own-profile SELECT dan UPDATE | IMPLEMENTED |
+| Income/payment RLS | Mengikuti owner device | VERIFIED A/B/C |
+| Device code | Composite unique dan DB-generated per-user | IMPLEMENTED |
+| Migration tracking | Migration dilacak, state lokal diabaikan | IMPLEMENTED |
 | Generated types | Belum ada | MISSING |
 | Query cache scope | Global lintas-session | BLOCKER |
 | Pagination | Belum ada | MISSING |
 | Server aggregation | Belum ada | MISSING |
-| Transaction constraints | Belum lengkap | PARTIAL |
-| Automated RLS tests | Belum ada | MISSING |
+| Transaction constraints | Write baru dijaga; row historis perlu rekonsiliasi | PARTIAL, SPRINT 5 |
+| Automated RLS tests | pgTAP 19 assertion dan rollback | IMPLEMENTED |
 
 ### 6.4 Prioritas Eksekusi
 
 1. [x] Guardrail Git, credential, backup, dan baseline.
-2. [ ] Database ownership, profile RLS, dan device code.
-3. [ ] RLS test User A/B/C.
+2. [x] Database ownership, profile RLS, dan device code.
+3. [x] RLS test User A/B/C.
 4. [ ] Session cache isolation dan logout.
 5. [ ] Generated types dan typed data layer.
 6. [ ] Environment/build variants.
@@ -400,16 +400,21 @@ Catatan backup tanggal 2 Agustus 2026: user telah memindahkan folder `database-b
 
 Catatan approval tanggal 2 Agustus 2026: setelah smoke test tanpa error dan seluruh tindakan keamanan dikonfirmasi selesai, user memberi instruksi eksplisit untuk melakukan commit, push, dan melanjutkan tahap berikutnya. Instruksi ini menjadi `PASS SPRINT 0`; Sprint 0 dikunci dan Sprint 1 diaktifkan.
 
+Catatan eksekusi Sprint 1 tanggal 2 Agustus 2026: migration development disinkronkan secara forward-only sampai `008_reject_cross_tenant_device_owner`. Database kini menetapkan owner perangkat dari `auth.uid()`, menghasilkan kode atomik per-user, melindungi seluruh tabel tenant dengan RLS, memperketat privilege, dan menolak owner lintas tenant. API perangkat tidak lagi menghitung atau mengirim kode dari client. Production tidak diakses atau diubah.
+
+Catatan verifikasi Sprint 1 tanggal 2 Agustus 2026: schema lint development lulus; anon ditolak pada `profiles`, `devices`, `income`, dan `payment`; pgTAP User A/B/C lulus 19 dari 19 assertion pada database development; seluruh migration sampai 008 berhasil direplay dari database lokal kosong; TypeScript lulus; lint lulus dengan 9 warning baseline. Data development lama memiliki setidaknya satu `income.amount <= 0`, sehingga constraint positif dipasang `NOT VALID`: write baru tetap terlindungi, sedangkan rekonsiliasi dan validasi data historis menjadi pekerjaan Sprint 5.
+
+Catatan gate Sprint 1 tanggal 2 Agustus 2026: seluruh database exit gate otomatis telah lulus. Status sprint tetap `VERIFYING` sampai user menguji alur existing pada perangkat Android melalui Expo Go dan memberikan `PASS SPRINT 1`; perubahan Sprint 1 belum boleh di-commit atau di-push sebelum approval tersebut.
+
+Catatan approval Sprint 1 tanggal 2 Agustus 2026: user menyelesaikan regression test melalui Expo Go dan melaporkan tidak ada error. Hasil tersebut diterima sebagai `PASS SPRINT 1`; Sprint 1 dikunci, perubahan diizinkan untuk di-commit dan di-push ke branch aktif serta `master`, lalu Sprint 2 diaktifkan.
+
 Catatan risiko aktif:
 
-1. Insert perangkat belum menetapkan owner.
-2. Cache React Query belum diisolasi per-user.
-3. Tabel `profiles` belum memiliki RLS.
-4. Device code masih unik secara global.
-5. Migration backfill memakai UUID hard-coded.
-6. Credential masih tersimpan plaintext di backup lokal dan belum dikonfirmasi telah dirotasi.
-7. Command Android/package variant belum seluruhnya eksplisit.
-8. Dependency transitif masih memiliki advisory yang belum memiliki jalur perbaikan aman pada Expo SDK 54.
+1. Cache React Query belum diisolasi per-user dan UI logout belum tersedia; keduanya menjadi Sprint 2.
+2. Migration historis `006` tetap memuat UUID development lama. Migration `002b` menghentikan replay bila ownership belum lengkap, dan migration production akan memakai owner yang diverifikasi.
+3. Data development historis memiliki nominal income non-positif; write baru sudah ditolak constraint, tetapi validasi seluruh row menunggu rekonsiliasi Sprint 5.
+4. Command Android dan package variant belum seluruhnya eksplisit; pekerjaan ini tetap dijadwalkan pada Sprint 4.
+5. Dependency transitif masih memiliki advisory yang belum memiliki jalur perbaikan aman pada Expo SDK 54.
 
 ---
 

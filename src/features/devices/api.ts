@@ -157,13 +157,10 @@ export const addDevice = async (deviceData: {
   ewallet?: string | null;
   is_active: boolean;
 }) => {
-  const code = await generateNextDeviceCode();
-
   const { data, error } = await supabase
     .from("devices")
     .insert([
       {
-        code,
         brand: deviceData.brand,
         device_name: deviceData.device_name,
         phone_number: deviceData.phone_number || null,
@@ -212,36 +209,4 @@ export const updateDevice = async (
   }
 
   return data;
-};
-
-export const generateNextDeviceCode = async () => {
-  const { data, error } = await supabase
-    .from("devices")
-    .select("code")
-    .order("created_at", {
-      ascending: false,
-    })
-    .limit(1);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (!data || data.length === 0) {
-    return "HP001";
-  }
-
-  const lastCode = data[0]?.code;
-
-  if (!lastCode) {
-    return "HP001";
-  }
-
-  const lastNumber = parseInt(lastCode.replace(/\D/g, ""), 10);
-
-  if (Number.isNaN(lastNumber)) {
-    return "HP001";
-  }
-
-  return `HP${String(lastNumber + 1).padStart(3, "0")}`;
 };
