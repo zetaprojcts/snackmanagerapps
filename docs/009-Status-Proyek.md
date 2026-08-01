@@ -441,6 +441,8 @@ Catatan approval checkpoint tanggal 2 Agustus 2026: user memberi instruksi ekspl
 
 Catatan verifikasi checkpoint tanggal 2 Agustus 2026: TypeScript lulus tanpa error; lint lulus tanpa error dan tetap pada 9 warning baseline; dependency check menyatakan seluruh paket sesuai Expo SDK 54; Expo Doctor lulus 18/18; dan Android export development berhasil membundel 3.708 modul. Tidak ada perangkat pada daftar ADB, sehingga Visual QA melalui scrcpy dan runtime QA Expo Go tidak dijalankan pada checkpoint ini.
 
+Catatan commit checkpoint Sprint 2 tanggal 2 Agustus 2026: commit implementasi `aebfe19` (`feat: add isolated account management`) telah di-push ke `origin/feature/multi-user-auth` dan dipromosikan ke `origin/master` melalui fast-forward tanpa force push. Workspace kemudian dikembalikan ke branch `feature/multi-user-auth` untuk kelanjutan development.
+
 Catatan risiko aktif:
 
 1. Perubahan avatar/nama/email/password, account switching, expired session, dan protected deep link belum diverifikasi pada perangkat fisik; semuanya menjadi gate aktif Sprint 2.
