@@ -6,13 +6,32 @@ SET LOCAL search_path = extensions, public, auth, pg_catalog;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 GRANT USAGE ON SCHEMA extensions TO authenticated;
 
-SELECT extensions.plan(19);
+SELECT extensions.plan(29);
 
 INSERT INTO auth.users (id, aud, role, email, encrypted_password)
 VALUES
   ('10000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'tenant-a@example.test', ''),
   ('20000000-0000-4000-8000-000000000002', 'authenticated', 'authenticated', 'tenant-b@example.test', ''),
   ('30000000-0000-4000-8000-000000000003', 'authenticated', 'authenticated', 'tenant-c@example.test', '');
+
+SELECT extensions.is(
+  (SELECT count(*)::integer FROM storage.buckets WHERE id = 'avatars'),
+  1,
+  'Private avatars bucket exists'
+);
+
+SELECT extensions.lives_ok(
+  $$UPDATE auth.users
+    SET raw_user_meta_data = '{"full_name":"Updated User A"}'::jsonb
+    WHERE id = '10000000-0000-4000-8000-000000000001'$$,
+  'Auth user metadata can be updated'
+);
+
+SELECT extensions.is(
+  (SELECT full_name FROM public.profiles WHERE id = '10000000-0000-4000-8000-000000000001'),
+  'Updated User A',
+  'Auth metadata changes synchronize to the profile'
+);
 
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true);
@@ -33,6 +52,21 @@ SELECT extensions.is(
   (SELECT user_id FROM public.devices WHERE device_name = 'Device A'),
   '10000000-0000-4000-8000-000000000001'::uuid,
   'Database assigns User A as the device owner'
+);
+
+SELECT extensions.lives_ok(
+  $$UPDATE public.profiles
+    SET
+      full_name = 'Tenant A',
+      password_changed_at = '2026-08-02 02:20:00+00'
+    WHERE id = '10000000-0000-4000-8000-000000000001'$$,
+  'User A can update the own profile and password status'
+);
+
+SELECT extensions.lives_ok(
+  $$INSERT INTO storage.objects (bucket_id, name)
+    VALUES ('avatars', '10000000-0000-4000-8000-000000000001/avatar')$$,
+  'User A can create an avatar object in the own folder'
 );
 
 SELECT set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000002', true);
@@ -81,6 +115,33 @@ SELECT extensions.lives_ok(
   'Cross-tenant delete is filtered without exposing the target'
 );
 
+SELECT extensions.lives_ok(
+  $$UPDATE public.profiles
+    SET
+      full_name = 'Cross tenant profile',
+      password_changed_at = '2026-08-03 02:20:00+00'
+    WHERE id = '10000000-0000-4000-8000-000000000001'$$,
+  'Cross-tenant profile update is filtered'
+);
+
+SELECT extensions.throws_ok(
+  $$INSERT INTO storage.objects (bucket_id, name)
+    VALUES ('avatars', '10000000-0000-4000-8000-000000000001/foreign-avatar')$$,
+  '42501',
+  NULL,
+  'User B cannot create an object in User A avatar folder'
+);
+
+SELECT extensions.is(
+  (
+    SELECT count(*)::integer
+    FROM storage.objects
+    WHERE name = '10000000-0000-4000-8000-000000000001/avatar'
+  ),
+  0,
+  'User B cannot read User A avatar object'
+);
+
 SELECT set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true);
 
 SELECT extensions.is(
@@ -93,6 +154,22 @@ SELECT extensions.is(
   (SELECT count(*)::integer FROM public.devices WHERE id = 'a0000000-0000-4000-8000-000000000001'),
   1,
   'User B did not delete User A device'
+);
+
+SELECT extensions.is(
+  (SELECT full_name FROM public.profiles WHERE id = '10000000-0000-4000-8000-000000000001'),
+  'Tenant A',
+  'User B did not update User A profile'
+);
+
+SELECT extensions.is(
+  (
+    SELECT password_changed_at
+    FROM public.profiles
+    WHERE id = '10000000-0000-4000-8000-000000000001'
+  ),
+  '2026-08-02 02:20:00+00'::timestamptz,
+  'User B did not update User A password status'
 );
 
 SELECT extensions.lives_ok(

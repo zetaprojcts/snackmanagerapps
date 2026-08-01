@@ -8,7 +8,7 @@ Dokumen ini mencatat baseline yang digunakan untuk merancang migration multi-use
 
 | Target | Sumber | Tanggal sumber | Tingkat keyakinan |
 | --- | --- | --- | --- |
-| Development | Sembilan migration pada `supabase/migrations`, migration history linked, schema lint, dan pgTAP | 2 Agustus 2026 | Terverifikasi pada live development dan replay lokal kosong |
+| Development | Sebelas migration pada `supabase/migrations`, migration history linked, schema lint, dan pgTAP | 2 Agustus 2026 | Terverifikasi pada live development dan replay lokal kosong |
 | Production | Backup lokal `snack-pub-2026-08-01` | 1 Agustus 2026 | Snapshot, bukan verifikasi live production |
 
 Nilai environment, project reference, credential, UUID user, dan data pribadi tidak dicatat di dokumen ini.
@@ -26,8 +26,10 @@ Migration yang tersedia dan telah direplay berurutan:
 7. `006_migrate_existing_data`
 8. `007_harden_multi_tenant_schema`
 9. `008_reject_cross_tenant_device_owner`
+10. `009_account_profile_management`
+11. `010_password_change_status`
 
-Migration 001-006 adalah histori awal dan tidak diubah. Migration 002b, 007, dan 008 merupakan corrective migration forward-only yang membuat replay aman serta memperketat boundary tenant.
+Migration 001-006 adalah histori awal dan tidak diubah. Migration 002b serta 007-010 merupakan corrective migration forward-only yang membuat replay aman, memperketat boundary tenant, serta menambahkan pengelolaan profile dan status perubahan password.
 
 ## Baseline Development Sebelum Sprint 1
 
@@ -55,8 +57,11 @@ Catatan: migration lokal adalah histori yang harus dipertahankan. Kekurangan di 
 | Anon | Tidak memiliki akses CRUD pada tabel tenant |
 | Device code | Unique `(user_id, code)` dan dihasilkan atomik oleh database; setiap user dapat memiliki `HP001` |
 | Signup | Trigger profile memakai fixed `search_path`, referensi fully qualified, dan privilege minimum |
+| Profile update | Perubahan nama/email Auth disinkronkan ke `profiles` melalui trigger hardened |
+| Password status | `profiles.password_changed_at` mencatat perubahan password yang berhasil dilakukan melalui halaman akun |
+| Avatar | Bucket privat 5 MB; object dibatasi ke folder `auth.uid()` masing-masing |
 | Transaksi | Write baru menjaga income positif serta konsistensi payment; constraint belum divalidasi terhadap seluruh row historis |
-| Pengujian | pgTAP User A/B/C lulus 19/19 pada linked development dan migration replay dari database lokal kosong lulus |
+| Pengujian | pgTAP User A/B/C lulus 29/29 pada linked development dan migration replay dari database lokal kosong lulus |
 | Production | Tidak diakses atau diubah selama Sprint 1 |
 
 Audit data menemukan row development historis dengan `income.amount <= 0`. Constraint dipasang `NOT VALID`, sehingga write baru tetap diperiksa tanpa menggagalkan migration karena data lama. Rekonsiliasi row historis dan `VALIDATE CONSTRAINT` dijadwalkan pada Sprint 5.

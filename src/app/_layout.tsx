@@ -47,6 +47,7 @@ function AppNavigator() {
         <Stack.Screen name="edit-device" />
         <Stack.Screen name="income-detail" />
         <Stack.Screen name="payment-detail" />
+        <Stack.Screen name="account" />
 
         <Stack.Screen
           name="action-sheet-modal"

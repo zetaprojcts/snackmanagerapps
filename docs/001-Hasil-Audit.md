@@ -4,7 +4,7 @@
 
 Konsep perubahan sudah benar: satu user memiliki banyak perangkat, dan setiap pemasukan serta penarikan dimiliki secara tidak langsung melalui perangkat tersebut. Implementasi saat ini baru mencapai tahap autentikasi dan policy dasar. Sistem belum aman untuk pergantian akun atau penggunaan bersamaan oleh beberapa user.
 
-Status keseluruhan setelah Sprint 1: **database development multi-tenant ready; aplikasi belum aman untuk account switching sampai Sprint 2 selesai**.
+Status keseluruhan setelah implementasi Sprint 2: **database development multi-tenant ready; session isolation, logout, serta pengelolaan akun telah diterapkan dan menunggu account-switching serta account-management test pada perangkat**.
 
 ## Temuan P0 - Blocker
 
@@ -24,6 +24,8 @@ Status Sprint 1: ditangani. Client tidak lagi mengirim kode atau owner, sedangka
 - Kondisi: satu `QueryClient` dipakai lintas sesi dan query key tidak memuat user ID.
 - Dampak: data cache akun sebelumnya dapat tampil sementara ketika akun berganti.
 - Keputusan target: cache dibersihkan pada perubahan user dan query key di-scope dengan `user.id`.
+
+Status Sprint 2: ditangani pada source. Query aktif dibatalkan, cache dibersihkan sebelum session berbeda dipasang, dan seluruh tenant query key memuat user ID. Verifikasi runtime A-B-A masih menunggu device QA.
 
 ### A-003: Tabel profiles belum dilindungi RLS
 
@@ -72,6 +74,8 @@ Status Sprint 0: sebagian ditangani. Default start tetap development, loader mem
 ### A-009: Tidak ada alur logout
 
 Provider menyediakan `signOut`, tetapi tidak ada UI untuk menggunakannya. Pergantian akun dan pengujian isolasi data tidak dapat dilakukan secara normal dari aplikasi.
+
+Status Sprint 2: ditangani pada source melalui protected Account route, konfirmasi logout, loading state, dan error handling. Verifikasi runtime masih menunggu device QA.
 
 ### A-010: Kredensial tersimpan plaintext di backup lokal
 

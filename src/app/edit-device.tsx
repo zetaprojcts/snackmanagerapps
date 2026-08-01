@@ -23,6 +23,7 @@ import { Dropdown } from "react-native-element-dropdown";
 
 import { DeviceCardSkeleton } from "../components/ui/Skeleton";
 
+import { useAuth } from "../features/auth/AuthProvider";
 import { getDeviceById, updateDevice } from "../features/devices/api";
 
 import { COLORS, SHADOW } from "../theme";
@@ -83,6 +84,7 @@ export default function EditDevice() {
   const router = useRouter();
 
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const [form, setForm] = useState({
     brand: "Samsung",
@@ -94,8 +96,9 @@ export default function EditDevice() {
   });
 
   const { data: currentDevice, isLoading } = useQuery({
-    queryKey: ["device", id],
+    queryKey: ["tenant", user?.id, "device", id],
     queryFn: () => getDeviceById(id as string),
+    enabled: Boolean(user && id),
   });
 
   useEffect(() => {
@@ -123,15 +126,15 @@ export default function EditDevice() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["devices"],
+        queryKey: ["tenant", user?.id, "devices"],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["device", id],
+        queryKey: ["tenant", user?.id, "device", id],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["device-detail", id],
+        queryKey: ["tenant", user?.id, "device-detail", id],
       });
 
       Alert.alert("Sukses", "Perangkat berhasil diperbarui");

@@ -24,6 +24,7 @@ import Animated, {
 
 import EmptyState from "../components/ui/EmptyState";
 import { DeviceCardSkeleton } from "../components/ui/Skeleton";
+import { useAuth } from "../features/auth/AuthProvider";
 import { fetchPayments, getPaymentById } from "../features/payment/api";
 import { COLORS, SHADOW } from "../theme";
 
@@ -47,6 +48,7 @@ const DEFAULT_IMAGE = require("../../assets/devices/default.png");
 export default function PaymentDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [periodFilter, setPeriodFilter] = useState<
     "7days" | "this_month" | "last_month" | "custom"
@@ -59,13 +61,15 @@ export default function PaymentDetail() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const { data: paymentDetail, isLoading: loadingDetail } = useQuery({
-    queryKey: ["payment-detail", id],
+    queryKey: ["tenant", user?.id, "payment-detail", id],
     queryFn: () => getPaymentById(id as string),
+    enabled: Boolean(user && id),
   });
 
   const { data: allPayments, isLoading: loadingAll } = useQuery({
-    queryKey: ["payment"],
+    queryKey: ["tenant", user?.id, "payment"],
     queryFn: fetchPayments,
+    enabled: Boolean(user),
   });
 
   const device = paymentDetail?.devices;

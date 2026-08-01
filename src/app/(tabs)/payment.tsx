@@ -15,6 +15,7 @@ import {
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 import EmptyState from "../../components/ui/EmptyState";
+import { useAuth } from "../../features/auth/AuthProvider";
 import { fetchPayments } from "../../features/payment/api";
 import { COLORS, SHADOW } from "../../theme";
 
@@ -31,6 +32,7 @@ const DEFAULT_IMAGE = require("../../../assets/devices/default.png");
 
 export default function PaymentScreen() {
   const router = useRouter();
+  const { user } = useAuth();
 
   // State Filter
   const [filter, setFilter] = useState<
@@ -45,8 +47,9 @@ export default function PaymentScreen() {
   const [showEndPicker, setShowEndPicker] = useState(false);
 
   const { data: allPayments, isLoading } = useQuery({
-    queryKey: ["payment"],
+    queryKey: ["tenant", user?.id, "payment"],
     queryFn: fetchPayments,
+    enabled: Boolean(user),
   });
 
   // Logika Filter Data

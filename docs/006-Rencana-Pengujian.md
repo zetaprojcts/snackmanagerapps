@@ -40,6 +40,8 @@ Gunakan akun khusus development/QA. Jangan memakai akun atau data production.
 | Insert income/payment other | A | Device B | Ditolak |
 | Read profile own | A | Profile A | Diizinkan |
 | Read/update profile other | A | Profile B | Ditolak |
+| Upload/read avatar own | A | Folder avatar A | Diizinkan |
+| Upload/read avatar other | A | Folder avatar B | Ditolak |
 | Unauthenticated CRUD | Anon | Semua tabel tenant | Ditolak |
 
 Matriks yang sama harus dijalankan untuk User B. User C harus menerima daftar kosong, bukan data A/B.
@@ -55,6 +57,8 @@ Matriks yang sama harus dijalankan untuk User B. User C harus menerima daftar ko
 7. Hapus device dan verifikasi transaksi terkait terhapus.
 8. Hapus test user dan verifikasi profile/device/transaksi terhapus sesuai cascade.
 9. Verifikasi function dan table grant untuk `anon`, `authenticated`, dan `service_role`.
+10. Verifikasi perubahan metadata Auth menyinkronkan nama/email ke `profiles`.
+11. Verifikasi bucket avatar privat, batas file, MIME type, dan policy folder user.
 
 ## Test Auth dan Cache
 
@@ -67,6 +71,15 @@ Matriks yang sama harus dijalankan untuk User B. User C harus menerima daftar ko
 7. Session expired kembali ke login tanpa crash.
 8. Restart aplikasi memulihkan session yang valid.
 9. Deep link ke route privat tanpa session dialihkan ke login.
+10. Ubah nama lalu pastikan session dan `profiles` menampilkan nilai yang sama.
+11. Ubah email dan selesaikan confirmation flow sesuai konfigurasi development.
+12. Ubah password menggunakan password saat ini, lalu login ulang dengan password baru.
+13. Pilih foto profil dari galeri, restart aplikasi, dan pastikan foto tetap tampil.
+14. Pastikan User B tidak dapat melihat atau menimpa avatar User A.
+15. Pastikan data akun tampil sebagai ringkasan read-only dan editor hanya terbuka melalui ikon pensil.
+16. Pastikan status waktu perubahan password diperbarui setelah password berhasil disimpan.
+17. Pastikan versi aplikasi tampil di bawah tombol keluar dan sesuai dengan konfigurasi aplikasi.
+18. Pastikan ikon akun sejajar secara vertikal dengan judul `Daftar Perangkat`.
 
 ## Regression Test Fitur Existing
 

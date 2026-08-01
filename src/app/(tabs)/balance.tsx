@@ -33,6 +33,7 @@ import {
     TransactionCardSkeleton,
 } from "../../components/ui/Skeleton";
 
+import { useAuth } from "../../features/auth/AuthProvider";
 import { fetchIncomes } from "../../features/income/api";
 import { fetchPayments } from "../../features/payment/api";
 
@@ -46,6 +47,7 @@ if (Platform.OS === "android") {
 }
 
 export default function BalanceScreen() {
+  const { user } = useAuth();
   const [activityFilter, setActivityFilter] = useState<
     "all" | "income" | "payment"
   >("all");
@@ -59,8 +61,9 @@ export default function BalanceScreen() {
     refetch: refetchIncome,
     isRefetching: isRefetchingIncome,
   } = useQuery({
-    queryKey: ["income"],
+    queryKey: ["tenant", user?.id, "income"],
     queryFn: fetchIncomes,
+    enabled: Boolean(user),
   });
 
   const {
@@ -69,8 +72,9 @@ export default function BalanceScreen() {
     refetch: refetchPayment,
     isRefetching: isRefetchingPayment,
   } = useQuery({
-    queryKey: ["payment"],
+    queryKey: ["tenant", user?.id, "payment"],
     queryFn: fetchPayments,
+    enabled: Boolean(user),
   });
 
   const animateLayout = () => {

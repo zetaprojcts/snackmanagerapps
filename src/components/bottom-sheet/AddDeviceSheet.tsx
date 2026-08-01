@@ -22,6 +22,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Save, X } from "lucide-react-native";
 
+import { useAuth } from "../../features/auth/AuthProvider";
 import { addDevice } from "../../features/devices/api";
 
 import { COLORS } from "../../theme";
@@ -83,6 +84,7 @@ type Props = {
 
 export default function AddDeviceSheet({ visible, onClose }: Props) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const snapPoints = useMemo(() => ["90%"], []);
 
@@ -100,7 +102,7 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["devices"],
+        queryKey: ["tenant", user?.id, "devices"],
       });
 
       Alert.alert("Sukses", "Perangkat berhasil ditambahkan");

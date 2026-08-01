@@ -24,6 +24,7 @@ import Animated, {
 
 import EmptyState from "../components/ui/EmptyState";
 import { DeviceCardSkeleton } from "../components/ui/Skeleton";
+import { useAuth } from "../features/auth/AuthProvider";
 import { getDeviceDetail } from "../features/devices/api";
 import { COLORS, SHADOW } from "../theme";
 
@@ -47,6 +48,7 @@ const DEFAULT_IMAGE = require("../../assets/devices/default.png");
 export default function DeviceDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [metricTab, setMetricTab] = useState<"income" | "payment">("income");
   const [periodFilter, setPeriodFilter] = useState<
@@ -60,8 +62,9 @@ export default function DeviceDetail() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["device-detail", id],
+    queryKey: ["tenant", user?.id, "device-detail", id],
     queryFn: () => getDeviceDetail(id as string),
+    enabled: Boolean(user && id),
   });
 
   const device = data?.device;

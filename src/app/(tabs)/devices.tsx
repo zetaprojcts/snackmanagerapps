@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { Filter, Search } from "lucide-react-native";
+import { CircleUserRound, Filter, Search } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 
 import {
@@ -20,6 +20,7 @@ import {
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 import EmptyState from "../../components/ui/EmptyState";
+import { useAuth } from "../../features/auth/AuthProvider";
 import { getDevicesWithBalance } from "../../features/devices/api";
 import { COLORS } from "../../theme";
 
@@ -72,14 +73,16 @@ const FILTER_OPTIONS: FilterItem[] = [
 
 export default function DevicesScreen() {
   const router = useRouter();
+  const { user } = useAuth();
 
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("Semua");
   const [showFilter, setShowFilter] = useState(false);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ["devices"],
+    queryKey: ["tenant", user?.id, "devices"],
     queryFn: getDevicesWithBalance,
+    enabled: Boolean(user),
   });
 
   const devices = data || [];
@@ -174,6 +177,14 @@ export default function DevicesScreen() {
       <View style={styles.container}>
         <Animated.View entering={FadeInDown} style={styles.header}>
           <Text style={styles.title}>Daftar Perangkat</Text>
+          <TouchableOpacity
+            accessibilityLabel="Buka akun"
+            accessibilityRole="button"
+            style={styles.accountButton}
+            onPress={() => router.push("/account")}
+          >
+            <CircleUserRound size={32} color={COLORS.primary} />
+          </TouchableOpacity>
         </Animated.View>
 
         <Animated.View
@@ -301,13 +312,23 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  accountButton: {
+    width: 48,
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   title: {
     fontSize: 22,
+    lineHeight: 28,
     fontWeight: "800",
     color: COLORS.text,
-    marginBottom: 16,
   },
 
   searchRow: {

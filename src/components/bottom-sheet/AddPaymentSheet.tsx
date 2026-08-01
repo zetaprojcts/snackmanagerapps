@@ -26,6 +26,7 @@ import { useRouter } from "expo-router";
 
 import { Calendar, Save, Wallet, X } from "lucide-react-native";
 
+import { useAuth } from "../../features/auth/AuthProvider";
 import { addPayment, updatePayment } from "../../features/payment/api";
 
 import { getDevices } from "../../features/devices/api";
@@ -41,6 +42,7 @@ export default function AddPaymentSheet({ visible, onClose }: Props) {
   const router = useRouter();
 
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const snapPoints = useMemo(() => ["90%"], []);
 
@@ -53,8 +55,9 @@ export default function AddPaymentSheet({ visible, onClose }: Props) {
   });
 
   const { data: devices } = useQuery({
-    queryKey: ["devices"],
+    queryKey: ["tenant", user?.id, "devices"],
     queryFn: getDevices,
+    enabled: Boolean(user),
   });
 
   const activeDevices = devices?.filter((item) => item.is_active) || [];
@@ -104,15 +107,15 @@ export default function AddPaymentSheet({ visible, onClose }: Props) {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["payment"],
+        queryKey: ["tenant", user?.id, "payment"],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["devices"],
+        queryKey: ["tenant", user?.id, "devices"],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["device-detail"],
+        queryKey: ["tenant", user?.id, "device-detail"],
       });
 
       Alert.alert("Sukses", "Penarikan berhasil ditambahkan");
@@ -153,15 +156,15 @@ export default function AddPaymentSheet({ visible, onClose }: Props) {
                   });
 
                   queryClient.invalidateQueries({
-                    queryKey: ["payment"],
+                    queryKey: ["tenant", user?.id, "payment"],
                   });
 
                   queryClient.invalidateQueries({
-                    queryKey: ["devices"],
+                    queryKey: ["tenant", user?.id, "devices"],
                   });
 
                   queryClient.invalidateQueries({
-                    queryKey: ["device-detail"],
+                    queryKey: ["tenant", user?.id, "device-detail"],
                   });
 
                   Alert.alert("Sukses", "Data penarikan berhasil diperbarui");

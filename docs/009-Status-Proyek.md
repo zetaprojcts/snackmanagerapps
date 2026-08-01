@@ -1,6 +1,6 @@
 # 009-STATUS-PROYEK
 
-**Version:** 1.8.0 (Sprint 1 Locked, Sprint 2 Active)<br>
+**Version:** 1.11.0 (Sprint 1 Locked, Sprint 2 Implementation Checkpoint)<br>
 **Status:** LOCKED & ACTIVE<br>
 **Target Readers:** Developer dan Autonomous AI Development Agents<br>
 **Single Source of Truth (SSOT):** Status eksekusi, checklist, dan gate refactor multi-user Snack Manager<br>
@@ -35,7 +35,7 @@ Pengembangan Snack Manager mempertahankan seluruh fungsi single-user yang sudah 
 - Merapikan policy, grant, function, index, dan constraint.
 - Membuktikan isolasi dengan User A, B, dan C.
 
-[CURRENT] SPRINT 2: Auth dan Session Isolation
+[VERIFYING] SPRINT 2: Auth dan Session Isolation
 
 - Membersihkan cache saat session berubah.
 - Membuat query key berbasis user.
@@ -75,7 +75,7 @@ Pengembangan Snack Manager mempertahankan seluruh fungsi single-user yang sudah 
 
 ## BAB 2: Objektif Sprint Aktif
 
-Sprint 1 telah lulus pengujian otomatis dan regression test Expo Go, kemudian dikunci. Sprint 2 berfokus memastikan perpindahan session tidak pernah menampilkan cache atau data milik user sebelumnya.
+Implementasi Sprint 2 telah selesai dan lulus pemeriksaan otomatis. Session berbeda membatalkan query aktif dan membersihkan cache, seluruh tenant query key memuat user ID, serta halaman akun mendukung ringkasan profil, editor nama/email dan password berbasis ikon pensil, foto, status perubahan password, versi aplikasi, dan logout. Sprint menunggu pengujian akun dan account switching melalui Expo Go.
 
 Fokus Sprint 2:
 
@@ -145,14 +145,23 @@ Developer atau AI Agent wajib mengubah `[ ]` menjadi `[x]` hanya setelah impleme
 
 ### 3.3 Sprint 2: Auth dan Session Isolation
 
-1. [ ] Menambahkan `user` pada kontrak AuthProvider.
-2. [ ] Membatalkan request tenant saat user berubah.
-3. [ ] Membersihkan React Query cache saat logout atau pergantian user.
-4. [ ] Membuat seluruh tenant query key berbasis `user.id`.
-5. [ ] Menambahkan halaman akun.
-6. [ ] Menambahkan tombol dan error handling logout.
+1. [x] Menambahkan `user` pada kontrak AuthProvider.
+2. [x] Membatalkan request tenant saat user berubah.
+3. [x] Membersihkan React Query cache saat logout atau pergantian user.
+4. [x] Membuat seluruh tenant query key berbasis `user.id`.
+5. [x] Menambahkan halaman akun.
+6. [x] Menambahkan tombol dan error handling logout.
 7. [ ] Menguji cold start, expired session, dan deep link privat.
 8. [ ] Menguji urutan login A, logout, login B, lalu login A kembali.
+9. [x] Menambahkan perubahan foto profil, nama, email, dan password.
+10. [x] Membuat bucket avatar privat dan policy object per-user.
+11. [x] Menyinkronkan perubahan Auth ke tabel `profiles`.
+12. [x] Memperluas pgTAP untuk profile dan Storage isolation.
+13. [x] Menampilkan informasi pribadi dan keamanan sebagai ringkasan read-only.
+14. [x] Membuka editor informasi pribadi dan password melalui ikon pensil.
+15. [x] Mencatat dan menampilkan waktu perubahan password terakhir.
+16. [x] Menampilkan versi aplikasi di bawah tombol keluar.
+17. [x] Menyejajarkan ikon akun dengan judul daftar perangkat.
 
 ### 3.4 Sprint 3: Data Layer dan Type Safety
 
@@ -249,6 +258,7 @@ Sprint 0 baru dapat ditandai `[LOCKED]` ketika seluruh checklist di atas bernila
 [x] Cross-user INSERT, UPDATE, dan DELETE ditolak atau difilter oleh RLS.<br>
 [x] Anon tidak memiliki akses CRUD ke data tenant.<br>
 [x] Signup membuat tepat satu profile.<br>
+[x] Profile Auth tersinkron dan object avatar terisolasi per-user.<br>
 [x] Migration replay dari database kosong lulus.<br>
 [x] Schema lint dan privilege test lulus.
 
@@ -256,14 +266,17 @@ Sprint 0 baru dapat ditandai `[LOCKED]` ketika seluruh checklist di atas bernila
 
 [ ] Account switching tidak menampilkan cache user sebelumnya.<br>
 [ ] Logout tersedia dan berfungsi dari UI.<br>
-[ ] Semua query tenant di-scope berdasarkan user.<br>
+[x] Semua query tenant di-scope berdasarkan user.<br>
 [ ] API utama menggunakan generated database types.<br>
-[ ] TypeScript lulus tanpa error.<br>
-[ ] Lint lulus tanpa warning yang tidak disetujui.<br>
-[ ] Expo Doctor lulus seluruh check.<br>
-[x] User menyelesaikan regression test fitur existing melalui Expo Go.<br>
-[x] User memberikan konfirmasi hasil tanpa error sebagai `PASS SPRINT 1`.<br>
-[x] Commit yang diuji telah di-push ke branch aktif dan `master`.
+[x] TypeScript lulus tanpa error.<br>
+[x] Lint lulus tanpa warning yang tidak disetujui; 9 warning baseline tetap disetujui.<br>
+[x] Expo Doctor lulus seluruh check pada baseline dependency aktif.<br>
+[x] User menyelesaikan regression test Sprint 1 melalui Expo Go.<br>
+[x] Commit Sprint 1 yang diuji telah di-push ke branch aktif dan `master`.<br>
+[ ] User menyelesaikan account switching test Sprint 2 melalui Expo Go.<br>
+[ ] User menguji perubahan foto, nama, email, dan password.<br>
+[ ] User memberikan konfirmasi eksplisit `PASS SPRINT 2`.<br>
+[ ] Commit Sprint 2 yang diuji telah di-push ke branch aktif dan `master`.
 
 ### 4.4 Production Rollout Gate
 
@@ -332,16 +345,16 @@ Sprint 0 baru dapat ditandai `[LOCKED]` ketika seluruh checklist di atas bernila
 | Auth | Login | IMPLEMENTED |
 | Auth | Register | IMPLEMENTED dalam `/login` |
 | Auth | Protected routes | IMPLEMENTED |
-| Auth | Logout | MISSING |
-| Account | Profile/account page | MISSING |
+| Auth | Logout | IMPLEMENTED, menunggu device QA |
+| Account | Foto, ringkasan nama/email, editor pensil, password status, versi, dan logout | IMPLEMENTED, menunggu device QA |
 | Auth | Forgot password | MISSING, non-blocking refactor awal |
 | Devices | List dan filter | IMPLEMENTED |
 | Devices | Add dan edit | IMPLEMENTED, ownership ditetapkan database |
 | Income | Add dan overwrite | IMPLEMENTED |
 | Payment | Add dan overwrite | IMPLEMENTED |
 | Balance | Dashboard dan activity | IMPLEMENTED |
-| Multi-user | Cache isolation | MISSING |
-| Multi-user | Account switching | MISSING |
+| Multi-user | Cache isolation | IMPLEMENTED, menunggu device QA |
+| Multi-user | Account switching | TEST PENDING |
 
 ### 6.3 Gap Database dan Data Layer
 
@@ -353,11 +366,11 @@ Sprint 0 baru dapat ditandai `[LOCKED]` ketika seluruh checklist di atas bernila
 | Device code | Composite unique dan DB-generated per-user | IMPLEMENTED |
 | Migration tracking | Migration dilacak, state lokal diabaikan | IMPLEMENTED |
 | Generated types | Belum ada | MISSING |
-| Query cache scope | Global lintas-session | BLOCKER |
+| Query cache scope | Namespace tenant berbasis `user.id` dan clear saat session berubah | IMPLEMENTED |
 | Pagination | Belum ada | MISSING |
 | Server aggregation | Belum ada | MISSING |
 | Transaction constraints | Write baru dijaga; row historis perlu rekonsiliasi | PARTIAL, SPRINT 5 |
-| Automated RLS tests | pgTAP 19 assertion dan rollback | IMPLEMENTED |
+| Automated RLS tests | pgTAP 29 assertion dan rollback | IMPLEMENTED |
 
 ### 6.4 Prioritas Eksekusi
 
@@ -408,9 +421,29 @@ Catatan gate Sprint 1 tanggal 2 Agustus 2026: seluruh database exit gate otomati
 
 Catatan approval Sprint 1 tanggal 2 Agustus 2026: user menyelesaikan regression test melalui Expo Go dan melaporkan tidak ada error. Hasil tersebut diterima sebagai `PASS SPRINT 1`; Sprint 1 dikunci, perubahan diizinkan untuk di-commit dan di-push ke branch aktif serta `master`, lalu Sprint 2 diaktifkan.
 
+Catatan commit Sprint 1 tanggal 2 Agustus 2026: commit `e9bfae8` (`feat: enforce multi-tenant database isolation`) telah di-push ke `origin/feature/multi-user-auth` dan dipromosikan ke `origin/master` melalui fast-forward tanpa force push. Kedua remote branch menunjuk commit yang sama sebelum Sprint 2 dimulai.
+
+Catatan implementasi Sprint 2 tanggal 2 Agustus 2026: AuthProvider mengekspos user aktif, memproses event session tanpa callback async, membatalkan query, dan membersihkan query serta mutation cache sebelum session berbeda ditampilkan. Seluruh query dan invalidation devices, income, payment, balance, serta detail memakai namespace tenant berbasis user ID. Protected route `/account` menampilkan identitas session dan menyediakan logout dengan konfirmasi, loading, serta error handling.
+
+Catatan verifikasi Sprint 2 tanggal 2 Agustus 2026: TypeScript lulus tanpa error; lint lulus dengan 9 warning baseline dan tanpa warning baru; audit source tidak menemukan tenant query key global yang tersisa. Runtime cold start, expired session, protected deep link, dan urutan login A-B-A tetap menjadi device QA sebelum sprint dapat dikunci.
+
+Catatan perluasan Sprint 2 tanggal 2 Agustus 2026: berdasarkan feedback user, ikon akun pada halaman perangkat diperbesar dan header halaman akun disederhanakan menjadi tombol kembali tanpa judul atau background putih. Halaman akun kini menyediakan foto profil dari galeri Android, perubahan nama dan email, perubahan password dengan password saat ini, serta logout. `expo-image-picker` dipasang pada versi kompatibel SDK 54 dan konfigurasi camera/microphone dinonaktifkan karena aplikasi hanya memilih gambar dari galeri.
+
+Catatan database akun tanggal 2 Agustus 2026: migration `009_account_profile_management` telah direplay dari database lokal kosong lalu diterapkan hanya ke development. Migration membuat trigger sinkronisasi Auth ke `profiles`, bucket `avatars` privat dengan batas 5 MB, dan policy SELECT/INSERT/UPDATE/DELETE berdasarkan folder user. pgTAP lokal dan linked development lulus 28/28; schema lint bersih. Production tidak diakses atau diubah.
+
+Catatan verifikasi perluasan Sprint 2 tanggal 2 Agustus 2026: `expo install --check` menyatakan dependency up to date, TypeScript lulus, lint tetap 9 warning baseline tanpa warning baru, dan Expo Doctor lulus 18/18. Runtime upload avatar, konfirmasi email, perubahan password, dan account switching tetap menunggu pengujian Expo Go.
+
+Catatan penyempurnaan UI akun tanggal 2 Agustus 2026: halaman akun diubah menjadi ringkasan read-only. Ikon pensil pada `Informasi Pribadi` dan `Keamanan` membuka editor terpisah; password disembunyikan secara default, memiliki kontrol lihat/sembunyikan, petunjuk persyaratan, dan pesan validasi spesifik. Versi aplikasi ditampilkan di bawah tombol keluar, sedangkan judul `Daftar Perangkat` dan ikon akun kini memakai alignment vertikal yang sama.
+
+Catatan database status password tanggal 2 Agustus 2026: migration forward-only `010_password_change_status` menambahkan `profiles.password_changed_at` dan telah diterapkan hanya ke development. Replay migration 001-010 dari database lokal kosong lulus, pgTAP lokal dan linked development lulus 29/29, serta schema lint development tidak menemukan error. Production tidak diakses atau diubah.
+
+Catatan approval checkpoint tanggal 2 Agustus 2026: user memberi instruksi eksplisit untuk menyelesaikan feedback UI akun lalu melakukan commit dan push ke branch aktif serta `master`. Instruksi ini mengizinkan checkpoint Git Sprint 2 setelah automated verification, tetapi tidak dianggap sebagai `PASS SPRINT 2`; seluruh device QA yang belum dijalankan tetap terbuka dan wajib diuji saat sesi development berikutnya.
+
+Catatan verifikasi checkpoint tanggal 2 Agustus 2026: TypeScript lulus tanpa error; lint lulus tanpa error dan tetap pada 9 warning baseline; dependency check menyatakan seluruh paket sesuai Expo SDK 54; Expo Doctor lulus 18/18; dan Android export development berhasil membundel 3.708 modul. Tidak ada perangkat pada daftar ADB, sehingga Visual QA melalui scrcpy dan runtime QA Expo Go tidak dijalankan pada checkpoint ini.
+
 Catatan risiko aktif:
 
-1. Cache React Query belum diisolasi per-user dan UI logout belum tersedia; keduanya menjadi Sprint 2.
+1. Perubahan avatar/nama/email/password, account switching, expired session, dan protected deep link belum diverifikasi pada perangkat fisik; semuanya menjadi gate aktif Sprint 2.
 2. Migration historis `006` tetap memuat UUID development lama. Migration `002b` menghentikan replay bila ownership belum lengkap, dan migration production akan memakai owner yang diverifikasi.
 3. Data development historis memiliki nominal income non-positif; write baru sudah ditolak constraint, tetapi validasi seluruh row menunggu rekonsiliasi Sprint 5.
 4. Command Android dan package variant belum seluruhnya eksplisit; pekerjaan ini tetap dijadwalkan pada Sprint 4.
@@ -433,7 +466,7 @@ Aturan pembaruan:
 7. Detail desain tetap mengikuti `002-Blueprint.md`; detail urutan kerja mengikuti `003-Workflow.md`.
 8. Credential, token, password, data pribadi, dan nilai environment nyata dilarang dicatat di dokumen ini.
 9. Production hanya boleh disentuh setelah seluruh Production Rollout Gate lulus dan approval eksplisit tersedia.
-10. Commit dan push final hanya dilakukan setelah user menyatakan pengujian Expo Go selesai dan lulus.
+10. Commit dan push final dilakukan setelah user menyatakan pengujian Expo Go selesai dan lulus; checkpoint implementasi sebelum gate tersebut hanya boleh dilakukan melalui instruksi eksplisit user dan tidak mengubah status QA menjadi lulus.
 11. Setelah hasil `PASS`, agent wajib mempromosikan commit ke branch aktif dan `master` tanpa force-push.
 12. Seluruh checklist platform, build, dan QA hanya berlaku untuk Android.
 13. Artifact akhir hanya APK; AAB dan submission Google Play Store berada di luar scope.

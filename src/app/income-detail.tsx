@@ -24,6 +24,7 @@ import Animated, {
 
 import EmptyState from "../components/ui/EmptyState";
 import { DeviceCardSkeleton } from "../components/ui/Skeleton";
+import { useAuth } from "../features/auth/AuthProvider";
 import { fetchIncomes, getIncomeById } from "../features/income/api";
 import { COLORS, SHADOW } from "../theme";
 
@@ -47,6 +48,7 @@ const DEFAULT_IMAGE = require("../../assets/devices/default.png");
 export default function IncomeDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [periodFilter, setPeriodFilter] = useState<
     "7days" | "this_month" | "last_month" | "custom"
@@ -59,13 +61,15 @@ export default function IncomeDetail() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const { data: incomeDetail, isLoading: loadingDetail } = useQuery({
-    queryKey: ["income-detail", id],
+    queryKey: ["tenant", user?.id, "income-detail", id],
     queryFn: () => getIncomeById(id as string),
+    enabled: Boolean(user && id),
   });
 
   const { data: allIncomes, isLoading: loadingAll } = useQuery({
-    queryKey: ["income"],
+    queryKey: ["tenant", user?.id, "income"],
     queryFn: fetchIncomes,
+    enabled: Boolean(user),
   });
 
   const device = incomeDetail?.devices;
