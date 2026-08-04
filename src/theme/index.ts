@@ -28,6 +28,9 @@ export const RADIUS = {
   lg: 16,
   xl: 24,
   full: 9999,
+  card: 16,
+  control: 12,
+  sheet: 24,
 };
 
 export const SHADOW = {

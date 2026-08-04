@@ -66,6 +66,12 @@ auth.users
 - Screen hanya mengonsumsi hook/query terstruktur.
 - Halaman akun menampilkan identitas aktif dan menyediakan logout.
 - Build development memiliki identitas visual yang jelas.
+- Editor transaksi dibuka sebagai bottom sheet dari halaman detail, mengikuti pola form tambah transaksi.
+- Editor profil dan password menggunakan bottom sheet, keyboard behavior, serta footer simpan yang sama dengan form utama.
+- Bottom navigation utama hanya menampilkan ikon, dengan indikator aktif berbentuk chip yang berpindah secara halus.
+- Seluruh pemilihan tanggal memakai kalender aplikasi yang konsisten dengan warna, radius, dan aksesibilitas UI.
+- Aktivitas pada detail perangkat membuka detail transaksi terpilih berdasarkan ID, tanpa mengubah ringkasan perangkat.
+- Loading detail perangkat merepresentasikan seluruh struktur layar dan beberapa baris transaksi, bukan satu kartu generik.
 
 ### Session Layer
 
@@ -88,6 +94,15 @@ auth.users
 - RLS aktif pada seluruh tabel schema `public` yang exposed.
 - Agregasi atau RPC menggunakan security invoker kecuali ada alasan teruji untuk security definer.
 - Function security definer memakai fixed `search_path` dan privilege minimum.
+
+## Standar Surface dan Radius
+
+- `RADIUS.card` bernilai 16 dan digunakan untuk kartu serta surface konten.
+- `RADIUS.control` bernilai 12 dan digunakan untuk tombol, field, serta kontrol interaktif.
+- `RADIUS.sheet` bernilai 24 dan digunakan pada sudut atas bottom sheet atau popup besar milik aplikasi.
+- `RADIUS.full` digunakan untuk avatar, badge, chip, indikator, dan kontrol yang memang berbentuk lingkaran atau pill.
+- Komponen tidak menulis literal `borderRadius` sendiri; perubahan standar dilakukan melalui token tema bersama.
+- Dialog kalender milik aplikasi menggunakan `RADIUS.sheet`, sementara dialog native Android yang tersisa mengikuti bentuk sistem operasi.
 
 ## Strategi Cache
 

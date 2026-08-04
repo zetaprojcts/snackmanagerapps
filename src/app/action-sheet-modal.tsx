@@ -16,7 +16,7 @@ import AddDeviceSheet from "../components/bottom-sheet/AddDeviceSheet";
 import AddIncomeSheet from "../components/bottom-sheet/AddIncomeSheet";
 import AddPaymentSheet from "../components/bottom-sheet/AddPaymentSheet";
 
-import { COLORS } from "../theme";
+import { COLORS, RADIUS } from "../theme";
 
 export default function ActionSheetModal() {
   const router = useRouter();
@@ -150,8 +150,8 @@ const styles = StyleSheet.create({
 
   sheet: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
+    borderTopLeftRadius: RADIUS.sheet,
+    borderTopRightRadius: RADIUS.sheet,
     padding: 20,
     paddingBottom: 40,
   },
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 48,
     height: 5,
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     backgroundColor: "#CBD5E1",
     alignSelf: "center",
     marginBottom: 20,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   closeBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: RADIUS.full,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: COLORS.background,
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   iconBox: {
     width: 52,
     height: 52,
-    borderRadius: 16,
+    borderRadius: RADIUS.control,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 14,

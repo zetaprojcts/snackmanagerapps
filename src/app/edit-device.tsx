@@ -26,7 +26,7 @@ import { DeviceCardSkeleton } from "../components/ui/Skeleton";
 import { useAuth } from "../features/auth/AuthProvider";
 import { getDeviceById, updateDevice } from "../features/devices/api";
 
-import { COLORS, SHADOW } from "../theme";
+import { COLORS, RADIUS, SHADOW } from "../theme";
 
 const BRAND_OPTIONS = [
   {
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
 
   statusCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 24,
+    borderRadius: RADIUS.card,
     padding: 20,
     marginBottom: 20,
     flexDirection: "row",
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
 
   formCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 24,
+    borderRadius: RADIUS.card,
     padding: 20,
     ...SHADOW.card,
   },
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
 
   input: {
     height: 56,
-    borderRadius: 16,
+    borderRadius: RADIUS.control,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: "#FFFFFF",
@@ -411,13 +411,13 @@ const styles = StyleSheet.create({
     height: 56,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
+    borderRadius: RADIUS.control,
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
   },
 
   dropdownMenu: {
-    borderRadius: 16,
+    borderRadius: RADIUS.card,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
 
   saveBtn: {
     height: 56,
-    borderRadius: 18,
+    borderRadius: RADIUS.control,
     backgroundColor: COLORS.primary,
     marginTop: 24,
 

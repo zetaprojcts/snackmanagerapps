@@ -6,7 +6,7 @@ SET LOCAL search_path = extensions, public, auth, pg_catalog;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 GRANT USAGE ON SCHEMA extensions TO authenticated;
 
-SELECT extensions.plan(29);
+SELECT extensions.plan(36);
 
 INSERT INTO auth.users (id, aud, role, email, encrypted_password)
 VALUES
@@ -185,6 +185,36 @@ SELECT extensions.lives_ok(
 );
 
 SELECT extensions.is(
+  (SELECT total_amount FROM public.get_income_history_summary(NULL, NULL)),
+  100::numeric,
+  'Income summary only aggregates User A rows'
+);
+
+SELECT extensions.is(
+  (SELECT row_count FROM public.get_income_history_summary(NULL, NULL)),
+  1::bigint,
+  'Income summary count only includes User A rows'
+);
+
+SELECT extensions.is(
+  (SELECT total_amount FROM public.get_payment_history_summary(NULL, NULL)),
+  80::numeric,
+  'Payment summary only aggregates User A rows'
+);
+
+SELECT extensions.is(
+  (SELECT total_income FROM public.get_balance_summary(CURRENT_DATE)),
+  100::numeric,
+  'Balance summary only aggregates User A income'
+);
+
+SELECT extensions.is(
+  (SELECT total_gross_payment FROM public.get_balance_summary(CURRENT_DATE)),
+  80::numeric,
+  'Balance summary only aggregates User A payments'
+);
+
+SELECT extensions.is(
   (SELECT count(*)::integer FROM public.profiles),
   1,
   'User A can only select the own profile'
@@ -208,6 +238,18 @@ SELECT extensions.is(
   (SELECT count(*)::integer FROM public.payment),
   0,
   'New User C cannot see payment from other users'
+);
+
+SELECT extensions.is(
+  (SELECT row_count FROM public.get_income_history_summary(NULL, NULL)),
+  0::bigint,
+  'New User C receives an empty income summary'
+);
+
+SELECT extensions.is(
+  (SELECT total_gross_payment FROM public.get_balance_summary(CURRENT_DATE)),
+  0::numeric,
+  'New User C receives an empty balance summary'
 );
 
 SELECT extensions.lives_ok(

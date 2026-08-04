@@ -1,6 +1,10 @@
 import type { ImagePickerAsset } from "expo-image-picker";
 
 import { supabase } from "../../lib/supabase";
+import {
+  isStrongPassword,
+  PASSWORD_REQUIREMENT_MESSAGE,
+} from "./passwordPolicy";
 
 export type UserProfile = {
   id: string;
@@ -70,6 +74,10 @@ export const updateOwnPassword = async ({
   currentPassword: string;
   newPassword: string;
 }) => {
+  if (!isStrongPassword(newPassword)) {
+    throw new Error(PASSWORD_REQUIREMENT_MESSAGE);
+  }
+
   const { error } = await supabase.auth.updateUser({
     current_password: currentPassword,
     password: newPassword,

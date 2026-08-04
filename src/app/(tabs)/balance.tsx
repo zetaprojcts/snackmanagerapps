@@ -1,646 +1,422 @@
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import {
-    ArrowDownToLine,
-    ArrowUpToLine,
-    Filter,
-    TrendingDown,
-    TrendingUp,
-    Wallet,
+  ArrowDownToLine,
+  ArrowUpToLine,
+  ChevronRight,
+  Filter,
+  Wallet,
 } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
-
 import {
-    LayoutAnimation,
-    Platform,
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    UIManager,
-    View,
+  LayoutAnimation,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  UIManager,
+  View,
 } from "react-native";
+import { PieChart } from "react-native-gifted-charts";
+import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 
-import Animated, {
-    FadeIn,
-    FadeInDown,
-    FadeInUp,
-} from "react-native-reanimated";
-
-import {
-    BalanceCardSkeleton,
-    TransactionCardSkeleton,
-} from "../../components/ui/Skeleton";
-
+import { BalanceScreenSkeleton } from "../../components/ui/Skeleton";
 import { useAuth } from "../../features/auth/AuthProvider";
-import { fetchIncomes } from "../../features/income/api";
-import { fetchPayments } from "../../features/payment/api";
+import { fetchBalanceSummary } from "../../features/balance/api";
+import { fetchIncomeHistory } from "../../features/income/api";
+import { fetchPaymentHistory } from "../../features/payment/api";
+import { formatLocalDate } from "../../features/transactions/history";
+import { COLORS, RADIUS, SHADOW } from "../../theme";
 
-import { COLORS, SHADOW } from "../../theme";
-
-// Mengaktifkan LayoutAnimation untuk Android
 if (Platform.OS === "android") {
-  if (UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
+  UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
 
+type ActivityFilter = "all" | "income" | "payment";
+
+type RecentActivity = {
+  id: string;
+  type: "income" | "payment";
+  amount: number;
+  trxDate: string;
+  sortTime: number;
+  deviceName: string;
+};
+
 export default function BalanceScreen() {
+  const router = useRouter();
   const { user } = useAuth();
-  const [activityFilter, setActivityFilter] = useState<
-    "all" | "income" | "payment"
-  >("all");
+  const [activityFilter, setActivityFilter] =
+    useState<ActivityFilter>("all");
   const [showActivityMenu, setShowActivityMenu] = useState(false);
+  const today = formatLocalDate(new Date());
 
-  const [showAdminFee, setShowAdminFee] = useState(false);
-
-  const {
-    data: incomes,
-    isLoading: loadingIncome,
-    refetch: refetchIncome,
-    isRefetching: isRefetchingIncome,
-  } = useQuery({
-    queryKey: ["tenant", user?.id, "income"],
-    queryFn: fetchIncomes,
+  const summaryQuery = useQuery({
+    queryKey: ["tenant", user?.id, "balance", "summary", today],
+    queryFn: () => fetchBalanceSummary(today),
     enabled: Boolean(user),
   });
 
-  const {
-    data: payments,
-    isLoading: loadingPayment,
-    refetch: refetchPayment,
-    isRefetching: isRefetchingPayment,
-  } = useQuery({
-    queryKey: ["tenant", user?.id, "payment"],
-    queryFn: fetchPayments,
+  const incomeQuery = useQuery({
+    queryKey: ["tenant", user?.id, "income", "recent"],
+    queryFn: () => fetchIncomeHistory({ page: 0, pageSize: 10 }),
     enabled: Boolean(user),
   });
+
+  const paymentQuery = useQuery({
+    queryKey: ["tenant", user?.id, "payment", "recent"],
+    queryFn: () => fetchPaymentHistory({ page: 0, pageSize: 10 }),
+    enabled: Boolean(user),
+  });
+
+  const summary = summaryQuery.data ?? {
+    totalIncome: 0,
+    totalGrossPayment: 0,
+    totalAdminFee: 0,
+    incomeThisMonth: 0,
+    expenseThisMonth: 0,
+    adminFeeThisMonth: 0,
+  };
+  const netBalance = summary.totalIncome - summary.totalGrossPayment;
+  const monthlyVolume =
+    summary.incomeThisMonth +
+    summary.expenseThisMonth +
+    summary.adminFeeThisMonth;
+  const pieData =
+    monthlyVolume > 0
+      ? [
+          { value: summary.incomeThisMonth, color: COLORS.success },
+          { value: summary.expenseThisMonth, color: COLORS.warning },
+          { value: summary.adminFeeThisMonth, color: COLORS.danger },
+        ].filter((item) => item.value > 0)
+      : [{ value: 1, color: COLORS.border }];
+
+  const recentActivities = useMemo(() => {
+    const incomeActivities: RecentActivity[] =
+      incomeQuery.data?.items.map((item) => {
+        const device = Array.isArray(item.devices)
+          ? item.devices[0]
+          : item.devices;
+
+        return {
+          id: item.id,
+          type: "income",
+          amount: Number(item.amount),
+          trxDate: item.trx_date,
+          sortTime: new Date(item.created_at || item.trx_date).getTime(),
+          deviceName: device?.device_name ?? "Perangkat",
+        };
+      }) ?? [];
+    const paymentActivities: RecentActivity[] =
+      paymentQuery.data?.items.map((item) => {
+        const device = Array.isArray(item.devices)
+          ? item.devices[0]
+          : item.devices;
+
+        return {
+          id: item.id,
+          type: "payment",
+          amount: Number(item.gross_amount),
+          trxDate: item.trx_date,
+          sortTime: new Date(item.created_at || item.trx_date).getTime(),
+          deviceName: device?.device_name ?? "Perangkat",
+        };
+      }) ?? [];
+
+    const activities =
+      activityFilter === "income"
+        ? incomeActivities
+        : activityFilter === "payment"
+          ? paymentActivities
+          : [...incomeActivities, ...paymentActivities];
+
+    return activities.sort((a, b) => b.sortTime - a.sortTime).slice(0, 10);
+  }, [activityFilter, incomeQuery.data, paymentQuery.data]);
 
   const animateLayout = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   };
 
-  const totalIncome =
-    incomes?.reduce(
-      (total: number, item: any) => total + Number(item.amount),
-      0,
-    ) || 0;
-
-  const totalGrossPayment =
-    payments?.reduce(
-      (total: number, item: any) => total + Number(item.gross_amount),
-      0,
-    ) || 0;
-
-  const totalAdminFee =
-    payments?.reduce(
-      (total: number, item: any) => total + Number(item.admin_fee),
-      0,
-    ) || 0;
-
-  const totalNetPayment = totalGrossPayment - totalAdminFee;
-  const netBalance = totalIncome - totalGrossPayment;
-
-  const monthlyStats = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
-    const lastMonth = lastMonthDate.getMonth();
-    const lastMonthYear = lastMonthDate.getFullYear();
-
-    let incomeThisMonth = 0;
-    let incomeLastMonth = 0;
-    let paymentThisMonth = 0;
-    let paymentLastMonth = 0;
-    let adminFeeThisMonth = 0;
-    let adminFeeLastMonth = 0;
-
-    incomes?.forEach((item: any) => {
-      const amt = Number(item.amount || 0);
-      if (item.trx_date) {
-        const d = new Date(item.trx_date);
-        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear)
-          incomeThisMonth += amt;
-        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear)
-          incomeLastMonth += amt;
-      }
-    });
-
-    payments?.forEach((item: any) => {
-      const netAmt =
-        Number(item.gross_amount || 0) - Number(item.admin_fee || 0);
-      const feeAmt = Number(item.admin_fee || 0);
-
-      if (item.trx_date) {
-        const d = new Date(item.trx_date);
-        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
-          paymentThisMonth += netAmt;
-          adminFeeThisMonth += feeAmt;
-        }
-        if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear) {
-          paymentLastMonth += netAmt;
-          adminFeeLastMonth += feeAmt;
-        }
-      }
-    });
-
-    const calculatePercentage = (thisMonth: number, lastMonth: number) => {
-      if (lastMonth === 0) return thisMonth > 0 ? 100 : 0;
-      return ((thisMonth - lastMonth) / lastMonth) * 100;
-    };
-
-    return {
-      incomeThisMonth,
-      paymentThisMonth,
-      adminFeeThisMonth,
-      incomePercentage: calculatePercentage(incomeThisMonth, incomeLastMonth),
-      paymentPercentage: calculatePercentage(
-        paymentThisMonth,
-        paymentLastMonth,
-      ),
-      adminFeePercentage: calculatePercentage(
-        adminFeeThisMonth,
-        adminFeeLastMonth,
-      ),
-    };
-  }, [incomes, payments]);
-
-  const recentActivities = useMemo(() => {
-    const incomeActivities =
-      incomes?.map((item: any) => ({
-        type: "income",
-        amount: Number(item.amount),
-        trx_date: item.trx_date,
-        sort_time: new Date(item.created_at || item.trx_date).getTime(),
-        device_name: item.devices?.device_name ?? "Perangkat",
-      })) || [];
-
-    const paymentActivities =
-      payments?.map((item: any) => ({
-        type: "payment",
-        amount: Number(item.gross_amount),
-        trx_date: item.trx_date,
-        sort_time: new Date(item.created_at || item.trx_date).getTime(),
-        device_name: item.devices?.device_name ?? "Perangkat",
-      })) || [];
-
-    let merged = [...incomeActivities, ...paymentActivities];
-
-    if (activityFilter === "income") {
-      merged = incomeActivities;
-    }
-
-    if (activityFilter === "payment") {
-      merged = paymentActivities;
-    }
-
-    return merged.sort((a, b) => b.sort_time - a.sort_time).slice(0, 10);
-  }, [incomes, payments, activityFilter]);
-
-  const onRefresh = () => {
-    refetchIncome();
-    refetchPayment();
+  const selectActivityFilter = (filter: ActivityFilter) => {
+    animateLayout();
+    setActivityFilter(filter);
+    setShowActivityMenu(false);
   };
 
-  const isLoading = loadingIncome || loadingPayment;
+  const refresh = async () => {
+    await Promise.all([
+      summaryQuery.refetch(),
+      incomeQuery.refetch(),
+      paymentQuery.refetch(),
+    ]);
+  };
 
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.pageTitle}>Dashboard Saldo</Text>
-        </View>
-
-        <View style={{ marginHorizontal: 20 }}>
-          <BalanceCardSkeleton />
-        </View>
-
-        <View style={{ height: 16 }} />
-
-        <View style={{ marginHorizontal: 20 }}>
-          <BalanceCardSkeleton />
-        </View>
-
-        <View style={styles.activitySectionSkeleton}>
-          <View style={styles.activityHeader}>
-            <View
-              style={{
-                width: 140,
-                height: 20,
-                backgroundColor: "#E5E7EB",
-                borderRadius: 6,
-              }}
-            />
-            <View
-              style={{
-                width: 24,
-                height: 24,
-                backgroundColor: "#E5E7EB",
-                borderRadius: 6,
-              }}
-            />
-          </View>
-          <TransactionCardSkeleton />
-          <TransactionCardSkeleton />
-          <TransactionCardSkeleton />
-        </View>
-      </View>
-    );
-  }
+  const isLoading =
+    summaryQuery.isLoading || incomeQuery.isLoading || paymentQuery.isLoading;
+  const isRefetching =
+    summaryQuery.isRefetching ||
+    incomeQuery.isRefetching ||
+    paymentQuery.isRefetching;
 
   return (
     <View style={styles.container}>
-      {/* REVISI 1: Backdrop tingkat Root untuk meng-cover area atas layar (Header & Hero Card) */}
-      {showActivityMenu && (
-        <Pressable
-          style={[
-            StyleSheet.absoluteFill,
-            { zIndex: 5, elevation: 5, backgroundColor: "transparent" },
-          ]}
-          onPress={() => {
-            animateLayout();
-            setShowActivityMenu(false);
-          }}
-        />
-      )}
-
       <Animated.View entering={FadeInDown} style={styles.header}>
         <Text style={styles.pageTitle}>Dashboard Saldo</Text>
       </Animated.View>
 
-      <Animated.View entering={FadeInUp.delay(100)} style={styles.heroCard}>
-        <View style={styles.heroContent}>
-          <View>
-            <Text style={styles.heroLabel}>Total Saldo</Text>
-            <Text style={styles.heroAmount}>
-              Rp {netBalance.toLocaleString("id-ID")}
-            </Text>
-          </View>
-          <View style={styles.heroIconWrapper}>
-            <Wallet size={42} color={COLORS.softBlue} />
-          </View>
-        </View>
-      </Animated.View>
-
-      <Animated.View entering={FadeInUp.delay(150)} style={styles.cardRow}>
-        <View style={styles.statCard}>
-          <View style={styles.statCardTopRow}>
-            <View
-              style={[styles.iconBox, { backgroundColor: COLORS.softGreen }]}
-            >
-              <ArrowDownToLine size={18} color={COLORS.success} />
-            </View>
-            <View style={styles.statCardTextWrapper}>
-              <Text style={styles.cardLabel}>Pendapatan</Text>
-              <Text
-                style={styles.cardValueIncome}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
-                + Rp {monthlyStats.incomeThisMonth.toLocaleString("id-ID")}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.statCardBottomRow}>
-            {monthlyStats.incomePercentage >= 0 ? (
-              <TrendingUp size={12} color={COLORS.success} />
-            ) : (
-              <TrendingDown size={12} color={COLORS.danger} />
-            )}
-            <Text
-              style={[
-                styles.percentageText,
-                {
-                  color:
-                    monthlyStats.incomePercentage >= 0
-                      ? COLORS.success
-                      : COLORS.danger,
-                },
-              ]}
-            >
-              {monthlyStats.incomePercentage > 0 ? "+" : ""}
-              {monthlyStats.incomePercentage.toFixed(1)}%
-            </Text>
-            <Text style={styles.percentageLabel}> vs Bulan Berlalu</Text>
-          </View>
-        </View>
-
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.statCard}
-          onPress={() => {
-            animateLayout();
-            setShowAdminFee(!showAdminFee);
-          }}
-        >
-          {!showAdminFee ? (
-            <View>
-              <View style={styles.statCardTopRow}>
-                <View
-                  style={[
-                    styles.iconBox,
-                    { backgroundColor: COLORS.softYellow },
-                  ]}
-                >
-                  <ArrowUpToLine size={18} color={COLORS.warning} />
-                </View>
-                <View style={styles.statCardTextWrapper}>
-                  <Text style={styles.cardLabel}>Penarikan</Text>
-                  <Text
-                    style={styles.cardValuePayment}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                  >
-                    - Rp {monthlyStats.paymentThisMonth.toLocaleString("id-ID")}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.statCardBottomRow}>
-                {monthlyStats.paymentPercentage <= 0 ? (
-                  <TrendingDown size={12} color={COLORS.success} />
-                ) : (
-                  <TrendingUp size={12} color={COLORS.danger} />
-                )}
-                <Text
-                  style={[
-                    styles.percentageText,
-                    {
-                      color:
-                        monthlyStats.paymentPercentage <= 0
-                          ? COLORS.success
-                          : COLORS.danger,
-                    },
-                  ]}
-                >
-                  {monthlyStats.paymentPercentage > 0 ? "+" : ""}
-                  {monthlyStats.paymentPercentage.toFixed(1)}%
-                </Text>
-                <Text style={styles.percentageLabel}> vs Bulan Berlalu</Text>
-              </View>
-            </View>
-          ) : (
-            <View>
-              <View style={styles.statCardTopRow}>
-                <View style={[styles.iconBox, { backgroundColor: "#FCE8E8" }]}>
-                  <ArrowUpToLine size={18} color={COLORS.danger} />
-                </View>
-                <View style={styles.statCardTextWrapper}>
-                  <Text style={styles.cardLabel}>Biaya Admin</Text>
-                  <Text
-                    style={[styles.cardValuePayment, { color: COLORS.danger }]}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                  >
-                    - Rp{" "}
-                    {monthlyStats.adminFeeThisMonth.toLocaleString("id-ID")}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.statCardBottomRow}>
-                {monthlyStats.adminFeePercentage <= 0 ? (
-                  <TrendingDown size={12} color={COLORS.success} />
-                ) : (
-                  <TrendingUp size={12} color={COLORS.danger} />
-                )}
-                <Text
-                  style={[
-                    styles.percentageText,
-                    {
-                      color:
-                        monthlyStats.adminFeePercentage <= 0
-                          ? COLORS.success
-                          : COLORS.danger,
-                    },
-                  ]}
-                >
-                  {monthlyStats.adminFeePercentage > 0 ? "+" : ""}
-                  {monthlyStats.adminFeePercentage.toFixed(1)}%
-                </Text>
-                <Text style={styles.percentageLabel}> vs Bulan Berlalu</Text>
-              </View>
-            </View>
-          )}
-        </TouchableOpacity>
-      </Animated.View>
-
-      {/* REVISI 2: Menaikkan zIndex activitySection secara dinamis agar berada di atas Root Backdrop saat filter terbuka */}
-      <Animated.View
-        entering={FadeInUp.delay(200)}
-        style={[
-          styles.activitySection,
-          showActivityMenu && { zIndex: 10, elevation: 10 },
-        ]}
-      >
-        {/* REVISI 3: Backdrop tingkat lokal untuk meng-cover area bawah (mengunci guliran ScrollView) */}
-        {showActivityMenu && (
-          <Pressable
-            style={[
-              StyleSheet.absoluteFill,
-              {
-                zIndex: 1,
-                elevation: 1,
-                backgroundColor: "transparent",
-              },
-            ]}
-            onPress={() => {
-              animateLayout();
-              setShowActivityMenu(false);
-            }}
-          />
-        )}
-
-        {/* Wadah header dinaikkan zIndex-nya ke level 2 agar berada di atas penutup lokal (level 1) */}
-        <View
-          style={[styles.activityHeaderContainer, { zIndex: 2, elevation: 2 }]}
-        >
-          <View style={styles.activityHeader}>
-            <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
-
-            <TouchableOpacity
-              style={styles.activityFilterBtn}
-              onPress={() => {
-                animateLayout();
-                setShowActivityMenu(!showActivityMenu);
-              }}
-            >
-              <Filter
-                size={18}
-                color={
-                  activityFilter !== "all" ? COLORS.primary : COLORS.textMuted
-                }
-              />
-            </TouchableOpacity>
-          </View>
-
-          {showActivityMenu && (
-            <Animated.View
-              entering={FadeInUp.duration(200)}
-              style={styles.dropdownMenu}
-            >
-              <TouchableOpacity
-                style={styles.dropdownItem}
-                onPress={() => {
-                  animateLayout();
-                  setActivityFilter("all");
-                  setShowActivityMenu(false);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.dropdownText,
-                    activityFilter === "all" && styles.dropdownTextActive,
-                  ]}
-                >
-                  Semua
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dropdownItem}
-                onPress={() => {
-                  animateLayout();
-                  setActivityFilter("income");
-                  setShowActivityMenu(false);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.dropdownText,
-                    activityFilter === "income" && styles.dropdownTextActive,
-                  ]}
-                >
-                  Pemasukan
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.dropdownItem, { borderBottomWidth: 0 }]}
-                onPress={() => {
-                  animateLayout();
-                  setActivityFilter("payment");
-                  setShowActivityMenu(false);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.dropdownText,
-                    activityFilter === "payment" && styles.dropdownTextActive,
-                  ]}
-                >
-                  Penarikan
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-          )}
-        </View>
-
+      {isLoading ? (
+        <BalanceScreenSkeleton />
+      ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerStyle={styles.scrollContent}
+          onScrollBeginDrag={() => setShowActivityMenu(false)}
           refreshControl={
             <RefreshControl
-              refreshing={isRefetchingIncome || isRefetchingPayment}
-              onRefresh={onRefresh}
+              refreshing={isRefetching}
+              onRefresh={() => void refresh()}
             />
           }
         >
-          {recentActivities.length === 0 ? (
-            <Animated.View
-              entering={FadeIn.duration(300)}
-              style={styles.emptyState}
-            >
-              <Text style={styles.emptyTitle}>Belum Ada Aktivitas</Text>
-              <Text style={styles.emptySubtitle}>
-                Tidak ada data{" "}
-                {activityFilter === "income"
-                  ? "pemasukan"
-                  : activityFilter === "payment"
-                    ? "penarikan"
-                    : "transaksi"}
-              </Text>
-            </Animated.View>
-          ) : (
-            recentActivities.map((item, index) => (
-              <Animated.View
-                key={`${item.type}-${item.trx_date}-${index}`}
-                entering={FadeInUp.duration(300).delay(index * 40)}
-                style={styles.activityCard}
-              >
-                <View
-                  style={[
-                    styles.activityIcon,
-                    {
-                      backgroundColor:
-                        item.type === "income"
-                          ? COLORS.softGreen
-                          : COLORS.softYellow,
-                    },
-                  ]}
-                >
-                  {item.type === "income" ? (
-                    <ArrowDownToLine size={18} color={COLORS.success} />
-                  ) : (
-                    <ArrowUpToLine size={18} color={COLORS.warning} />
-                  )}
-                </View>
-
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityDevice}>{item.device_name}</Text>
-                  <Text style={styles.activityDate}>
-                    {new Date(item.trx_date).toLocaleDateString("id-ID", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </Text>
-                </View>
-
-                <Text
-                  style={[
-                    styles.activityAmount,
-                    {
-                      color:
-                        item.type === "income"
-                          ? COLORS.success
-                          : COLORS.warning,
-                    },
-                  ]}
-                >
-                  {item.type === "income" ? "+" : "-"} Rp{" "}
-                  {item.amount.toLocaleString("id-ID")}
+          <Animated.View entering={FadeInUp.delay(80)} style={styles.heroCard}>
+            <View style={styles.heroContent}>
+              <View style={styles.heroText}>
+                <Text style={styles.heroLabel}>Total Saldo</Text>
+                <Text style={styles.heroAmount} numberOfLines={1}>
+                  Rp {netBalance.toLocaleString("id-ID")}
                 </Text>
+              </View>
+              <View style={styles.heroIconWrapper}>
+                <Wallet size={38} color={COLORS.softBlue} />
+              </View>
+            </View>
+          </Animated.View>
+
+          <Animated.View
+            entering={FadeInUp.delay(130)}
+            style={styles.summarySection}
+          >
+            <Text style={styles.summaryTitle}>Ringkasan Bulan Ini</Text>
+            <View style={styles.summaryContent}>
+              <View style={styles.chartFrame}>
+                <PieChart
+                  data={pieData}
+                  donut
+                  radius={74}
+                  innerRadius={47}
+                  strokeWidth={2}
+                  strokeColor="#FFFFFF"
+                  centerLabelComponent={() => (
+                    <View style={styles.chartCenter}>
+                      <Text style={styles.chartCenterLabel}>Total</Text>
+                      <Text
+                        style={styles.chartCenterValue}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                      >
+                        Rp {monthlyVolume.toLocaleString("id-ID")}
+                      </Text>
+                    </View>
+                  )}
+                />
+              </View>
+              <View style={styles.legend}>
+                <LegendItem
+                  color={COLORS.success}
+                  label="Pendapatan"
+                  value={summary.incomeThisMonth}
+                />
+                <LegendItem
+                  color={COLORS.warning}
+                  label="Pengeluaran"
+                  value={summary.expenseThisMonth}
+                />
+                <LegendItem
+                  color={COLORS.danger}
+                  label="Biaya Admin"
+                  value={summary.adminFeeThisMonth}
+                />
+              </View>
+            </View>
+          </Animated.View>
+
+          <Animated.View
+            entering={FadeInUp.delay(180)}
+            style={styles.activitySection}
+          >
+            <View style={styles.activityHeader}>
+              <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
+              <TouchableOpacity
+                accessibilityLabel="Filter aktivitas"
+                accessibilityRole="button"
+                style={styles.activityFilterBtn}
+                onPress={() => {
+                  animateLayout();
+                  setShowActivityMenu((current) => !current);
+                }}
+              >
+                <Filter
+                  size={19}
+                  color={
+                    activityFilter === "all"
+                      ? COLORS.textMuted
+                      : COLORS.primary
+                  }
+                />
+              </TouchableOpacity>
+            </View>
+
+            {showActivityMenu && (
+              <Animated.View entering={FadeIn.duration(160)} style={styles.menu}>
+                <FilterOption
+                  active={activityFilter === "all"}
+                  label="Semua"
+                  onPress={() => selectActivityFilter("all")}
+                />
+                <FilterOption
+                  active={activityFilter === "income"}
+                  label="Pendapatan"
+                  onPress={() => selectActivityFilter("income")}
+                />
+                <FilterOption
+                  active={activityFilter === "payment"}
+                  label="Penarikan"
+                  onPress={() => selectActivityFilter("payment")}
+                />
               </Animated.View>
-            ))
-          )}
+            )}
+
+            {recentActivities.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyTitle}>Belum Ada Aktivitas</Text>
+                <Text style={styles.emptySubtitle}>
+                  Tidak ada transaksi pada filter ini.
+                </Text>
+              </View>
+            ) : (
+              recentActivities.map((item) => {
+                const isIncome = item.type === "income";
+                return (
+                  <TouchableOpacity
+                    key={`${item.type}-${item.id}`}
+                    accessibilityLabel={`Buka detail ${isIncome ? "pendapatan" : "penarikan"}`}
+                    accessibilityRole="button"
+                    activeOpacity={0.82}
+                    style={styles.activityCard}
+                    onPress={() =>
+                      router.push({
+                        pathname: isIncome
+                          ? "/income-detail"
+                          : "/payment-detail",
+                        params: { id: item.id },
+                      })
+                    }
+                  >
+                    <View
+                      style={[
+                        styles.activityIcon,
+                        {
+                          backgroundColor: isIncome
+                            ? COLORS.softGreen
+                            : COLORS.softYellow,
+                        },
+                      ]}
+                    >
+                      {isIncome ? (
+                        <ArrowDownToLine size={18} color={COLORS.success} />
+                      ) : (
+                        <ArrowUpToLine size={18} color={COLORS.warning} />
+                      )}
+                    </View>
+                    <View style={styles.activityContent}>
+                      <Text style={styles.activityDevice} numberOfLines={1}>
+                        {item.deviceName}
+                      </Text>
+                      <Text style={styles.activityDate}>
+                        {new Date(item.trxDate).toLocaleDateString("id-ID", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.activityAmount,
+                        { color: isIncome ? COLORS.success : COLORS.warning },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {isIncome ? "+" : "-"} Rp{" "}
+                      {item.amount.toLocaleString("id-ID")}
+                    </Text>
+                    <ChevronRight size={17} color={COLORS.textMuted} />
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </Animated.View>
         </ScrollView>
-      </Animated.View>
+      )}
     </View>
   );
 }
 
+function LegendItem({
+  color,
+  label,
+  value,
+}: {
+  color: string;
+  label: string;
+  value: number;
+}) {
+  return (
+    <View style={styles.legendItem}>
+      <View style={[styles.legendSwatch, { backgroundColor: color }]} />
+      <View style={styles.legendText}>
+        <Text style={styles.legendLabel}>{label}</Text>
+        <Text style={styles.legendValue} numberOfLines={1}>
+          Rp {value.toLocaleString("id-ID")}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function FilterOption({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+      <Text style={[styles.menuText, active && styles.menuTextActive]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
     marginBottom: 16,
   },
-  pageTitle: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: COLORS.text,
-  },
+  pageTitle: { fontSize: 22, fontWeight: "800", color: COLORS.text },
+  scrollContent: { paddingBottom: 120 },
   heroCard: {
     marginHorizontal: 20,
     backgroundColor: COLORS.primary,
-    borderRadius: 24,
+    borderRadius: RADIUS.card,
     padding: 24,
     ...SHADOW.card,
   },
@@ -649,182 +425,129 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  heroText: { flex: 1, marginRight: 14 },
   heroIconWrapper: {
-    backgroundColor: "rgba(89, 133, 245, 0.81)",
-    padding: 12,
-    borderRadius: 18,
+    width: 62,
+    height: 62,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(89,133,245,0.81)",
+    borderRadius: RADIUS.control,
   },
-  heroLabel: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 13,
-    marginBottom: 4,
-  },
+  heroLabel: { color: "rgba(255,255,255,0.8)", fontSize: 13 },
   heroAmount: {
+    marginTop: 5,
     color: "#FFFFFF",
     fontSize: 32,
     fontWeight: "800",
   },
-
-  cardRow: {
-    flexDirection: "row",
-    gap: 12,
-    paddingHorizontal: 20,
-    marginTop: 16,
-  },
-  statCard: {
-    flex: 1,
+  summarySection: {
+    marginTop: 18,
+    marginHorizontal: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 20,
+    borderRadius: RADIUS.card,
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 14,
     ...SHADOW.card,
   },
-  statCardTopRow: {
+  summaryTitle: {
+    marginBottom: 16,
+    color: COLORS.text,
+    fontSize: 17,
+    fontWeight: "700",
+  },
+  summaryContent: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 22,
   },
-  iconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    justifyContent: "center",
+  chartFrame: {
+    width: 150,
+    height: 150,
     alignItems: "center",
-  },
-  statCardTextWrapper: {
-    flex: 1,
-    marginLeft: 10,
     justifyContent: "center",
   },
-  cardLabel: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    marginBottom: 2,
-  },
-  cardValueIncome: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.success,
-  },
-  cardValuePayment: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.warning,
-  },
-  statCardBottomRow: {
-    flexDirection: "row",
+  chartCenter: {
+    width: 82,
     alignItems: "center",
-    marginTop: 10,
   },
-  percentageText: {
-    fontSize: 11,
+  chartCenterLabel: { color: COLORS.textMuted, fontSize: 10 },
+  chartCenterValue: {
+    width: 78,
+    marginTop: 3,
+    color: COLORS.text,
+    fontSize: 12,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  legend: { flex: 1, gap: 14 },
+  legendItem: { flexDirection: "row", alignItems: "center" },
+  legendSwatch: { width: 11, height: 11, borderRadius: RADIUS.sm },
+  legendText: { flex: 1, marginLeft: 9 },
+  legendLabel: { color: COLORS.textMuted, fontSize: 11 },
+  legendValue: {
+    marginTop: 2,
+    color: COLORS.text,
+    fontSize: 13,
     fontWeight: "700",
-    marginLeft: 4,
   },
-  percentageLabel: {
-    fontSize: 10,
-    color: COLORS.textMuted,
-  },
-
-  activitySectionSkeleton: {
-    paddingHorizontal: 20,
-    marginTop: 24,
-    flex: 1,
-  },
-  activitySection: {
-    flex: 1,
-    marginTop: 24,
-  },
-  activityHeaderContainer: {
-    paddingHorizontal: 20,
-  },
+  activitySection: { marginTop: 24, paddingHorizontal: 20 },
   activityHeader: {
+    position: "relative",
+    zIndex: 11,
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.text,
-  },
+  sectionTitle: { color: COLORS.text, fontSize: 18, fontWeight: "700" },
   activityFilterBtn: {
-    padding: 6,
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  dropdownMenu: {
+  menu: {
     position: "absolute",
-    top: 34,
-    right: 0,
+    top: 44,
+    right: 20,
+    width: 142,
+    borderRadius: RADIUS.card,
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    width: 130,
-    marginRight: 20,
     ...SHADOW.card,
-    zIndex: 3,
-    elevation: 3,
+    zIndex: 12,
+    elevation: 12,
   },
-  dropdownItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  dropdownText: {
-    fontSize: 14,
-    color: COLORS.text,
-  },
-  dropdownTextActive: {
-    fontWeight: "700",
-    color: COLORS.primary,
-  },
+  menuItem: { minHeight: 44, justifyContent: "center", paddingHorizontal: 16 },
+  menuText: { color: COLORS.textMuted, fontSize: 13 },
+  menuTextActive: { color: COLORS.primary, fontWeight: "700" },
   activityCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 12,
+    minHeight: 72,
     flexDirection: "row",
     alignItems: "center",
-    marginHorizontal: 20,
+    marginBottom: 10,
+    padding: 14,
+    borderRadius: RADIUS.card,
+    backgroundColor: "#FFFFFF",
     ...SHADOW.card,
   },
   activityIcon: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    alignItems: "center",
     justifyContent: "center",
-    alignItems: "center",
+    borderRadius: RADIUS.control,
   },
-  activityContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  activityDevice: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.text,
-  },
-  activityDate: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginTop: 3,
-  },
+  activityContent: { flex: 1, marginLeft: 12 },
+  activityDevice: { color: COLORS.text, fontSize: 14, fontWeight: "700" },
+  activityDate: { marginTop: 3, color: COLORS.textMuted, fontSize: 12 },
   activityAmount: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  emptyState: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 40,
-    alignItems: "center",
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.text,
-    marginBottom: 6,
-  },
-  emptySubtitle: {
+    maxWidth: "38%",
+    marginHorizontal: 8,
     fontSize: 13,
-    color: COLORS.textMuted,
+    fontWeight: "700",
   },
+  emptyState: { paddingVertical: 40, alignItems: "center" },
+  emptyTitle: { color: COLORS.text, fontSize: 16, fontWeight: "700" },
+  emptySubtitle: { marginTop: 6, color: COLORS.textMuted, fontSize: 13 },
 });

@@ -1,6 +1,6 @@
 import { ArrowDownToLine, Wallet } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../theme";
+import { COLORS, RADIUS } from "../../theme";
 
 type Props = {
   type: "income" | "payment";
@@ -37,12 +37,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: COLORS.card,
     padding: 15,
-    borderRadius: 12,
+    borderRadius: RADIUS.card,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  iconBox: { padding: 10, borderRadius: 8 },
+  iconBox: { padding: 10, borderRadius: RADIUS.control },
   info: { flex: 1, marginLeft: 15 },
   deviceName: {
     fontSize: 15,

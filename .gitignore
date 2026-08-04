@@ -45,6 +45,9 @@ app-example
 # Database backup
 database-backups/
 
+# Local release artifacts
+build-artifacts/
+
 # Environment Supabase
 .env.snack-dev
 .env.snack-pub

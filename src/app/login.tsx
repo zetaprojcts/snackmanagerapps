@@ -1,18 +1,30 @@
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  type LayoutChangeEvent,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
+import { PasswordStrength } from "../components/ui/PasswordStrength";
+import {
+  isStrongPassword,
+  PASSWORD_REQUIREMENT_MESSAGE,
+} from "../features/auth/passwordPolicy";
 import { supabase } from "../lib/supabase";
+import { RADIUS } from "../theme";
 
 type AuthMode = "login" | "register";
 
@@ -24,8 +36,13 @@ export default function LoginScreen() {
   const [confirmPassword, setConfirmPassword] =
     useState("");
   const [loading, setLoading] = useState(false);
+  const [tabWidth, setTabWidth] = useState(0);
+  const tabProgress = useSharedValue(0);
 
   const isRegister = mode === "register";
+  const tabIndicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: tabProgress.value * tabWidth }],
+  }));
 
   const resetPasswordFields = () => {
     setPassword("");
@@ -33,8 +50,19 @@ export default function LoginScreen() {
   };
 
   const changeMode = (nextMode: AuthMode) => {
+    if (nextMode === mode) {
+      return;
+    }
+
+    tabProgress.value = withTiming(nextMode === "login" ? 0 : 1, {
+      duration: 220,
+    });
     setMode(nextMode);
     resetPasswordFields();
+  };
+
+  const handleTabLayout = (event: LayoutChangeEvent) => {
+    setTabWidth((event.nativeEvent.layout.width - 8) / 2);
   };
 
   const handleLogin = async () => {
@@ -89,10 +117,10 @@ export default function LoginScreen() {
       return;
     }
 
-    if (password.length < 8) {
+    if (!isStrongPassword(password)) {
       Alert.alert(
-        "Password terlalu pendek",
-        "Gunakan minimal 8 karakter.",
+        "Password belum kuat",
+        PASSWORD_REQUIREMENT_MESSAGE,
       );
       return;
     }
@@ -176,14 +204,19 @@ export default function LoginScreen() {
             Anda sendiri
           </Text>
 
-          <View style={styles.tabContainer}>
+          <View style={styles.tabContainer} onLayout={handleTabLayout}>
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                styles.tabIndicator,
+                { width: tabWidth },
+                tabIndicatorStyle,
+              ]}
+            />
             <Pressable
               onPress={() => changeMode("login")}
               disabled={loading}
-              style={[
-                styles.tab,
-                mode === "login" && styles.activeTab,
-              ]}
+              style={styles.tab}
             >
               <Text
                 style={[
@@ -199,10 +232,7 @@ export default function LoginScreen() {
             <Pressable
               onPress={() => changeMode("register")}
               disabled={loading}
-              style={[
-                styles.tab,
-                mode === "register" && styles.activeTab,
-              ]}
+              style={styles.tab}
             >
               <Text
                 style={[
@@ -259,6 +289,8 @@ export default function LoginScreen() {
             editable={!loading}
             style={styles.input}
           />
+
+          {isRegister && <PasswordStrength password={password} />}
 
           {isRegister && (
             <>
@@ -343,7 +375,7 @@ const styles = StyleSheet.create({
 
   card: {
     padding: 24,
-    borderRadius: 20,
+    borderRadius: RADIUS.card,
     backgroundColor: "#FFFFFF",
     shadowColor: "#000000",
     shadowOffset: {
@@ -373,31 +405,30 @@ const styles = StyleSheet.create({
   },
 
   tabContainer: {
+    position: "relative",
     flexDirection: "row",
     marginBottom: 24,
     padding: 4,
-    borderRadius: 12,
+    borderRadius: RADIUS.control,
     backgroundColor: "#EEF2F6",
   },
 
   tab: {
+    zIndex: 1,
     flex: 1,
     height: 42,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 9,
+    borderRadius: RADIUS.control,
   },
 
-  activeTab: {
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#000000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 5,
-    elevation: 2,
+  tabIndicator: {
+    position: "absolute",
+    top: 4,
+    bottom: 4,
+    left: 4,
+    borderRadius: RADIUS.control,
+    backgroundColor: "#155EEF",
   },
 
   tabText: {
@@ -407,7 +438,7 @@ const styles = StyleSheet.create({
   },
 
   activeTabText: {
-    color: "#155EEF",
+    color: "#FFFFFF",
   },
 
   label: {
@@ -423,7 +454,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: "#D0D5DD",
-    borderRadius: 12,
+    borderRadius: RADIUS.control,
     backgroundColor: "#FFFFFF",
     fontFamily: "Inter_400Regular",
     fontSize: 15,
@@ -435,7 +466,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 12,
+    borderRadius: RADIUS.control,
     backgroundColor: "#155EEF",
   },
 

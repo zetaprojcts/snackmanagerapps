@@ -8,8 +8,8 @@ Dokumen ini mencatat baseline yang digunakan untuk merancang migration multi-use
 
 | Target | Sumber | Tanggal sumber | Tingkat keyakinan |
 | --- | --- | --- | --- |
-| Development | Sebelas migration pada `supabase/migrations`, migration history linked, schema lint, dan pgTAP | 2 Agustus 2026 | Terverifikasi pada live development dan replay lokal kosong |
-| Production | Backup lokal `snack-pub-2026-08-01` | 1 Agustus 2026 | Snapshot, bukan verifikasi live production |
+| Development | Tiga belas migration pada `supabase/migrations`, migration history linked, schema lint, dan pgTAP | 4 Agustus 2026 | Terverifikasi pada live development dan rehearsal lokal |
+| Production | Backup final live sebelum migrasi dan rekonsiliasi live sesudah migrasi | 4 Agustus 2026 | Terverifikasi |
 
 Nilai environment, project reference, credential, UUID user, dan data pribadi tidak dicatat di dokumen ini.
 
@@ -28,8 +28,10 @@ Migration yang tersedia dan telah direplay berurutan:
 9. `008_reject_cross_tenant_device_owner`
 10. `009_account_profile_management`
 11. `010_password_change_status`
+12. `011_transaction_history_performance`
+13. `012_finalize_legacy_device_ownership`
 
-Migration 001-006 adalah histori awal dan tidak diubah. Migration 002b serta 007-010 merupakan corrective migration forward-only yang membuat replay aman, memperketat boundary tenant, serta menambahkan pengelolaan profile dan status perubahan password.
+Migration 001-006 adalah histori awal dan tidak diubah. Migration 002b serta 007-012 merupakan corrective migration forward-only yang membuat replay aman, memperketat boundary tenant, menambahkan pengelolaan akun dan performa riwayat, serta menyelesaikan ownership database legacy.
 
 ## Baseline Development Sebelum Sprint 1
 
@@ -43,10 +45,10 @@ Struktur yang dinyatakan oleh rangkaian migration:
 | Profile RLS | Belum didefinisikan |
 | Device code | Masih unik global |
 | Signup | Trigger membuat profile melalui function `SECURITY DEFINER` tanpa fixed `search_path` |
-| Backfill | Migration terakhir memuat UUID owner hard-coded |
+| Backfill | Histori awal bergantung pada satu owner legacy yang telah disiapkan |
 | Transaksi | Unique per perangkat dan tanggal tersedia; constraint nilai belum lengkap |
 
-Catatan: migration lokal adalah histori yang harus dipertahankan. Kekurangan di atas diperbaiki melalui corrective migration baru pada Sprint 1, bukan dengan mengubah file yang sudah ada.
+Catatan: migration lokal adalah histori yang harus dipertahankan. Source release 2.0.0 tidak menyimpan UUID owner; migration legacy hanya berjalan ketika tepat satu Auth user tersedia.
 
 ## Kondisi Development Setelah Sprint 1
 
@@ -66,7 +68,7 @@ Catatan: migration lokal adalah histori yang harus dipertahankan. Kekurangan di 
 
 Audit data menemukan row development historis dengan `income.amount <= 0`. Constraint dipasang `NOT VALID`, sehingga write baru tetap diperiksa tanpa menggagalkan migration karena data lama. Rekonsiliasi row historis dan `VALIDATE CONSTRAINT` dijadwalkan pada Sprint 5.
 
-## Baseline Production
+## Baseline Production Sebelum Migrasi
 
 Snapshot production masih menggunakan model single-user:
 
@@ -85,19 +87,40 @@ Jumlah row aplikasi pada snapshot:
 | Relation | Row |
 | --- | ---: |
 | `devices` | 22 |
-| `income` | 659 |
-| `payment` | 94 |
+| `income` | 701 |
+| `payment` | 99 |
 
-Jumlah ini menjadi baseline minimum untuk rehearsal. Rekonsiliasi production tetap harus menghitung ulang row dan total nominal dari backup final saat cutover.
+Agregat finansial sebelum migrasi:
+
+| Agregat | Nilai |
+| --- | ---: |
+| Total income | Rp6.280.337 |
+| Gross payment | Rp4.888.000 |
+| Admin fee | Rp126.750 |
+| Net payment | Rp4.761.250 |
+
+Backup Auth production tidak memuat user. Owner legacy dibuat secara khusus sebelum backfill menggunakan akun admin development yang telah disetujui, tanpa menyalin akun QA lain.
+
+## Kondisi Production Setelah Migrasi
+
+| Area | Kondisi terverifikasi |
+| --- | --- |
+| Auth | Tepat satu admin dengan UUID owner yang disetujui dan identity email konsisten |
+| Ownership | Seluruh 22 perangkat dimiliki admin; nol `user_id IS NULL` dan nol owner salah |
+| Integritas | 701 income dan 99 payment tetap utuh; nol orphan |
+| Agregat | Seluruh total finansial sama dengan baseline sebelum migrasi |
+| RLS | Aktif pada profiles, devices, income, dan payment |
+| Policy tenant | Hanya tiga policy own-data pada devices, income, dan payment |
+| Isolasi | Akun production sementara melihat nol devices, income, dan payment |
+| Fitur schema | Tiga RPC ringkasan dan bucket avatar privat tersedia |
+| Migration | Development dan production up-to-date sampai migration `012` |
 
 ## Gap Development dan Production
 
-1. Production belum memiliki `profiles` dan ownership perangkat.
-2. Policy production memungkinkan CRUD tanpa boundary user.
-3. Development sudah memiliki ownership, profile RLS, dan generator kode per-user; production belum menerima perubahan ini.
-4. Production masih memakai sequence dan uniqueness global sampai rehearsal serta rollout disetujui.
-5. Backup tidak membawa auth user yang dapat langsung menjadi owner legacy.
-6. Migration backfill development tidak portabel karena mengikat satu UUID environment.
+1. Gap schema, ownership, profile, dan RLS antara development dan production telah ditutup.
+2. Policy CRUD single-user permisif telah dihapus oleh migration `012`.
+3. Backup awal tidak membawa Auth user; owner legacy telah dibuat dan diverifikasi sebelum backfill.
+4. Uji login owner melalui Internal Production APK dan rollback penuh tetap menjadi gate operasional.
 
 ## Implikasi Migration
 
@@ -122,6 +145,8 @@ Status tindakan keamanan user:
 Status verifikasi baseline:
 
 1. [x] Schema live development dibandingkan dengan migration lokal.
-2. [ ] Backup production direstore pada rehearsal terisolasi pada Sprint 6.
+2. [x] Backup production direstore pada rehearsal terisolasi pada Sprint 6.
 3. [x] Migration development dapat direplay dari kosong dan test boundary tenant lulus.
-4. [x] Tidak ada koneksi atau perubahan production tanpa approval eksplisit user.
+4. [x] Perubahan production dilakukan setelah approval eksplisit user dan backup final terverifikasi.
+5. [x] Row count, agregat, owner, orphan, policy, dan RLS direkonsiliasi setelah migrasi.
+6. [ ] Backup final dipindahkan user dari workspace ke penyimpanan aman.

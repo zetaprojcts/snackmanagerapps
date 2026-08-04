@@ -1,12 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Switch,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -14,18 +11,21 @@ import {
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetScrollView,
+  BottomSheetTextInput,
+  type BottomSheetFooterProps,
 } from "@gorhom/bottom-sheet";
 
 import { Dropdown } from "react-native-element-dropdown";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { Save, X } from "lucide-react-native";
+import { X } from "lucide-react-native";
 
 import { useAuth } from "../../features/auth/AuthProvider";
 import { addDevice } from "../../features/devices/api";
 
-import { COLORS } from "../../theme";
+import { COLORS, RADIUS } from "../../theme";
+import SheetSaveFooter from "./SheetSaveFooter";
 
 const BRAND_OPTIONS = [
   {
@@ -86,7 +86,7 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const snapPoints = useMemo(() => ["90%"], []);
+  const snapPoints = useMemo(() => ["86%"], []);
 
   const [form, setForm] = useState({
     brand: "Samsung",
@@ -145,14 +145,35 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
     });
   };
 
+  const handleSaveRef = useRef(handleSave);
+  handleSaveRef.current = handleSave;
+
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => (
+      <SheetSaveFooter
+        {...props}
+        label="Simpan Perangkat"
+        pending={mutation.isPending}
+        onPress={() => handleSaveRef.current()}
+      />
+    ),
+    [mutation.isPending],
+  );
+
   if (!visible) return null;
 
   return (
     <BottomSheet
       index={0}
       snapPoints={snapPoints}
+      enableDynamicSizing={false}
       enablePanDownToClose
+      enableBlurKeyboardOnGesture
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      android_keyboardInputMode="adjustPan"
       onClose={onClose}
+      footerComponent={renderFooter}
       backdropComponent={(props) => (
         <BottomSheetBackdrop
           {...props}
@@ -167,20 +188,15 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
         height: 5,
       }}
       backgroundStyle={{
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
+        borderTopLeftRadius: RADIUS.sheet,
+        borderTopRightRadius: RADIUS.sheet,
       }}
     >
-      <KeyboardAvoidingView
-        style={{
-          flex: 1,
-        }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      <BottomSheetScrollView
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.content}
       >
-        <BottomSheetScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.content}
-        >
           <View style={styles.header}>
             <Text style={styles.title}>Tambah Perangkat</Text>
 
@@ -239,7 +255,7 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
 
           <Text style={styles.label}>Tipe Perangkat</Text>
 
-          <TextInput
+          <BottomSheetTextInput
             placeholder="Masukkan nama perangkat"
             style={styles.input}
             value={form.device_name}
@@ -253,7 +269,7 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
 
           <Text style={styles.label}>Nomor Telepon</Text>
 
-          <TextInput
+          <BottomSheetTextInput
             style={styles.input}
             keyboardType="phone-pad"
             value={form.phone_number}
@@ -267,7 +283,7 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
 
           <Text style={styles.label}>Email</Text>
 
-          <TextInput
+          <BottomSheetTextInput
             style={styles.input}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -299,19 +315,7 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
             }
           />
 
-          <TouchableOpacity
-            style={styles.saveBtn}
-            onPress={handleSave}
-            disabled={mutation.isPending}
-          >
-            <Save size={18} color="#FFF" />
-
-            <Text style={styles.saveText}>
-              {mutation.isPending ? "Menyimpan..." : "Simpan Perangkat"}
-            </Text>
-          </TouchableOpacity>
-        </BottomSheetScrollView>
-      </KeyboardAvoidingView>
+      </BottomSheetScrollView>
     </BottomSheet>
   );
 }
@@ -319,7 +323,7 @@ export default function AddDeviceSheet({ visible, onClose }: Props) {
 const styles = StyleSheet.create({
   content: {
     padding: 20,
-    paddingBottom: 60,
+    paddingBottom: 128,
   },
 
   header: {
@@ -338,7 +342,7 @@ const styles = StyleSheet.create({
   closeBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: RADIUS.full,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: COLORS.background,
@@ -348,7 +352,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
+    borderRadius: RADIUS.card,
     padding: 16,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -377,7 +381,7 @@ const styles = StyleSheet.create({
 
   input: {
     height: 56,
-    borderRadius: 16,
+    borderRadius: RADIUS.control,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: "#FFFFFF",
@@ -389,13 +393,13 @@ const styles = StyleSheet.create({
     height: 56,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
+    borderRadius: RADIUS.control,
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
   },
 
   dropdownMenu: {
-    borderRadius: 16,
+    borderRadius: RADIUS.card,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -406,20 +410,4 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
 
-  saveBtn: {
-    marginTop: 30,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: COLORS.primary,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 10,
-  },
-
-  saveText: {
-    color: "#FFF",
-    fontWeight: "700",
-    fontSize: 15,
-  },
 });

@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
-import { COLORS } from "../../theme";
+import { COLORS, RADIUS } from "../../theme";
 
 export const Chip = ({ label, isActive, onPress }: any) => (
   <TouchableOpacity
@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: RADIUS.full,
     borderWidth: 1,
     borderColor: COLORS.border,
   },

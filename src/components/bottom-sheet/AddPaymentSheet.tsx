@@ -1,12 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -14,9 +11,10 @@ import {
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetScrollView,
+  BottomSheetTextInput,
+  type BottomSheetFooterProps,
 } from "@gorhom/bottom-sheet";
 
-import DateTimePicker from "@react-native-community/datetimepicker";
 
 import { Dropdown } from "react-native-element-dropdown";
 
@@ -24,14 +22,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useRouter } from "expo-router";
 
-import { Calendar, Save, Wallet, X } from "lucide-react-native";
+import { Calendar, Wallet, X } from "lucide-react-native";
 
 import { useAuth } from "../../features/auth/AuthProvider";
 import { addPayment, updatePayment } from "../../features/payment/api";
 
 import { getDevices } from "../../features/devices/api";
 
-import { COLORS } from "../../theme";
+import { COLORS, RADIUS } from "../../theme";
+import AppDatePickerModal from "../ui/AppDatePickerModal";
+import SheetSaveFooter from "./SheetSaveFooter";
 
 type Props = {
   visible: boolean;
@@ -44,7 +44,7 @@ export default function AddPaymentSheet({ visible, onClose }: Props) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const snapPoints = useMemo(() => ["90%"], []);
+  const snapPoints = useMemo(() => ["78%"], []);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -55,7 +55,7 @@ export default function AddPaymentSheet({ visible, onClose }: Props) {
   });
 
   const { data: devices } = useQuery({
-    queryKey: ["tenant", user?.id, "devices"],
+    queryKey: ["tenant", user?.id, "devices", "options"],
     queryFn: getDevices,
     enabled: Boolean(user),
   });
@@ -264,16 +264,38 @@ export default function AddPaymentSheet({ visible, onClose }: Props) {
     });
   };
 
+  const handleSaveRef = useRef(handleSave);
+  handleSaveRef.current = handleSave;
+
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => (
+      <SheetSaveFooter
+        {...props}
+        label="Simpan Penarikan"
+        pending={mutation.isPending}
+        onPress={() => handleSaveRef.current()}
+      />
+    ),
+    [mutation.isPending],
+  );
+
   if (!visible) {
     return null;
   }
 
   return (
+    <>
     <BottomSheet
       index={0}
       snapPoints={snapPoints}
+      enableDynamicSizing={false}
       enablePanDownToClose
+      enableBlurKeyboardOnGesture
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      android_keyboardInputMode="adjustPan"
       onClose={onClose}
+      footerComponent={renderFooter}
       backdropComponent={(props) => (
         <BottomSheetBackdrop
           {...props}
@@ -288,20 +310,15 @@ export default function AddPaymentSheet({ visible, onClose }: Props) {
         height: 5,
       }}
       backgroundStyle={{
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
+        borderTopLeftRadius: RADIUS.sheet,
+        borderTopRightRadius: RADIUS.sheet,
       }}
     >
-      <KeyboardAvoidingView
-        style={{
-          flex: 1,
-        }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      <BottomSheetScrollView
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.content}
       >
-        <BottomSheetScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.content}
-        >
           <View style={styles.header}>
             <Text style={styles.title}>Tambah Penarikan</Text>
 
@@ -354,30 +371,12 @@ export default function AddPaymentSheet({ visible, onClose }: Props) {
             </Text>
           </TouchableOpacity>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={form.trx_date}
-              mode="date"
-              display="default"
-              onChange={(event, selectedDate) => {
-                setShowDatePicker(false);
-
-                if (selectedDate) {
-                  setForm({
-                    ...form,
-                    trx_date: selectedDate,
-                  });
-                }
-              }}
-            />
-          )}
-
           <Text style={styles.label}>Nominal Penarikan</Text>
 
           <View style={styles.inputWrapper}>
             <Text style={styles.currency}>Rp</Text>
 
-            <TextInput
+            <BottomSheetTextInput
               style={styles.input}
               keyboardType="number-pad"
               placeholder="0"
@@ -426,32 +425,26 @@ export default function AddPaymentSheet({ visible, onClose }: Props) {
             </View>
           </View>
 
-          <TouchableOpacity
-            style={[
-              styles.saveBtn,
-              mutation.isPending && {
-                opacity: 0.7,
-              },
-            ]}
-            onPress={handleSave}
-            disabled={mutation.isPending}
-          >
-            <Save size={18} color="#FFF" />
-
-            <Text style={styles.saveText}>
-              {mutation.isPending ? "Menyimpan..." : "Simpan Penarikan"}
-            </Text>
-          </TouchableOpacity>
-        </BottomSheetScrollView>
-      </KeyboardAvoidingView>
+      </BottomSheetScrollView>
     </BottomSheet>
+    <AppDatePickerModal
+      onCancel={() => setShowDatePicker(false)}
+      onConfirm={(selectedDate) => {
+        setShowDatePicker(false);
+        setForm((current) => ({ ...current, trx_date: selectedDate }));
+      }}
+      title="Tanggal penarikan"
+      value={form.trx_date}
+      visible={showDatePicker}
+    />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   content: {
     padding: 20,
-    paddingBottom: 60,
+    paddingBottom: 128,
   },
 
   header: {
@@ -470,7 +463,7 @@ const styles = StyleSheet.create({
   closeBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: RADIUS.full,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: COLORS.background,
@@ -488,13 +481,13 @@ const styles = StyleSheet.create({
     height: 56,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
+    borderRadius: RADIUS.control,
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
   },
 
   dropdownMenu: {
-    borderRadius: 16,
+    borderRadius: RADIUS.card,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -507,7 +500,7 @@ const styles = StyleSheet.create({
 
   disabledInput: {
     height: 56,
-    borderRadius: 16,
+    borderRadius: RADIUS.control,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: "#F8FAFC",
@@ -525,7 +518,7 @@ const styles = StyleSheet.create({
 
   dateButton: {
     height: 56,
-    borderRadius: 16,
+    borderRadius: RADIUS.control,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: "#FFFFFF",
@@ -543,7 +536,7 @@ const styles = StyleSheet.create({
 
   inputWrapper: {
     height: 56,
-    borderRadius: 16,
+    borderRadius: RADIUS.control,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: "#FFFFFF",
@@ -571,7 +564,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
+    borderRadius: RADIUS.card,
     padding: 16,
   },
 
@@ -610,20 +603,4 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
 
-  saveBtn: {
-    marginTop: 30,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: COLORS.primary,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 10,
-  },
-
-  saveText: {
-    color: "#FFF",
-    fontWeight: "700",
-    fontSize: 15,
-  },
 });

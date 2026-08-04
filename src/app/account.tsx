@@ -1,4 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+  BottomSheetTextInput,
+  type BottomSheetFooterProps,
+} from "@gorhom/bottom-sheet";
 import Constants from "expo-constants";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -12,29 +18,30 @@ import {
   LogOut,
   Mail,
   Pencil,
-  Save,
   ShieldCheck,
   UserRound,
   X,
 } from "lucide-react-native";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { PasswordStrength } from "../components/ui/PasswordStrength";
+import SheetSaveFooter from "../components/bottom-sheet/SheetSaveFooter";
 import { useAuth } from "../features/auth/AuthProvider";
+import {
+  isStrongPassword,
+  PASSWORD_REQUIREMENT_MESSAGE,
+} from "../features/auth/passwordPolicy";
 import {
   downloadOwnAvatar,
   getOwnProfile,
@@ -42,7 +49,7 @@ import {
   updateOwnProfile,
   uploadOwnAvatar,
 } from "../features/auth/profileApi";
-import { COLORS } from "../theme";
+import { COLORS, RADIUS } from "../theme";
 
 type ProfileEditorValues = {
   fullName: string;
@@ -52,6 +59,7 @@ type ProfileEditorValues = {
 type PasswordEditorValues = {
   currentPassword: string;
   newPassword: string;
+  confirmPassword: string;
 };
 
 export default function AccountScreen() {
@@ -67,11 +75,13 @@ export default function AccountScreen() {
   const [passwordDraft, setPasswordDraft] = useState<PasswordEditorValues>({
     currentPassword: "",
     newPassword: "",
+    confirmPassword: "",
   });
   const [profileError, setProfileError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [localAvatarUri, setLocalAvatarUri] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
@@ -104,7 +114,7 @@ export default function AccountScreen() {
     [email, fullName],
   );
   const avatarUri = localAvatarUri ?? downloadedAvatarUri;
-  const appVersion = Constants.expoConfig?.version ?? "1.2.0";
+  const appVersion = Constants.expoConfig?.version ?? "2.0.0";
 
   const profileMutation = useMutation({
     mutationFn: (values: ProfileEditorValues) =>
@@ -141,9 +151,14 @@ export default function AccountScreen() {
         newPassword: values.newPassword,
       }),
     onSuccess: async ({ statusWarning }) => {
-      setPasswordDraft({ currentPassword: "", newPassword: "" });
+      setPasswordDraft({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
       setShowCurrentPassword(false);
       setShowNewPassword(false);
+      setShowConfirmPassword(false);
       await queryClient.invalidateQueries({
         queryKey: ["tenant", user?.id, "profile"],
       });
@@ -167,10 +182,15 @@ export default function AccountScreen() {
   };
 
   const openPasswordEditor = () => {
-    setPasswordDraft({ currentPassword: "", newPassword: "" });
+    setPasswordDraft({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
     setPasswordError(null);
     setShowCurrentPassword(false);
     setShowNewPassword(false);
+    setShowConfirmPassword(false);
     setPasswordEditorVisible(true);
   };
 
@@ -198,13 +218,23 @@ export default function AccountScreen() {
       return;
     }
 
-    if (passwordDraft.newPassword.length < 8) {
-      setPasswordError("Password baru harus terdiri dari minimal 8 karakter.");
+    if (!isStrongPassword(passwordDraft.newPassword)) {
+      setPasswordError(PASSWORD_REQUIREMENT_MESSAGE);
       return;
     }
 
     if (passwordDraft.newPassword === passwordDraft.currentPassword) {
       setPasswordError("Password baru harus berbeda dari password saat ini.");
+      return;
+    }
+
+    if (!passwordDraft.confirmPassword) {
+      setPasswordError("Masukkan konfirmasi password baru.");
+      return;
+    }
+
+    if (passwordDraft.confirmPassword !== passwordDraft.newPassword) {
+      setPasswordError("Konfirmasi password baru tidak sama.");
       return;
     }
 
@@ -325,9 +355,6 @@ export default function AccountScreen() {
           <Text numberOfLines={2} style={styles.name}>
             {fullName || "Pengguna"}
           </Text>
-          <Text numberOfLines={1} style={styles.email}>
-            {email || "-"}
-          </Text>
         </View>
 
         {profileLoading ? (
@@ -362,24 +389,27 @@ export default function AccountScreen() {
           </>
         )}
 
-        <TouchableOpacity
-          accessibilityRole="button"
-          activeOpacity={0.8}
-          disabled={signingOut}
-          style={[styles.signOutButton, signingOut && styles.buttonDisabled]}
-          onPress={confirmSignOut}
-        >
-          <LogOut size={20} color={COLORS.danger} />
-          <Text style={styles.signOutText}>
-            {signingOut ? "Keluar..." : "Keluar"}
-          </Text>
-        </TouchableOpacity>
-        <Text style={styles.version}>Versi {appVersion}</Text>
+        <View style={styles.accountFooter}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            activeOpacity={0.8}
+            disabled={signingOut}
+            style={[styles.signOutButton, signingOut && styles.buttonDisabled]}
+            onPress={confirmSignOut}
+          >
+            <LogOut size={20} color={COLORS.danger} />
+            <Text style={styles.signOutText}>
+              {signingOut ? "Keluar..." : "Keluar"}
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.version}>Versi {appVersion}</Text>
+        </View>
       </ScrollView>
 
-      <EditorModal
+      <EditorSheet
         error={profileError}
         pending={profileMutation.isPending}
+        snapPoint="52%"
         title="Edit Informasi Pribadi"
         visible={profileEditorVisible}
         onClose={() => setProfileEditorVisible(false)}
@@ -388,7 +418,7 @@ export default function AccountScreen() {
         <Text style={styles.label}>Nama</Text>
         <View style={styles.inputWithIcon}>
           <UserRound size={18} color={COLORS.textMuted} />
-          <TextInput
+          <BottomSheetTextInput
             autoCapitalize="words"
             maxLength={80}
             placeholder="Nama lengkap"
@@ -405,7 +435,7 @@ export default function AccountScreen() {
         <Text style={styles.label}>Email</Text>
         <View style={styles.inputWithIcon}>
           <Mail size={18} color={COLORS.textMuted} />
-          <TextInput
+          <BottomSheetTextInput
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
@@ -422,11 +452,12 @@ export default function AccountScreen() {
         <Text style={styles.helperText}>
           Perubahan email mungkin memerlukan konfirmasi pada email lama dan baru.
         </Text>
-      </EditorModal>
+      </EditorSheet>
 
-      <EditorModal
+      <EditorSheet
         error={passwordError}
         pending={passwordMutation.isPending}
+        snapPoint="70%"
         title="Ubah Password"
         visible={passwordEditorVisible}
         onClose={() => setPasswordEditorVisible(false)}
@@ -456,7 +487,7 @@ export default function AccountScreen() {
         />
         <PasswordInput
           label="Password baru"
-          placeholder="Minimal 8 karakter"
+          placeholder="Huruf besar, kecil, dan angka"
           value={passwordDraft.newPassword}
           visible={showNewPassword}
           onChangeText={(value) => {
@@ -470,10 +501,25 @@ export default function AccountScreen() {
             setShowNewPassword((current) => !current)
           }
         />
-        <Text style={styles.helperText}>
-          Gunakan minimal 8 karakter dan jangan gunakan password lama.
-        </Text>
-      </EditorModal>
+        <PasswordStrength password={passwordDraft.newPassword} />
+        <PasswordInput
+          label="Konfirmasi password baru"
+          placeholder="Ketik ulang password baru"
+          value={passwordDraft.confirmPassword}
+          visible={showConfirmPassword}
+          onChangeText={(value) => {
+            setPasswordError(null);
+            setPasswordDraft((current) => ({
+              ...current,
+              confirmPassword: value,
+            }));
+          }}
+          onToggleVisibility={() =>
+            setShowConfirmPassword((current) => !current)
+          }
+        />
+        <Text style={styles.helperText}>Password baru tidak boleh sama dengan password lama.</Text>
+      </EditorSheet>
     </SafeAreaView>
   );
 }
@@ -518,8 +564,9 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function EditorModal({
+function EditorSheet({
   title,
+  snapPoint,
   visible,
   pending,
   error,
@@ -528,6 +575,7 @@ function EditorModal({
   onSave,
 }: {
   title: string;
+  snapPoint: string;
   visible: boolean;
   pending: boolean;
   error: string | null;
@@ -535,58 +583,76 @@ function EditorModal({
   onClose: () => void;
   onSave: () => void;
 }) {
-  return (
-    <Modal animationType="slide" visible={visible} onRequestClose={onClose}>
-      <SafeAreaView style={styles.editorSafeArea}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "android" ? "height" : "padding"}
-          style={styles.keyboardView}
-        >
-          <View style={styles.editorHeader}>
-            <TouchableOpacity
-              accessibilityLabel="Tutup editor"
-              accessibilityRole="button"
-              disabled={pending}
-              style={styles.iconButton}
-              onPress={onClose}
-            >
-              <X size={25} color={COLORS.text} />
-            </TouchableOpacity>
-            <Text numberOfLines={1} style={styles.editorTitle}>
-              {title}
-            </Text>
-            <View style={styles.headerSpacer} />
-          </View>
+  const snapPoints = useMemo(() => [snapPoint], [snapPoint]);
+  const onSaveRef = useRef(onSave);
+  onSaveRef.current = onSave;
 
-          <ScrollView
-            contentContainerStyle={styles.editorContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => (
+      <SheetSaveFooter
+        {...props}
+        label="Simpan Perubahan"
+        pending={pending}
+        onPress={() => onSaveRef.current()}
+      />
+    ),
+    [pending],
+  );
+
+  if (!visible) return null;
+
+  return (
+    <BottomSheet
+      index={0}
+      snapPoints={snapPoints}
+      enableDynamicSizing={false}
+      enablePanDownToClose
+      enableBlurKeyboardOnGesture
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      android_keyboardInputMode="adjustPan"
+      onClose={onClose}
+      footerComponent={renderFooter}
+      backdropComponent={(props) => (
+        <BottomSheetBackdrop
+          {...props}
+          appearsOnIndex={0}
+          disappearsOnIndex={-1}
+          opacity={0.5}
+        />
+      )}
+      handleIndicatorStyle={styles.editorHandleIndicator}
+      backgroundStyle={styles.editorSheetBackground}
+    >
+      <BottomSheetScrollView
+        contentContainerStyle={styles.editorContent}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.editorHeader}>
+          <Text numberOfLines={1} style={styles.editorTitle}>
+            {title}
+          </Text>
+          <TouchableOpacity
+            accessibilityLabel="Tutup editor"
+            accessibilityRole="button"
+            disabled={pending}
+            style={styles.editorCloseButton}
+            onPress={onClose}
           >
-            {children}
-            {error ? (
-              <View accessibilityRole="alert" style={styles.errorBox}>
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            ) : null}
-            <TouchableOpacity
-              accessibilityRole="button"
-              activeOpacity={0.8}
-              disabled={pending}
-              style={[styles.primaryButton, pending && styles.buttonDisabled]}
-              onPress={onSave}
-            >
-              {pending ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Save size={19} color="#FFFFFF" />
-              )}
-              <Text style={styles.primaryButtonText}>Simpan Perubahan</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </Modal>
+            <X size={20} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        </View>
+
+        {children}
+        {error ? (
+          <View accessibilityRole="alert" style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+      </BottomSheetScrollView>
+    </BottomSheet>
   );
 }
 
@@ -610,7 +676,7 @@ function PasswordInput({
       <Text style={styles.label}>{label}</Text>
       <View style={styles.inputWithIcon}>
         <KeyRound size={18} color={COLORS.textMuted} />
-        <TextInput
+        <BottomSheetTextInput
           autoCapitalize="none"
           autoCorrect={false}
           placeholder={placeholder}
@@ -662,9 +728,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  keyboardView: {
-    flex: 1,
-  },
   header: {
     height: 52,
     paddingHorizontal: 8,
@@ -677,6 +740,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   content: {
+    flexGrow: 1,
     paddingHorizontal: 20,
     paddingBottom: 36,
   },
@@ -693,13 +757,13 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: 112,
     height: 112,
-    borderRadius: 56,
+    borderRadius: RADIUS.full,
     backgroundColor: COLORS.border,
   },
   avatarFallback: {
     width: 112,
     height: 112,
-    borderRadius: 56,
+    borderRadius: RADIUS.full,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.primary,
@@ -715,7 +779,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: RADIUS.full,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.text,
@@ -729,12 +793,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: COLORS.text,
     textAlign: "center",
-  },
-  email: {
-    maxWidth: "100%",
-    marginTop: 6,
-    fontSize: 14,
-    color: COLORS.textMuted,
   },
   loader: {
     marginVertical: 28,
@@ -806,14 +864,17 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: COLORS.textMuted,
   },
+  accountFooter: {
+    marginTop: "auto",
+    paddingTop: 36,
+  },
   signOutButton: {
     height: 52,
-    marginTop: 36,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 9,
-    borderRadius: 8,
+    borderRadius: RADIUS.control,
   },
   signOutText: {
     color: COLORS.danger,
@@ -821,37 +882,45 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   version: {
-    marginTop: 2,
+    marginTop: 28,
     color: COLORS.textMuted,
     fontSize: 12,
     textAlign: "center",
   },
-  editorSafeArea: {
-    flex: 1,
-    backgroundColor: COLORS.background,
+  editorSheetBackground: {
+    borderTopLeftRadius: RADIUS.sheet,
+    borderTopRightRadius: RADIUS.sheet,
+  },
+  editorHandleIndicator: {
+    width: 48,
+    height: 5,
+    borderRadius: RADIUS.full,
+    backgroundColor: "#CBD5E1",
   },
   editorHeader: {
-    height: 56,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    justifyContent: "space-between",
+    marginBottom: 8,
   },
   editorTitle: {
     flex: 1,
     color: COLORS.text,
-    fontSize: 17,
-    fontWeight: "700",
-    textAlign: "center",
+    fontSize: 20,
+    fontWeight: "800",
   },
-  headerSpacer: {
-    width: 44,
+  editorCloseButton: {
+    width: 38,
+    height: 38,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.background,
   },
   editorContent: {
     paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 36,
+    paddingTop: 6,
+    paddingBottom: 128,
   },
   label: {
     marginTop: 14,
@@ -867,7 +936,7 @@ const styles = StyleSheet.create({
     gap: 10,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 8,
+    borderRadius: RADIUS.control,
     paddingLeft: 14,
     backgroundColor: COLORS.card,
   },
@@ -896,7 +965,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 9,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: RADIUS.control,
     backgroundColor: COLORS.softBlue,
   },
   editorStatusText: {
@@ -908,7 +977,7 @@ const styles = StyleSheet.create({
   errorBox: {
     marginTop: 18,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: RADIUS.control,
     backgroundColor: COLORS.softRed,
   },
   errorText: {
@@ -916,21 +985,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     fontWeight: "600",
-  },
-  primaryButton: {
-    height: 52,
-    marginTop: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
-    borderRadius: 8,
-    backgroundColor: COLORS.primary,
-  },
-  primaryButtonText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "700",
   },
   buttonDisabled: {
     opacity: 0.65,

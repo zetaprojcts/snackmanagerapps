@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { CircleUserRound, Filter, Search } from "lucide-react-native";
+import { Filter, Search } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   Modal,
@@ -20,9 +19,14 @@ import {
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 import EmptyState from "../../components/ui/EmptyState";
+import { DeviceListSkeleton, Skeleton } from "../../components/ui/Skeleton";
 import { useAuth } from "../../features/auth/AuthProvider";
+import {
+  downloadOwnAvatar,
+  getOwnProfile,
+} from "../../features/auth/profileApi";
 import { getDevicesWithBalance } from "../../features/devices/api";
-import { COLORS } from "../../theme";
+import { COLORS, RADIUS } from "../../theme";
 
 const BRAND_IMAGES: Record<string, any> = {
   Samsung: require("../../../assets/devices/samsung.png"),
@@ -80,12 +84,37 @@ export default function DevicesScreen() {
   const [showFilter, setShowFilter] = useState(false);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ["tenant", user?.id, "devices"],
+    queryKey: ["tenant", user?.id, "devices", "with-balance"],
     queryFn: getDevicesWithBalance,
     enabled: Boolean(user),
   });
 
-  const devices = data || [];
+  const { data: profile } = useQuery({
+    queryKey: ["tenant", user?.id, "profile"],
+    queryFn: () => getOwnProfile(user!.id),
+    enabled: Boolean(user),
+  });
+
+  const { data: avatarUri } = useQuery({
+    queryKey: ["tenant", user?.id, "avatar", profile?.avatar_url],
+    queryFn: () => downloadOwnAvatar(profile!.avatar_url!),
+    enabled: Boolean(user && profile?.avatar_url),
+  });
+
+  const profileName =
+    profile?.full_name ?? String(user?.user_metadata?.full_name ?? "");
+  const profileEmail = profile?.email ?? user?.email ?? "";
+  const profileInitials = useMemo(
+    () =>
+      (profileName || profileEmail.split("@")[0] || "Pengguna")
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join(""),
+    [profileEmail, profileName],
+  );
+
+  const devices = useMemo(() => data ?? [], [data]);
 
   const filteredDevices = useMemo(() => {
     let result = [...devices];
@@ -166,8 +195,32 @@ export default function DevicesScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Skeleton width={190} height={28} />
+          <Skeleton
+            width={44}
+            height={44}
+            style={{ borderRadius: RADIUS.full }}
+          />
+        </View>
+        <View style={styles.searchRow}>
+          <Skeleton
+            width="78%"
+            height={54}
+            style={{ borderRadius: RADIUS.full }}
+          />
+          <Skeleton
+            width={54}
+            height={54}
+            style={{ borderRadius: RADIUS.full }}
+          />
+        </View>
+        <View style={styles.totalRow}>
+          <Skeleton width={118} height={14} />
+          <Skeleton width={18} height={14} />
+        </View>
+        <DeviceListSkeleton count={5} />
       </View>
     );
   }
@@ -183,7 +236,15 @@ export default function DevicesScreen() {
             style={styles.accountButton}
             onPress={() => router.push("/account")}
           >
-            <CircleUserRound size={32} color={COLORS.primary} />
+            {avatarUri ? (
+              <Image source={{ uri: avatarUri }} style={styles.accountAvatar} />
+            ) : (
+              <View style={styles.accountFallback}>
+                <Text style={styles.accountInitials}>
+                  {profileInitials || "U"}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </Animated.View>
 
@@ -302,12 +363,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
   header: {
     paddingTop: 60,
     paddingHorizontal: 20,
@@ -322,6 +377,25 @@ const styles = StyleSheet.create({
     height: 48,
     alignItems: "center",
     justifyContent: "center",
+  },
+  accountAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.border,
+  },
+  accountFallback: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.primary,
+  },
+  accountInitials: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "800",
   },
 
   title: {
@@ -343,7 +417,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 54,
     backgroundColor: "#e8e8e8",
-    borderRadius: 30,
+    borderRadius: RADIUS.full,
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -366,7 +440,7 @@ const styles = StyleSheet.create({
   filterBtn: {
     width: 54,
     height: 54,
-    borderRadius: 30, // Mengikuti radius searchBox agar serasi
+    borderRadius: RADIUS.full,
     backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
@@ -403,7 +477,7 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: "#FFF",
-    borderRadius: 20,
+    borderRadius: RADIUS.card,
     padding: 16,
     marginBottom: 14,
     flexDirection: "row",
@@ -455,7 +529,7 @@ const styles = StyleSheet.create({
   statusDot: {
     width: 10,
     height: 10,
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
   },
 
   // --- STYLE DROPDOWN MELAYANG ---
@@ -471,7 +545,7 @@ const styles = StyleSheet.create({
     width: 220,
     maxHeight: 350,
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    borderRadius: RADIUS.card,
     paddingVertical: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -514,6 +588,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     backgroundColor: COLORS.primary,
-    borderRadius: 8,
+    borderRadius: RADIUS.full,
   },
 });

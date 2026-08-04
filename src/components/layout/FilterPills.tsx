@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { COLORS } from "../../theme";
+import { COLORS, RADIUS } from "../../theme";
 
 type FilterPillsProps = {
   activeFilter: string;
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   pill: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: RADIUS.full,
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,

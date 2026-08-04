@@ -1,16 +1,23 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import {
+  type StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  type ViewStyle,
+} from "react-native";
 
-import { COLORS, SHADOW } from "../../theme";
+import { COLORS, RADIUS, SHADOW } from "../../theme";
 
 type Props = {
   title: string;
   subtitle: string;
+  style?: StyleProp<ViewStyle>;
 };
 
-export default function EmptyState({ title, subtitle }: Props) {
+export default function EmptyState({ title, subtitle, style }: Props) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <Text style={styles.title}>{title}</Text>
 
       <Text style={styles.subtitle}>{subtitle}</Text>
@@ -21,7 +28,7 @@ export default function EmptyState({ title, subtitle }: Props) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
+    borderRadius: RADIUS.card,
     padding: 40,
     alignItems: "center",
     ...SHADOW.card,

@@ -3,6 +3,7 @@ import React, { ReactNode, useEffect } from "react";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withTiming,
 } from "react-native-reanimated";
 
@@ -17,14 +18,20 @@ export default function FadeInView({ children, delay = 0 }: Props) {
   const translateY = useSharedValue(20);
 
   useEffect(() => {
-    opacity.value = withTiming(1, {
-      duration: 350,
-    });
+    opacity.value = withDelay(
+      delay,
+      withTiming(1, {
+        duration: 350,
+      }),
+    );
 
-    translateY.value = withTiming(0, {
-      duration: 350,
-    });
-  }, [delay]);
+    translateY.value = withDelay(
+      delay,
+      withTiming(0, {
+        duration: 350,
+      }),
+    );
+  }, [delay, opacity, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {

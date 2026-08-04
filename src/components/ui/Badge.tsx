@@ -1,6 +1,8 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+import { RADIUS } from "../../theme";
+
 interface BadgeProps {
   status: "active" | "inactive";
 }
@@ -31,13 +33,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: RADIUS.full,
     alignSelf: "flex-start",
   },
   dot: {
     width: 6,
     height: 6,
-    borderRadius: 3,
+    borderRadius: RADIUS.full,
     marginRight: 6,
   },
   // Warna untuk status AKTIF (Hijau)

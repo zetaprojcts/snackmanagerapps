@@ -92,3 +92,24 @@ Rollback dilakukan bila salah satu kondisi berikut terjadi:
 - Verifikasi backup pascamigrasi.
 - Tutup maintenance window setelah owner legacy dan user baru lulus smoke test.
 - Catat insiden atau deviasi pada dokumen audit.
+
+## Hasil Eksekusi 4 Agustus 2026
+
+- Backup final production tersimpan di folder lokal yang diabaikan Git: `database-backups/snackmanager-pub-pre-v2-20260804`.
+- Backup memuat role, schema penuh, schema public, data public, data Auth, dan data Storage; seluruh file lulus verifikasi SHA-256.
+- Snapshot production berhasil direstore ke stack Supabase lokal terisolasi.
+- Baseline rehearsal dan production final adalah 22 perangkat, 701 pendapatan, serta 99 penarikan.
+- Total pendapatan Rp6.280.337, gross penarikan Rp4.888.000, admin fee Rp126.750, dan net penarikan Rp4.761.250 tidak berubah setelah migrasi.
+- Owner legacy dibuat dengan hash Auth development yang tetap terenkripsi dan UUID yang telah disetujui user; production hanya memiliki satu akun Auth setelah cleanup QA.
+- Migration `001`, `002b`, dan `006` dicatat sebagai baseline karena schema legacy telah merepresentasikan atau tidak aman untuk dijalankan ulang.
+- Migration kompatibel `002`, `003`, `004`, `005`, dan `007` sampai `012` berhasil dijalankan pada rehearsal lalu production.
+- Migration `012` menghapus policy single-user permisif, memverifikasi owner, melakukan backfill, dan menetapkan `devices.user_id` sebagai `NOT NULL`.
+- Rekonsiliasi production menghasilkan nol device tanpa owner, nol owner salah, serta nol orphan income/payment.
+- Uji REST dengan akun production sementara mengembalikan nol row untuk devices, income, dan payment; akun sementara beserta profile telah dihapus.
+- Development dan production sudah up-to-date sampai migration `012`; link CLI dikembalikan ke development.
+
+Gate yang masih terbuka:
+
+- Uji rollback penuh setelah kondisi pascamigrasi belum dijalankan.
+- Login dan smoke test owner legacy melalui Internal Production APK belum dilakukan.
+- Backup lokal wajib dipindahkan user ke lokasi aman dan tidak boleh masuk Git.

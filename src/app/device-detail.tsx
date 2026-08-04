@@ -1,7 +1,13 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Calendar, ChevronLeft, Edit, Mail, Wallet } from "lucide-react-native";
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Edit,
+  Mail,
+  Wallet,
+} from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
   Image,
@@ -23,10 +29,11 @@ import Animated, {
 } from "react-native-reanimated";
 
 import EmptyState from "../components/ui/EmptyState";
-import { DeviceCardSkeleton } from "../components/ui/Skeleton";
+import AppDatePickerModal from "../components/ui/AppDatePickerModal";
+import { DeviceDetailSkeleton } from "../components/ui/Skeleton";
 import { useAuth } from "../features/auth/AuthProvider";
 import { getDeviceDetail } from "../features/devices/api";
-import { COLORS, SHADOW } from "../theme";
+import { COLORS, RADIUS, SHADOW } from "../theme";
 
 if (Platform.OS === "android") {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -44,6 +51,8 @@ const BRAND_IMAGES: Record<string, any> = {
 };
 
 const DEFAULT_IMAGE = require("../../assets/devices/default.png");
+const AnimatedTouchableOpacity =
+  Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function DeviceDetail() {
   const { id } = useLocalSearchParams();
@@ -68,8 +77,8 @@ export default function DeviceDetail() {
   });
 
   const device = data?.device;
-  const incomes = data?.incomes ?? [];
-  const payments = data?.payments ?? [];
+  const incomes = useMemo(() => data?.incomes ?? [], [data?.incomes]);
+  const payments = useMemo(() => data?.payments ?? [], [data?.payments]);
   const totalIncome = data?.totalIncome ?? 0;
   const totalPayment = data?.totalPayment ?? 0;
   const balance = data?.balance ?? 0;
@@ -213,11 +222,13 @@ export default function DeviceDetail() {
     const list =
       metricTab === "income"
         ? incomes.map((i: any) => ({
+            id: i.id,
             type: "income",
             amount: Number(i.amount),
             trx_date: i.trx_date,
           }))
         : payments.map((p: any) => ({
+            id: p.id,
             type: "payment",
             amount: Number(p.gross_amount),
             trx_date: p.trx_date,
@@ -236,19 +247,12 @@ export default function DeviceDetail() {
       month: "long",
       year: "numeric",
     });
-  const handleStartDateChange = (event: any, selectedDate?: Date) => {
-    setShowStartPicker(false);
-    if (selectedDate) setCustomStartDate(selectedDate);
-  };
-  const handleEndDateChange = (event: any, selectedDate?: Date) => {
-    setShowEndPicker(false);
-    if (selectedDate) setCustomEndDate(selectedDate);
-  };
-
   if (isLoading)
     return (
       <View style={styles.container}>
-        <DeviceCardSkeleton />
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <DeviceDetailSkeleton />
+        </ScrollView>
       </View>
     );
   if (!device)
@@ -498,9 +502,26 @@ export default function DeviceDetail() {
               />
             ) : (
               activities.map((item, index) => (
-                <Animated.View
-                  key={`${item.type}-${item.trx_date}-${index}`}
+                <AnimatedTouchableOpacity
+                  accessibilityLabel={`Buka detail ${item.type === "income" ? "pendapatan" : "penarikan"} tanggal ${new Date(item.trx_date).toLocaleDateString("id-ID")}`}
+                  accessibilityRole="button"
+                  activeOpacity={0.82}
+                  key={item.id}
                   entering={FadeInUp.duration(300).delay(index * 40)}
+                  onPress={() => {
+                    if (item.type === "income") {
+                      router.push({
+                        pathname: "/income-detail",
+                        params: { id: item.id },
+                      });
+                      return;
+                    }
+
+                    router.push({
+                      pathname: "/payment-detail",
+                      params: { id: item.id },
+                    });
+                  }}
                   style={styles.activityItem}
                 >
                   <View>
@@ -511,21 +532,24 @@ export default function DeviceDetail() {
                       {new Date(item.trx_date).toLocaleDateString("id-ID")}
                     </Text>
                   </View>
-                  <Text
-                    style={[
-                      styles.activityAmount,
-                      {
-                        color:
-                          item.type === "income"
-                            ? COLORS.success
-                            : COLORS.warning,
-                      },
-                    ]}
-                  >
-                    {item.type === "income" ? "+" : "-"} Rp{" "}
-                    {item.amount.toLocaleString("id-ID")}
-                  </Text>
-                </Animated.View>
+                  <View style={styles.activityTrailing}>
+                    <Text
+                      style={[
+                        styles.activityAmount,
+                        {
+                          color:
+                            item.type === "income"
+                              ? COLORS.success
+                              : COLORS.warning,
+                        },
+                      ]}
+                    >
+                      {item.type === "income" ? "+" : "-"} Rp{" "}
+                      {item.amount.toLocaleString("id-ID")}
+                    </Text>
+                    <ChevronRight color={COLORS.textMuted} size={18} />
+                  </View>
+                </AnimatedTouchableOpacity>
               ))
             )}
           </Animated.View>
@@ -573,22 +597,26 @@ export default function DeviceDetail() {
           </View>
         </View>
       </Modal>
-      {showStartPicker && (
-        <DateTimePicker
-          value={customStartDate}
-          mode="date"
-          display="default"
-          onChange={handleStartDateChange}
-        />
-      )}
-      {showEndPicker && (
-        <DateTimePicker
-          value={customEndDate}
-          mode="date"
-          display="default"
-          onChange={handleEndDateChange}
-        />
-      )}
+      <AppDatePickerModal
+        onCancel={() => setShowStartPicker(false)}
+        onConfirm={(date) => {
+          setShowStartPicker(false);
+          setCustomStartDate(date);
+        }}
+        title="Tanggal mulai"
+        value={customStartDate}
+        visible={showStartPicker}
+      />
+      <AppDatePickerModal
+        onCancel={() => setShowEndPicker(false)}
+        onConfirm={(date) => {
+          setShowEndPicker(false);
+          setCustomEndDate(date);
+        }}
+        title="Tanggal selesai"
+        value={customEndDate}
+        visible={showEndPicker}
+      />
     </>
   );
 }
@@ -616,7 +644,7 @@ const styles = StyleSheet.create({
   deviceCard: {
     backgroundColor: "#FFFFFF",
     marginHorizontal: 20,
-    borderRadius: 24,
+    borderRadius: RADIUS.card,
     padding: 20,
     ...SHADOW.card,
   },
@@ -646,7 +674,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
   },
   statusChipText: {
     color: "#FFFFFF",
@@ -674,7 +702,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 16,
     backgroundColor: COLORS.primary,
-    borderRadius: 24,
+    borderRadius: RADIUS.card,
     padding: 24,
     ...SHADOW.card,
   },
@@ -696,7 +724,7 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    borderRadius: 20,
+    borderRadius: RADIUS.card,
     padding: 18,
     ...SHADOW.card,
   },
@@ -738,7 +766,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: "#FFFFFF",
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -756,7 +784,7 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 24,
+    borderRadius: RADIUS.card,
     paddingLeft: 20,
     paddingRight: 20,
     paddingBottom: 20,
@@ -768,7 +796,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 8,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: RADIUS.control,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
@@ -802,7 +830,7 @@ const styles = StyleSheet.create({
   },
   activityItem: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
+    borderRadius: RADIUS.card,
     padding: 16,
     marginBottom: 12,
     flexDirection: "row",
@@ -824,6 +852,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
   },
+  activityTrailing: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -834,7 +867,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: "100%",
     backgroundColor: "#FFFFFF",
-    borderRadius: 24,
+    borderRadius: RADIUS.sheet,
     padding: 24,
     ...SHADOW.card,
   },
@@ -854,7 +887,7 @@ const styles = StyleSheet.create({
     height: 50,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 12,
+    borderRadius: RADIUS.control,
     paddingHorizontal: 16,
     marginBottom: 16,
     justifyContent: "center",
@@ -874,7 +907,7 @@ const styles = StyleSheet.create({
   modalBtnCancel: {
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: RADIUS.control,
     backgroundColor: "#F1F5F9",
   },
   modalBtnCancelText: {
@@ -884,7 +917,7 @@ const styles = StyleSheet.create({
   modalBtnSave: {
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: RADIUS.control,
     backgroundColor: COLORS.primary,
   },
   modalBtnSaveText: {
